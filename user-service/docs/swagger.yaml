@@ -1,0 +1,106 @@
+definitions:
+  presentation.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  web_schemas.LoginRequest:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  web_schemas.LoginResponse:
+    properties:
+      access_token:
+        type: string
+      id:
+        type: integer
+      refresh_token:
+        type: string
+      username:
+        type: string
+    type: object
+  web_schemas.NewUserIn:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  web_schemas.NewUserOut:
+    properties:
+      access_token:
+        type: string
+      refresh_token:
+        type: string
+      username:
+        description: ID           uint `json:"id"`
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /users/login:
+    post:
+      consumes:
+      - application/json
+      description: Аутентификация пользователя с генерацией Access и Refresh токенов
+      parameters:
+      - description: Login credentials
+        in: body
+        name: credentials
+        required: true
+        schema:
+          $ref: '#/definitions/web_schemas.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/web_schemas.LoginResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/presentation.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/presentation.ErrorResponse'
+      summary: Вход пользователя
+      tags:
+      - users
+  /users/register:
+    post:
+      consumes:
+      - application/json
+      description: Зарегистрировать нового пользователя и получить Access и Refresh
+        токены
+      parameters:
+      - description: New User
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/web_schemas.NewUserIn'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/web_schemas.NewUserOut'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/presentation.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/presentation.ErrorResponse'
+      summary: Регистрация нового пользователя
+      tags:
+      - users
+swagger: "2.0"

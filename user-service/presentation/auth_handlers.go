@@ -7,6 +7,21 @@ import (
 	"user-service/shared"
 )
 
+type ErrorResponse struct {
+	Error string `json:"error"`
+}
+
+// RegisterUser godoc
+// @Summary Регистрация нового пользователя
+// @Description Зарегистрировать нового пользователя и получить Access и Refresh токены
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param user body web_schemas.NewUserIn true "New User"
+// @Success 201 {object} web_schemas.NewUserOut
+// @Failure 400 {object} ErrorResponse
+// @Failure 409 {object} ErrorResponse
+// @Router /users/register [post]
 func RegisterUser(c *gin.Context, container *shared.Container) {
 	var user web_schemas.NewUserIn
 
@@ -44,6 +59,17 @@ func RegisterUser(c *gin.Context, container *shared.Container) {
 	c.JSON(http.StatusCreated, newUserResponse)
 }
 
+// LoginUser godoc
+// @Summary Вход пользователя
+// @Description Аутентификация пользователя с генерацией Access и Refresh токенов
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param credentials body web_schemas.LoginRequest true "Login credentials"
+// @Success 200 {object} web_schemas.LoginResponse
+// @Failure 400 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Router /users/login [post]
 func LoginUser(c *gin.Context, container *shared.Container) {
 	var credentials web_schemas.LoginRequest
 
