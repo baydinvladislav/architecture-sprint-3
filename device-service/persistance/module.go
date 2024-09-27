@@ -14,12 +14,12 @@ func (ModuleModel) TableName() string {
 	return "modules"
 }
 
-type HouseModule struct {
-	HouseID  string `gorm:"type:uuid;not null"`
-	ModuleID string `gorm:"type:uuid;not null"`
+type HouseModuleModel struct {
+	HouseID  uint `gorm:"type:uuid;not null"`
+	ModuleID uint `gorm:"type:uuid;not null"`
 	TurnOn   bool
 }
 
-func (HouseModule) TableName() string {
+func (HouseModuleModel) TableName() string {
 	return "house_modules"
 }

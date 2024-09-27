@@ -8,3 +8,7 @@ type ModuleOut struct {
 	Type        string    `json:"type"`
 	Description string    `json:"description"`
 }
+
+type ConnectModuleIn struct {
+	ID uint `json:"id"`
+}
