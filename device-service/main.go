@@ -13,11 +13,21 @@ func CreateApp(ctx context.Context) *gin.Engine {
 
 	moduleGroup := r.Group("/modules")
 	{
-		moduleGroup.GET("/", func(c *gin.Context) { presentation.GetAvailableModules(c, appContainer) })
-		moduleGroup.GET("/:houseID", func(c *gin.Context) { presentation.GetModulesByHouseId(c, appContainer) })
-		moduleGroup.PUT("/:houseID/:moduleID/turn-on", func(c *gin.Context) { presentation.TurnOnModule(c, appContainer) })
-		moduleGroup.PUT("/:houseID/:moduleID/turn-off", func(c *gin.Context) { presentation.TurnOffModule(c, appContainer) })
-		moduleGroup.POST("/houses/:houseID/modules", func(c *gin.Context) { presentation.AddModuleToHouse(c, appContainer) })
+		moduleGroup.GET(
+			"/", func(c *gin.Context) { presentation.GetAvailableModules(c, appContainer) },
+		)
+		moduleGroup.GET(
+			"/:houseID", func(c *gin.Context) { presentation.GetModulesByHouseId(c, appContainer) },
+		)
+		moduleGroup.PUT(
+			"/:houseID/:moduleID/turn-on", func(c *gin.Context) { presentation.TurnOnModule(c, appContainer) },
+		)
+		moduleGroup.PUT(
+			"/:houseID/:moduleID/turn-off", func(c *gin.Context) { presentation.TurnOffModule(c, appContainer) },
+		)
+		moduleGroup.POST(
+			"/houses/:houseID/modules", func(c *gin.Context) { presentation.AddModuleToHouse(c, appContainer) },
+		)
 	}
 
 	return r
