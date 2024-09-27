@@ -9,6 +9,15 @@ type AppSettings struct {
 	DBSSLMode  string
 }
 
+func (s *AppSettings) DSN() string {
+	return "host=" + s.DBHost +
+		" user=" + s.DBUser +
+		" password=" + s.DBPassword +
+		" dbname=" + s.DBName +
+		" port=" + s.DBPort +
+		" sslmode=" + s.DBSSLMode
+}
+
 func NewAppSettings() *AppSettings {
 	return &AppSettings{
 		DBHost:     "0.0.0.0",
@@ -18,13 +27,4 @@ func NewAppSettings() *AppSettings {
 		DBPort:     "5432",
 		DBSSLMode:  "disable",
 	}
-}
-
-func (s *AppSettings) DSN() string {
-	return "host=" + s.DBHost +
-		" user=" + s.DBUser +
-		" password=" + s.DBPassword +
-		" dbname=" + s.DBName +
-		" port=" + s.DBPort +
-		" sslmode=" + s.DBSSLMode
 }
