@@ -6,10 +6,10 @@ import (
 )
 
 type ModuleModel struct {
+	ID uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4();primary_key"`
 	gorm.Model
-	ID          uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4();primary_key"`
-	Type        string    `gorm:"size:50"`
-	Description string    `gorm:"type:text"`
+	Type        string `gorm:"size:50"`
+	Description string `gorm:"type:text"`
 }
 
 func (ModuleModel) TableName() string {
@@ -17,6 +17,8 @@ func (ModuleModel) TableName() string {
 }
 
 type HouseModuleModel struct {
+	ID uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4();primary_key"`
+	gorm.Model
 	HouseID  uuid.UUID `gorm:"type:uuid;not null"`
 	ModuleID uuid.UUID `gorm:"type:uuid;not null"`
 	TurnOn   bool

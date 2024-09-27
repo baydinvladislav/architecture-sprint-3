@@ -24,14 +24,7 @@ func NewAppContainer(ctx context.Context) *Container {
 		log.Fatalf("failed to connect to database: %v", err)
 	}
 
-	err = db.AutoMigrate(
-		&persistance.ModuleModel{},
-		&persistance.HouseModuleModel{},
-		&persistance.Device{},
-	)
-	if err != nil {
-		return nil
-	}
+	persistance.Migrate(db)
 
 	moduleRepo := repository.NewGORMModuleRepository(db)
 	moduleService := service.NewModuleService(moduleRepo)
