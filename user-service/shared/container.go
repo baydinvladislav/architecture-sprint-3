@@ -11,8 +11,9 @@ import (
 )
 
 type Container struct {
-	UserService *service.UserService
-	AuthService *service.AuthService
+	AuthService  *service.AuthService
+	UserService  *service.UserService
+	HouseService *service.HouseService
 }
 
 func NewAppContainer(ctx context.Context) *Container {
@@ -22,7 +23,7 @@ func NewAppContainer(ctx context.Context) *Container {
 		log.Fatalf("failed to connect to database: %v", err)
 	}
 
-	err = db.AutoMigrate(&persistance.UserModel{})
+	err = db.AutoMigrate(&persistance.UserModel{}, &persistance.HouseModel{})
 	if err != nil {
 		return nil
 	}
@@ -34,8 +35,11 @@ func NewAppContainer(ctx context.Context) *Container {
 	var refreshSecret = []byte("2hXKd7hDB/28TBKPyR262qVfDi1aX2t00IG99q6wxEc=")
 	authService := service.NewAuthService(accessSecret, refreshSecret)
 
+	houseRepo := repository.NewGORMHouseRepository(db)
+	houseService := service.NewHouseService(houseRepo)
 	return &Container{
-		UserService: userService,
-		AuthService: authService,
+		UserService:  userService,
+		AuthService:  authService,
+		HouseService: houseService,
 	}
 }

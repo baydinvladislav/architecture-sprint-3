@@ -15,7 +15,6 @@ func CreateApp(ctx context.Context) *gin.Engine {
 	appContainer := shared.NewAppContainer(ctx)
 	r := gin.Default()
 
-	// Инициализация документации Swagger
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	userGroup := r.Group("/users")
@@ -27,6 +26,14 @@ func CreateApp(ctx context.Context) *gin.Engine {
 		userGroup.Use(middleware.AuthMiddleware(appContainer.AuthService))
 		userGroup.GET("/:userId", func(c *gin.Context) { presentation.GetUserById(c, appContainer) })
 	}
+
+	houseGroup := r.Group("/houses")
+	{
+		houseGroup.POST("/", func(c *gin.Context) { presentation.CreateUserHouse(c, appContainer) })
+		houseGroup.GET("/:houseId", func(c *gin.Context) { presentation.GetHouseById(c, appContainer) })
+		houseGroup.PUT("/:houseId", func(c *gin.Context) { presentation.UpdateUserHouse(c, appContainer) })
+	}
+
 	return r
 }
 
