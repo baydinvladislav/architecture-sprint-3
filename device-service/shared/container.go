@@ -12,10 +12,13 @@ import (
 
 type Container struct {
 	ModuleService *service.ModuleService
+	AppSettings   *AppSettings
 }
 
 func NewAppContainer(ctx context.Context) *Container {
-	dsn := "host=0.0.0.0 user=postgres password=postgres dbname=sprint_3 port=5432 sslmode=disable"
+	settings := NewAppSettings()
+	dsn := settings.DSN()
+
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatalf("failed to connect to database: %v", err)
