@@ -21,9 +21,13 @@ func NewGORMModuleRepository(db *gorm.DB) *GORMModuleRepository {
 }
 
 func (r *GORMModuleRepository) GetAllModules() ([]web_schemas.ModuleOut, error) {
-	var modules []persistance.Module
+	var modules []persistance.ModuleModel
 	if err := r.db.Find(&modules).Error; err != nil {
 		return nil, err
+	}
+
+	if len(modules) == 0 {
+		return []web_schemas.ModuleOut{}, nil
 	}
 
 	var moduleOuts []web_schemas.ModuleOut

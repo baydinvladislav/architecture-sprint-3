@@ -4,13 +4,13 @@ import (
 	"gorm.io/gorm"
 )
 
-type Module struct {
+type ModuleModel struct {
 	gorm.Model
 	Type        string `gorm:"size:50"`
 	Description string `gorm:"type:text"`
 }
 
-func (Module) TableName() string {
+func (ModuleModel) TableName() string {
 	return "modules"
 }
 

@@ -1,4 +1,4 @@
-package servicepackage
+package service
 
 import (
 	"device-service/presentation/web-schemas"
