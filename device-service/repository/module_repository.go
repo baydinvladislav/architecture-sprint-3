@@ -3,8 +3,17 @@ package repository
 import (
 	"device-service/persistance"
 	"device-service/presentation/web-schemas"
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
+
+type ModuleRepository interface {
+	GetAllModules() ([]web_schemas.ModuleOut, error)
+	GetModulesByHouseID(houseID uuid.UUID) ([]web_schemas.ModuleOut, error)
+	TurnOnModule(houseID uuid.UUID, moduleID uuid.UUID) error
+	TurnOffModule(houseID uuid.UUID, moduleID uuid.UUID) error
+	AddModuleToHouse(houseID uuid.UUID, newModule web_schemas.ConnectModuleIn) ([]web_schemas.ModuleOut, error)
+}
 
 type GORMModuleRepository struct {
 	db *gorm.DB
@@ -35,7 +44,7 @@ func (r *GORMModuleRepository) GetAllModules() ([]web_schemas.ModuleOut, error) 
 	return moduleOuts, nil
 }
 
-func (r *GORMModuleRepository) GetModulesByHouseID(houseID uint) ([]web_schemas.ModuleOut, error) {
+func (r *GORMModuleRepository) GetModulesByHouseID(houseID uuid.UUID) ([]web_schemas.ModuleOut, error) {
 	var houseModules []persistance.HouseModuleModel
 	if err := r.db.Where("house_id = ?", houseID).Find(&houseModules).Error; err != nil {
 		return nil, err
@@ -57,7 +66,7 @@ func (r *GORMModuleRepository) GetModulesByHouseID(houseID uint) ([]web_schemas.
 	return moduleOuts, nil
 }
 
-func (r *GORMModuleRepository) TurnOnModule(houseID uint, moduleID uint) error {
+func (r *GORMModuleRepository) TurnOnModule(houseID uuid.UUID, moduleID uuid.UUID) error {
 	var houseModule persistance.HouseModuleModel
 	if err := r.db.Where("house_id = ? AND module_id = ?", houseID, moduleID).First(&houseModule).Error; err != nil {
 		return err
@@ -67,7 +76,7 @@ func (r *GORMModuleRepository) TurnOnModule(houseID uint, moduleID uint) error {
 	return r.db.Save(&houseModule).Error
 }
 
-func (r *GORMModuleRepository) TurnOffModule(houseID uint, moduleID uint) error {
+func (r *GORMModuleRepository) TurnOffModule(houseID uuid.UUID, moduleID uuid.UUID) error {
 	var houseModule persistance.HouseModuleModel
 	if err := r.db.Where("house_id = ? AND module_id = ?", houseID, moduleID).First(&houseModule).Error; err != nil {
 		return err
@@ -77,7 +86,10 @@ func (r *GORMModuleRepository) TurnOffModule(houseID uint, moduleID uint) error 
 	return r.db.Save(&houseModule).Error
 }
 
-func (r *GORMModuleRepository) AddModuleToHouse(houseID uint, newModule web_schemas.ConnectModuleIn) (*web_schemas.ModuleOut, error) {
+func (r *GORMModuleRepository) AddModuleToHouse(
+	houseID uuid.UUID,
+	newModule web_schemas.ConnectModuleIn,
+) ([]web_schemas.ModuleOut, error) {
 	module := persistance.HouseModuleModel{
 		HouseID:  houseID,
 		ModuleID: newModule.ID,
@@ -98,10 +110,10 @@ func (r *GORMModuleRepository) AddModuleToHouse(houseID uint, newModule web_sche
 		return nil, err
 	}
 
-	return &web_schemas.ModuleOut{
-		ID:          module.ID,
-		CreatedAt:   module.CreatedAt,
-		Type:        module.Type,
-		Description: module.Description,
-	}, nil
+	modules, err := r.GetModulesByHouseID(houseID)
+	if err != nil {
+		return nil, err
+	}
+
+	return modules, nil
 }

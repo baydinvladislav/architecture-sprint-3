@@ -4,8 +4,8 @@ import (
 	web_schemas "device-service/presentation/web-schemas"
 	"device-service/shared"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"net/http"
-	"strconv"
 )
 
 func GetAvailableModules(c *gin.Context, container *shared.Container) {
@@ -19,7 +19,13 @@ func GetAvailableModules(c *gin.Context, container *shared.Container) {
 }
 
 func GetModulesByHouseId(c *gin.Context, container *shared.Container) {
-	houseID := c.Param("houseID")
+	houseIDStr := c.Param("houseID")
+
+	houseID, err := uuid.Parse(houseIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid house ID"})
+		return
+	}
 
 	modules, err := container.ModuleService.GetModulesByHouseID(houseID)
 	if err != nil {
@@ -31,8 +37,20 @@ func GetModulesByHouseId(c *gin.Context, container *shared.Container) {
 }
 
 func TurnOnModule(c *gin.Context, container *shared.Container) {
-	houseID := c.Param("houseID")
-	moduleID := c.Param("moduleID")
+	houseIDStr := c.Param("houseID")
+	moduleIDStr := c.Param("moduleID")
+
+	houseID, err := uuid.Parse(houseIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid house ID"})
+		return
+	}
+
+	moduleID, err := uuid.Parse(moduleIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid module ID"})
+		return
+	}
 
 	if err := container.ModuleService.TurnOnModule(houseID, moduleID); err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Module not found or could not be turned on"})
@@ -46,19 +64,19 @@ func TurnOffModule(c *gin.Context, container *shared.Container) {
 	houseIDStr := c.Param("houseID")
 	moduleIDStr := c.Param("moduleID")
 
-	houseID, err := strconv.ParseUint(houseIDStr, 10, 64)
+	houseID, err := uuid.Parse(houseIDStr)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid house ID"})
 		return
 	}
 
-	moduleID, err := strconv.ParseUint(moduleIDStr, 10, 64)
+	moduleID, err := uuid.Parse(moduleIDStr)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid module ID"})
 		return
 	}
 
-	if err := container.ModuleService.TurnOffModule(uint(houseID), uint(moduleID)); err != nil {
+	if err := container.ModuleService.TurnOffModule(houseID, moduleID); err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Module not found or could not be turned off"})
 		return
 	}
@@ -67,7 +85,13 @@ func TurnOffModule(c *gin.Context, container *shared.Container) {
 }
 
 func AddModuleToHouse(c *gin.Context, container *shared.Container) {
-	houseID := c.Param("houseID")
+	houseIDStr := c.Param("houseID")
+	houseID, err := uuid.Parse(houseIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid house ID"})
+		return
+	}
+
 	var newModule web_schemas.ConnectModuleIn
 
 	if err := c.ShouldBindJSON(&newModule); err != nil {

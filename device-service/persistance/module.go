@@ -1,13 +1,15 @@
 package persistance
 
 import (
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 type ModuleModel struct {
 	gorm.Model
-	Type        string `gorm:"size:50"`
-	Description string `gorm:"type:text"`
+	ID          uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4();primary_key"`
+	Type        string    `gorm:"size:50"`
+	Description string    `gorm:"type:text"`
 }
 
 func (ModuleModel) TableName() string {
@@ -15,8 +17,8 @@ func (ModuleModel) TableName() string {
 }
 
 type HouseModuleModel struct {
-	HouseID  uint `gorm:"type:uuid;not null"`
-	ModuleID uint `gorm:"type:uuid;not null"`
+	HouseID  uuid.UUID `gorm:"type:uuid;not null"`
+	ModuleID uuid.UUID `gorm:"type:uuid;not null"`
 	TurnOn   bool
 }
 
