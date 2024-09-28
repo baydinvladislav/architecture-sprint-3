@@ -14,6 +14,7 @@ type Container struct {
 	AuthService  *service.AuthService
 	UserService  *service.UserService
 	HouseService *service.HouseService
+	AppSettings  *AppSettings
 }
 
 func NewAppContainer(ctx context.Context) *Container {
@@ -43,5 +44,6 @@ func NewAppContainer(ctx context.Context) *Container {
 		UserService:  userService,
 		AuthService:  authService,
 		HouseService: houseService,
+		AppSettings:  appSettings,
 	}
 }
