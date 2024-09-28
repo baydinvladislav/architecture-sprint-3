@@ -1,6 +1,6 @@
 module device-service
 
-go 1.22.3
+go 1.22
 
 require (
 	github.com/bytedance/sonic v1.11.6 // indirect
