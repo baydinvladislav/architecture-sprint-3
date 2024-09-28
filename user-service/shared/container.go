@@ -17,7 +17,9 @@ type Container struct {
 }
 
 func NewAppContainer(ctx context.Context) *Container {
-	dsn := "host=0.0.0.0 user=postgres password=postgres dbname=sprint_3 port=5432 sslmode=disable"
+	appSettings := NewAppSettings()
+	dsn := appSettings.DSN()
+
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatalf("failed to connect to database: %v", err)
