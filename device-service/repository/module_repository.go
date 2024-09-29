@@ -12,7 +12,7 @@ type ModuleRepository interface {
 	GetModulesByHouseID(houseID uuid.UUID) ([]web_schemas.ModuleOut, error)
 	TurnOnModule(houseID uuid.UUID, moduleID uuid.UUID) error
 	TurnOffModule(houseID uuid.UUID, moduleID uuid.UUID) error
-	AddModuleToHouse(houseID uuid.UUID, newModule web_schemas.ConnectModuleIn) ([]web_schemas.ModuleOut, error)
+	AddModuleToHouse(houseID uuid.UUID, moduleID uuid.UUID) ([]web_schemas.ModuleOut, error)
 }
 
 type GORMModuleRepository struct {
@@ -88,25 +88,15 @@ func (r *GORMModuleRepository) TurnOffModule(houseID uuid.UUID, moduleID uuid.UU
 
 func (r *GORMModuleRepository) AddModuleToHouse(
 	houseID uuid.UUID,
-	newModule web_schemas.ConnectModuleIn,
+	moduleID uuid.UUID,
 ) ([]web_schemas.ModuleOut, error) {
 	module := persistance.HouseModuleModel{
 		HouseID:  houseID,
-		ModuleID: newModule.ID,
+		ModuleID: moduleID,
 		TurnOn:   true,
 	}
 
 	if err := r.db.Create(&module).Error; err != nil {
-		return nil, err
-	}
-
-	houseModule := persistance.HouseModuleModel{
-		HouseID:  module.HouseID,
-		ModuleID: module.ModuleID,
-		TurnOn:   true,
-	}
-
-	if err := r.db.Create(&houseModule).Error; err != nil {
 		return nil, err
 	}
 

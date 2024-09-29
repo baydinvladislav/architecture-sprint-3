@@ -1,7 +1,6 @@
 package presentation
 
 import (
-	web_schemas "device-service/presentation/web-schemas"
 	"device-service/shared"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -38,20 +37,21 @@ func GetModulesByHouseId(c *gin.Context, container *shared.Container) {
 
 func AddModuleToHouse(c *gin.Context, container *shared.Container) {
 	houseIDStr := c.Param("houseID")
+	moduleIDStr := c.Param("moduleID")
+
 	houseID, err := uuid.Parse(houseIDStr)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid house ID"})
 		return
 	}
 
-	var newModule web_schemas.ConnectModuleIn
-
-	if err := c.ShouldBindJSON(&newModule); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+	moduleID, err := uuid.Parse(moduleIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid module ID"})
 		return
 	}
 
-	newModuleResponse, err := container.ModuleService.AddModuleToHouse(houseID, newModule)
+	newModuleResponse, err := container.ModuleService.AddModuleToHouse(houseID, moduleID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to add module"})
 		return

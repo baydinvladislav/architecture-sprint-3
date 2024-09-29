@@ -19,14 +19,14 @@ func CreateApp(ctx context.Context) *gin.Engine {
 		moduleGroup.GET(
 			"/:houseID", func(c *gin.Context) { presentation.GetModulesByHouseId(c, appContainer) },
 		)
+		moduleGroup.POST(
+			"/:moduleID/houses/:houseID/", func(c *gin.Context) { presentation.AddModuleToHouse(c, appContainer) },
+		)
 		moduleGroup.PUT(
 			"/:houseID/:moduleID/turn-on", func(c *gin.Context) { presentation.TurnOnModule(c, appContainer) },
 		)
 		moduleGroup.PUT(
 			"/:houseID/:moduleID/turn-off", func(c *gin.Context) { presentation.TurnOffModule(c, appContainer) },
-		)
-		moduleGroup.POST(
-			"/houses/:houseID/modules", func(c *gin.Context) { presentation.AddModuleToHouse(c, appContainer) },
 		)
 	}
 

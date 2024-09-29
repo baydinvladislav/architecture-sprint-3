@@ -34,7 +34,7 @@ func (s *ModuleService) TurnOffModule(houseID uuid.UUID, moduleID uuid.UUID) err
 
 func (s *ModuleService) AddModuleToHouse(
 	houseID uuid.UUID,
-	newModule web_schemas.ConnectModuleIn,
+	moduleID uuid.UUID,
 ) ([]web_schemas.ModuleOut, error) {
-	return s.repo.AddModuleToHouse(houseID, newModule)
+	return s.repo.AddModuleToHouse(houseID, moduleID)
 }
