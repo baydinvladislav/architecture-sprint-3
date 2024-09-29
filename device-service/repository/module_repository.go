@@ -66,26 +66,6 @@ func (r *GORMModuleRepository) GetModulesByHouseID(houseID uuid.UUID) ([]web_sch
 	return moduleOuts, nil
 }
 
-func (r *GORMModuleRepository) TurnOnModule(houseID uuid.UUID, moduleID uuid.UUID) error {
-	var houseModule persistance.HouseModuleModel
-	if err := r.db.Where("house_id = ? AND module_id = ?", houseID, moduleID).First(&houseModule).Error; err != nil {
-		return err
-	}
-
-	houseModule.TurnOn = true
-	return r.db.Save(&houseModule).Error
-}
-
-func (r *GORMModuleRepository) TurnOffModule(houseID uuid.UUID, moduleID uuid.UUID) error {
-	var houseModule persistance.HouseModuleModel
-	if err := r.db.Where("house_id = ? AND module_id = ?", houseID, moduleID).First(&houseModule).Error; err != nil {
-		return err
-	}
-
-	houseModule.TurnOn = false
-	return r.db.Save(&houseModule).Error
-}
-
 func (r *GORMModuleRepository) AddModuleToHouse(
 	houseID uuid.UUID,
 	moduleID uuid.UUID,
@@ -106,4 +86,24 @@ func (r *GORMModuleRepository) AddModuleToHouse(
 	}
 
 	return modules, nil
+}
+
+func (r *GORMModuleRepository) TurnOnModule(houseID uuid.UUID, moduleID uuid.UUID) error {
+	var houseModule persistance.HouseModuleModel
+	if err := r.db.Where("house_id = ? AND module_id = ?", houseID, moduleID).First(&houseModule).Error; err != nil {
+		return err
+	}
+
+	houseModule.TurnOn = true
+	return r.db.Save(&houseModule).Error
+}
+
+func (r *GORMModuleRepository) TurnOffModule(houseID uuid.UUID, moduleID uuid.UUID) error {
+	var houseModule persistance.HouseModuleModel
+	if err := r.db.Where("house_id = ? AND module_id = ?", houseID, moduleID).First(&houseModule).Error; err != nil {
+		return err
+	}
+
+	houseModule.TurnOn = false
+	return r.db.Save(&houseModule).Error
 }
