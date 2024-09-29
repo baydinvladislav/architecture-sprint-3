@@ -54,6 +54,11 @@ func addInitialModules(db *gorm.DB) error {
 	}
 
 	for _, module := range modules {
+		var existingModule ModuleModel
+		if err := db.Where("type = ?", module.Type).First(&existingModule).Error; err == nil {
+			continue
+		}
+
 		if err := db.Create(&module).Error; err != nil {
 			return err
 		}
