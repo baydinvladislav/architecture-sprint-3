@@ -8,7 +8,7 @@ import (
 
 type HouseRepository interface {
 	CreateUserHouse(userId uint, house web_schemas.NewHouseIn) (*persistance.HouseModel, error)
-	GetUserHouses(userID string) ([]web_schemas.HouseOut, error)
+	GetUserHouses(userID uint) ([]web_schemas.HouseOut, error)
 	UpdateUserHouse(house web_schemas.UpdateHouseIn) (*persistance.HouseModel, error)
 }
 
@@ -39,7 +39,7 @@ func (r *GORMHouseRepository) CreateUserHouse(
 	return &newHouse, nil
 }
 
-func (r *GORMHouseRepository) GetUserHouses(userID string) ([]web_schemas.HouseOut, error) {
+func (r *GORMHouseRepository) GetUserHouses(userID uint) ([]web_schemas.HouseOut, error) {
 	var houses []persistance.HouseModel
 	err := r.db.Where("user_id = ?", userID).Find(&houses).Error
 	if err != nil {

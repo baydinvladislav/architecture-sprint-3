@@ -35,7 +35,7 @@ func (s *HouseService) CreateUserHouse(
 	return houseOut, nil
 }
 
-func (s *HouseService) GetUserHouses(userID string) ([]web_schemas.HouseOut, error) {
+func (s *HouseService) GetUserHouses(userID uint) ([]web_schemas.HouseOut, error) {
 	return s.repo.GetUserHouses(userID)
 }
 

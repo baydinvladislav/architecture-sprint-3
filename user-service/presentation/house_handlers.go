@@ -50,9 +50,20 @@ func GetUserHouses(c *gin.Context, container *shared.Container) {
 		return
 	}
 
-	houses, err := container.HouseService.GetUserHouses(username.(string))
+	user, err := container.UserService.GetByUsername(username.(string))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "User not exists"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+
+	houses, err := container.HouseService.GetUserHouses(user.ID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve user's houses"})
+		return
+	}
+
+	if len(houses) == 0 {
+		c.JSON(http.StatusOK, []web_schemas.HouseOut{})
 		return
 	}
 
