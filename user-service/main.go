@@ -29,8 +29,9 @@ func CreateApp(ctx context.Context) *gin.Engine {
 
 	houseGroup := r.Group("/houses")
 	{
+		userGroup.Use(middleware.AuthMiddleware(appContainer.AuthService))
 		houseGroup.POST("/", func(c *gin.Context) { presentation.CreateUserHouse(c, appContainer) })
-		houseGroup.GET("/:houseId", func(c *gin.Context) { presentation.GetHouseById(c, appContainer) })
+		houseGroup.GET("/", func(c *gin.Context) { presentation.GetUserHouses(c, appContainer) })
 		houseGroup.PUT("/:houseId", func(c *gin.Context) { presentation.UpdateUserHouse(c, appContainer) })
 	}
 

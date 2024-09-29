@@ -7,8 +7,8 @@ import (
 )
 
 type HouseRepository interface {
-	CreateUserHouse(house web_schemas.NewHouseIn) (*persistance.HouseModel, error)
-	GetUserHouse(userID string) (web_schemas.HouseOut, error)
+	CreateUserHouse(userId uint, house web_schemas.NewHouseIn) (*persistance.HouseModel, error)
+	GetUserHouses(userID string) ([]web_schemas.HouseOut, error)
 	UpdateUserHouse(house web_schemas.UpdateHouseIn) (*persistance.HouseModel, error)
 }
 
@@ -22,11 +22,14 @@ func NewGORMHouseRepository(db *gorm.DB) *GORMHouseRepository {
 	}
 }
 
-func (r *GORMHouseRepository) CreateUserHouse(house web_schemas.NewHouseIn) (*persistance.HouseModel, error) {
+func (r *GORMHouseRepository) CreateUserHouse(
+	userId uint,
+	house web_schemas.NewHouseIn,
+) (*persistance.HouseModel, error) {
 	newHouse := persistance.HouseModel{
 		Address: house.Address,
 		Square:  house.Square,
-		UserID:  house.UserID,
+		UserID:  userId,
 	}
 
 	if err := r.db.Create(&newHouse).Error; err != nil {
@@ -36,19 +39,24 @@ func (r *GORMHouseRepository) CreateUserHouse(house web_schemas.NewHouseIn) (*pe
 	return &newHouse, nil
 }
 
-func (r *GORMHouseRepository) GetUserHouse(userID string) (web_schemas.HouseOut, error) {
-	var house persistance.HouseModel
-	err := r.db.Where("user_id = ?", userID).First(&house).Error
+func (r *GORMHouseRepository) GetUserHouses(userID string) ([]web_schemas.HouseOut, error) {
+	var houses []persistance.HouseModel
+	err := r.db.Where("user_id = ?", userID).Find(&houses).Error
 	if err != nil {
-		return web_schemas.HouseOut{}, err
+		return nil, err
 	}
 
-	return web_schemas.HouseOut{
-		ID:      house.ID,
-		Address: house.Address,
-		Square:  house.Square,
-		UserID:  house.UserID,
-	}, nil
+	var houseOuts []web_schemas.HouseOut
+	for _, house := range houses {
+		houseOuts = append(houseOuts, web_schemas.HouseOut{
+			ID:      house.ID,
+			Address: house.Address,
+			Square:  house.Square,
+			UserID:  house.UserID,
+		})
+	}
+
+	return houseOuts, nil
 }
 
 func (r *GORMHouseRepository) UpdateUserHouse(house web_schemas.UpdateHouseIn) (*persistance.HouseModel, error) {

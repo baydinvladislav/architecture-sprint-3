@@ -16,8 +16,11 @@ func NewHouseService(repo repository.HouseRepository) *HouseService {
 	}
 }
 
-func (s *HouseService) CreateUserHouse(house web_schemas.NewHouseIn) (*web_schemas.HouseOut, error) {
-	newHouse, err := s.repo.CreateUserHouse(house)
+func (s *HouseService) CreateUserHouse(
+	userId uint,
+	house web_schemas.NewHouseIn,
+) (*web_schemas.HouseOut, error) {
+	newHouse, err := s.repo.CreateUserHouse(userId, house)
 	if err != nil {
 		return nil, err
 	}
@@ -32,8 +35,8 @@ func (s *HouseService) CreateUserHouse(house web_schemas.NewHouseIn) (*web_schem
 	return houseOut, nil
 }
 
-func (s *HouseService) GetUserHouse(userID string) (web_schemas.HouseOut, error) {
-	return s.repo.GetUserHouse(userID)
+func (s *HouseService) GetUserHouses(userID string) ([]web_schemas.HouseOut, error) {
+	return s.repo.GetUserHouses(userID)
 }
 
 func (s *HouseService) UpdateUserHouse(house web_schemas.UpdateHouseIn) (*persistance.HouseModel, error) {

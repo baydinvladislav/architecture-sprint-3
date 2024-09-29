@@ -15,7 +15,19 @@ func CreateUserHouse(c *gin.Context, container *shared.Container) {
 		return
 	}
 
-	newHouse, err := container.HouseService.CreateUserHouse(house)
+	username, exists := c.Get("username")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Could not get username from JWT token"})
+		return
+	}
+
+	user, err := container.UserService.GetByUsername(username.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "User not exists"})
+		return
+	}
+
+	newHouse, err := container.HouseService.CreateUserHouse(user.ID, house)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not create house"})
 		return
@@ -31,18 +43,20 @@ func CreateUserHouse(c *gin.Context, container *shared.Container) {
 	c.JSON(http.StatusCreated, newHouseResponse)
 }
 
-func GetHouseById(c *gin.Context, container *shared.Container) {
-	houseId := c.Param("Id")
-
-	house, err := container.HouseService.GetUserHouse(houseId)
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "house not found"})
+func GetUserHouses(c *gin.Context, container *shared.Container) {
+	username, exists := c.Get("username")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Could not get username from JWT token"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"house": house})
+	houses, err := container.HouseService.GetUserHouses(username.(string))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "User not exists"})
+		return
+	}
+
+	c.JSON(http.StatusOK, houses)
 }
 
-func UpdateUserHouse(c *gin.Context, container *shared.Container) {
-
-}
+func UpdateUserHouse(c *gin.Context, container *shared.Container) {}
