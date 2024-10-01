@@ -23,23 +23,16 @@ func CreateApp(ctx context.Context) *gin.Engine {
 
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	userGroup := r.Group("/users")
-	{
-		userGroup.POST("/register", func(c *gin.Context) { presentation.RegisterUser(c, appContainer) })
-		userGroup.POST("/login", func(c *gin.Context) { presentation.LoginUser(c, appContainer) })
-		userGroup.POST("/refresh-token", func(c *gin.Context) { presentation.RefreshToken(c, appContainer) })
+	r.POST("/register", func(c *gin.Context) { presentation.RegisterUser(c, appContainer) })
+	r.POST("/login", func(c *gin.Context) { presentation.LoginUser(c, appContainer) })
+	r.POST("/refresh-token", func(c *gin.Context) { presentation.RefreshToken(c, appContainer) })
 
-		userGroup.Use(middleware.AuthMiddleware(appContainer.AuthService))
-		userGroup.GET("/:userId", func(c *gin.Context) { presentation.GetUserById(c, appContainer) })
-	}
+	r.Use(middleware.AuthMiddleware(appContainer.AuthService))
+	r.GET("/users/:userId", func(c *gin.Context) { presentation.GetUserById(c, appContainer) })
 
-	houseGroup := r.Group("/houses")
-	{
-		houseGroup.Use(middleware.AuthMiddleware(appContainer.AuthService))
-		houseGroup.POST("/", func(c *gin.Context) { presentation.CreateUserHouse(c, appContainer) })
-		houseGroup.GET("/", func(c *gin.Context) { presentation.GetUserHouses(c, appContainer) })
-		houseGroup.PUT("/:houseId", func(c *gin.Context) { presentation.UpdateUserHouse(c, appContainer) })
-	}
+	r.POST("/houses", func(c *gin.Context) { presentation.CreateUserHouse(c, appContainer) })
+	r.GET("/houses", func(c *gin.Context) { presentation.GetUserHouses(c, appContainer) })
+	r.PUT("/houses/:houseId", func(c *gin.Context) { presentation.UpdateUserHouse(c, appContainer) })
 
 	return r
 }
