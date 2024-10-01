@@ -15,6 +15,12 @@ func CreateApp(ctx context.Context) *gin.Engine {
 	appContainer := shared.NewAppContainer(ctx)
 	r := gin.Default()
 
+	r.GET("/health", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"status": "OK",
+		})
+	})
+
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	userGroup := r.Group("/users")

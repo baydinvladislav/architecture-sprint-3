@@ -13,7 +13,8 @@ services:
       - DB_NAME=sprint_3
       - DB_PORT=5432
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
   device-service:
     build:
@@ -27,7 +28,8 @@ services:
       - DB_NAME=sprint_3
       - DB_PORT=5432
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
   db:
     image: postgres:latest
@@ -38,3 +40,17 @@ services:
       POSTGRES_PASSWORD: postgres
     ports:
       - "5433:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d sprint_3 -h localhost || exit 1" ]
+      interval: 10s
+      retries: 5
+
+  nginx:
+    image: nginx:latest
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+    ports:
+      - "80:80"
+    depends_on:
+      - user-service
+      - device-service
