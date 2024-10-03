@@ -1,20 +1,42 @@
 package main
 
 import (
+	"context"
 	"github.com/gin-gonic/gin"
 	"log"
+	"telemetry-service/shared"
 )
 
-func main() {
-	router := gin.Default()
+func CreateApp(ctx context.Context, container *shared.AppContainer) *gin.Engine {
+	r := gin.Default()
 
-	router.GET("/", func(c *gin.Context) {
+	r.GET("/", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"message": "Hello, World!",
 		})
 	})
 
-	if err := router.Run(":8082"); err != nil {
-		log.Fatalf("failed to run server: %v", err)
+	go func() {
+		for {
+			event := container.TelemetryService.ReadTelemetryTopic()
+			if err := container.TelemetryService.ProcessEvent(event); err != nil {
+				log.Printf("Error handling event: %v", err)
+			}
+		}
+	}()
+
+	return r
+}
+
+func main() {
+	ctx := context.Background()
+	appContainer := shared.NewAppContainer(ctx)
+
+	app := CreateApp(ctx, appContainer)
+
+	err := app.Run(":8082")
+	if err != nil {
+		log.Fatalf("Failed to run the app: %v", err)
+		return
 	}
 }
