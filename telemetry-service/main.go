@@ -18,7 +18,12 @@ func CreateApp(ctx context.Context, container *shared.AppContainer) *gin.Engine 
 
 	go func() {
 		for {
-			event := container.TelemetryService.ReadTelemetryTopic()
+			event, err := container.TelemetryService.ReadMessage(ctx)
+			if err != nil {
+				log.Printf("Error while reading message: %v", err)
+				continue
+			}
+
 			if err := container.TelemetryService.ProcessEvent(event); err != nil {
 				log.Printf("Error handling event: %v", err)
 			}

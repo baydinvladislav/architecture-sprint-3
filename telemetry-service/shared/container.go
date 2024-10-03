@@ -21,7 +21,7 @@ func NewAppContainer(ctx context.Context) *AppContainer {
 		appSettings.CollectionName,
 	)
 
-	kafkaClient := suppliers.NewKafkaClient(
+	kafkaClient := suppliers.NewKafkaSupplier(
 		appSettings.KafkaBroker,
 		appSettings.TelemetryTopic,
 		appSettings.GroupID,
