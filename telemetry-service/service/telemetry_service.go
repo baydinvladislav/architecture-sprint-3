@@ -50,6 +50,9 @@ func (s *TelemetryService) ProcessEvent(event schemas.Event) error {
 	switch event.EventType {
 	case "TelemetryData":
 		data, ok := event.Payload.(schemas.TelemetryPayload)
+
+		log.Println("msg data: ", data)
+
 		if !ok {
 			return fmt.Errorf("invalid payload for TelemetryData event")
 		}
@@ -83,7 +86,14 @@ func (s *TelemetryService) ProcessEvent(event schemas.Event) error {
 }
 
 func (s *TelemetryService) saveEvent(event schemas.EventPayload) error {
-	log.Println("saveEvent method is called (stub).")
+	log.Println("Saving event...")
+
+	err := s.telemetryRepository.InsertEvent(event)
+	if err != nil {
+		return fmt.Errorf("failed to save event: %v", err)
+	}
+
+	log.Println("Event saved successfully")
 	return nil
 }
 

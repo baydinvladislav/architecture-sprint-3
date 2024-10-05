@@ -20,6 +20,7 @@ type TelemetryPayload struct {
 	Value      float64 `json:"value"`
 	Time       int64   `json:"time"`
 }
+
 type EmergencyPayload struct {
 	EquipmentID string `json:"equipment_id"`
 	Reason      string `json:"reason"`

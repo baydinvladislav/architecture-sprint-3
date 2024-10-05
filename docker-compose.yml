@@ -31,6 +31,18 @@ services:
       db:
         condition: service_healthy
 
+  telemetry-service:
+    build:
+      context: ./telemetry-service
+    ports:
+      - "8082:8082"
+    environment:
+      - KAFKA_BROKER=kafka:9092
+      - MONGO_URI=mongodb://root:mongodb@mongo:27017/telemetry_database
+    depends_on:
+      - mongo
+      - kafka
+
   db:
     image: postgres:latest
     restart: always
@@ -44,6 +56,16 @@ services:
       test: [ "CMD-SHELL", "pg_isready -U postgres -d sprint_3 -h localhost || exit 1" ]
       interval: 10s
       retries: 5
+
+  mongo:
+    image: mongo:latest
+    restart: always
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: telemetry_database
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: mongodb
 
   nginx:
     image: nginx:latest
@@ -73,6 +95,6 @@ services:
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-      KAFKA_CREATE_TOPICS: "forced.module.shutdown:1:1"
+      KAFKA_CREATE_TOPICS: "forced.module.shutdown:1:1,telemetry.data:1:1"
     depends_on:
       - zookeeper
