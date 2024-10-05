@@ -45,19 +45,24 @@ func (s *TelemetryService) ReadMessage(ctx context.Context) (schemas.Event, erro
 }
 
 func (s *TelemetryService) ProcessEvent(event schemas.Event) error {
-	log.Println("ProcessEvent method is called (stub).")
+	log.Println("ProcessEvent method is called (stub).", event)
 
 	switch event.EventType {
 	case "TelemetryData":
-		data, ok := event.Payload.(schemas.TelemetryPayload)
+		var data schemas.TelemetryPayload
+
+		payloadBytes, err := json.Marshal(event.Payload)
+		if err != nil {
+			return fmt.Errorf("failed to marshal payload: %v", err)
+		}
+
+		if err := json.Unmarshal(payloadBytes, &data); err != nil {
+			return fmt.Errorf("failed to unmarshal payload to TelemetryPayload: %v", err)
+		}
 
 		log.Println("msg data: ", data)
 
-		if !ok {
-			return fmt.Errorf("invalid payload for TelemetryData event")
-		}
-
-		err := s.saveEvent(data)
+		err = s.saveEvent(data)
 		if err != nil {
 			return err
 		}
