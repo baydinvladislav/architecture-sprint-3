@@ -1,0 +1,32 @@
+@startuml
+
+actor User
+
+participant DeviceService
+participant UserService
+participant Kafka
+participant TelemetryService
+
+User -> DeviceService: Add Module to House Request
+DeviceService -> Kafka: Publish "module.added" event
+
+Kafka -> UserService: Consume "module.added" event
+UserService -> UserService: Check house and permissions
+alt House exists and user has permission
+    UserService -> Kafka: Publish "module.verification.succeeded" event
+else House does not exist or user has no permission
+    UserService -> Kafka: Publish "module.verification.failed" event
+end
+
+Kafka -> DeviceService: Consume "module.verification.succeeded" or "module.verification.failed" event
+alt Verification succeeded
+    DeviceService -> DeviceService: Update status to PENDING_INSTALL
+    DeviceService -> Kafka: Publish "module.installed" event
+else Verification failed
+    DeviceService -> DeviceService: Update status to PENDING_FAILED
+end
+
+Kafka -> TelemetryService: Consume "module.installed" event
+TelemetryService -> TelemetryService: Log module installation success
+
+@enduml

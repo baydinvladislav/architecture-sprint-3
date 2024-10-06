@@ -5,6 +5,7 @@ import (
 	"device-service/persistance"
 	"device-service/repository"
 	"device-service/service"
+	"device-service/suppliers"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"log"
@@ -13,6 +14,7 @@ import (
 type Container struct {
 	ModuleService *service.ModuleService
 	AppSettings   *AppSettings
+	KafkaSupplier *suppliers.KafkaSupplier
 }
 
 func NewAppContainer(ctx context.Context) *Container {
@@ -28,8 +30,17 @@ func NewAppContainer(ctx context.Context) *Container {
 
 	moduleRepo := repository.NewGORMModuleRepository(db)
 	moduleService := service.NewModuleService(moduleRepo)
+
+	kafkaSupplier := suppliers.NewKafkaSupplier(
+		appSettings.KafkaBroker,
+		appSettings.ModuleAddedKafkaTopic,
+		appSettings.ModuleVerificationKafkaTopic,
+		appSettings.KafkaGroupID,
+	)
+
 	return &Container{
 		ModuleService: moduleService,
 		AppSettings:   appSettings,
+		KafkaSupplier: kafkaSupplier,
 	}
 }
