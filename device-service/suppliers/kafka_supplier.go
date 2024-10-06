@@ -12,7 +12,7 @@ type KafkaSupplier struct {
 }
 
 func NewKafkaSupplier(
-	broker string,
+	kafkaBroker string,
 	moduleAdditionTopic string,
 	moduleVerificationTopic string,
 	groupID string,
@@ -24,7 +24,7 @@ func NewKafkaSupplier(
 	}
 
 	moduleVerificationConsumer := kafka.NewReader(kafka.ReaderConfig{
-		Brokers: []string{broker},
+		Brokers: []string{kafkaBroker},
 		Topic:   moduleAdditionTopic,
 		GroupID: groupID,
 	})
