@@ -22,7 +22,7 @@ import ru.yandex.practicum.smarthome.supplier.MicroserviceSupplierAdapter;
 public class HeatingSystemController {
 
     private final HeatingSystemService heatingSystemService;
-    private final MicroserviceSupplierAdapter http_adapter;
+    private final MicroserviceSupplierAdapter httpAdapter;
 
     private static final Logger logger = LoggerFactory.getLogger(HeatingSystemController.class);
 
@@ -64,7 +64,7 @@ public class HeatingSystemController {
     // microservice endpoint: {"action": "set_temperature", "temperature": 23.0, ...}
     public ResponseEntity<Void> setTargetTemperature(@PathVariable("id") Long id, @RequestParam double temperature) {
         logger.info("Setting target temperature to {} for heating system with id {}", temperature, id);
-        var response = http_adapter.SendSetTemperatureRequest(id, temperature);
+        var response = httpAdapter.SendSetTemperatureRequest(id, temperature);
         logger.info("Got response from microservice API Gateway {}", response);
         heatingSystemService.setTargetTemperature(id, temperature);
         return ResponseEntity.accepted().build();
