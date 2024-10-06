@@ -5,6 +5,7 @@ import (
 	"device-service/presentation"
 	"device-service/shared"
 	"github.com/gin-gonic/gin"
+	"log"
 )
 
 func CreateApp(ctx context.Context) *gin.Engine {
@@ -40,6 +41,26 @@ func CreateApp(ctx context.Context) *gin.Engine {
 			func(c *gin.Context) { presentation.TurnOffModule(c, appContainer) },
 		)
 	}
+
+	go func() {
+		for {
+			event, err := appContainer.ModuleService.ReadMessage(ctx)
+			if err != nil {
+				log.Printf("Error while reading message: %v", err)
+				continue
+			}
+
+			ok, err := appContainer.ModuleService.ProcessMessage(event)
+			if err != nil {
+				log.Printf("Error handling event: %v", err)
+				continue
+			}
+
+			if ok {
+				log.Printf("Event successfully processed: %v", event)
+			}
+		}
+	}()
 
 	return r
 }
