@@ -17,10 +17,11 @@ func NewKafkaSupplier(
 	moduleVerificationTopic string,
 	groupID string,
 ) *KafkaSupplier {
-	moduleAdditionProducer := kafka.NewWriter(kafka.WriterConfig{
-		Brokers: []string{broker},
-		Topic:   moduleVerificationTopic,
-	})
+	moduleAdditionProducer := &kafka.Writer{
+		Addr:     kafka.TCP("localhost:9092"),
+		Topic:    moduleVerificationTopic,
+		Balancer: &kafka.LeastBytes{},
+	}
 
 	moduleVerificationConsumer := kafka.NewReader(kafka.ReaderConfig{
 		Brokers: []string{broker},
