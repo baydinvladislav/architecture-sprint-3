@@ -7,6 +7,11 @@ type AppSettings struct {
 	DBName     string
 	DBPort     string
 	DBSSLMode  string
+
+	KafkaBroker                  string
+	ModuleAddedKafkaTopic        string
+	ModuleVerificationKafkaTopic string
+	KafkaGroupID                 string
 }
 
 func (s *AppSettings) DSN() string {
@@ -26,5 +31,10 @@ func NewAppSettings() *AppSettings {
 		DBName:     "sprint_3",
 		DBPort:     "5432",
 		DBSSLMode:  "disable",
+
+		KafkaBroker:                  "kafka:9092",
+		ModuleAddedKafkaTopic:        "module.addition.topic",
+		ModuleVerificationKafkaTopic: "module.verification.topic",
+		KafkaGroupID:                 "user_service_group",
 	}
 }
