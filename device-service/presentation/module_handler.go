@@ -8,6 +8,14 @@ import (
 	"strings"
 )
 
+// GetAvailableModules godoc
+// @Summary Получение доступных модулей
+// @Description Получить список всех доступных модулей
+// @Tags modules
+// @Produce json
+// @Success 200 {array} web_schemas.ModuleOut
+// @Failure 500 {object} ErrorResponse
+// @Router /modules [get]
 func GetAvailableModules(c *gin.Context, container *shared.Container) {
 	modules, err := container.ModuleService.GetAllModules()
 	if err != nil {
@@ -18,6 +26,16 @@ func GetAvailableModules(c *gin.Context, container *shared.Container) {
 	c.JSON(http.StatusOK, modules)
 }
 
+// GetModulesByHouseId godoc
+// @Summary Получение модулей по ID дома
+// @Description Получить все модули, привязанные к определенному дому
+// @Tags modules
+// @Produce json
+// @Param houseID path string true "House ID"
+// @Success 200 {array} web_schemas.ModuleOut
+// @Failure 400 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /houses/{houseID}/modules [get]
 func GetModulesByHouseId(c *gin.Context, container *shared.Container) {
 	houseIDStr := c.Param("houseID")
 
@@ -36,6 +54,18 @@ func GetModulesByHouseId(c *gin.Context, container *shared.Container) {
 	c.JSON(http.StatusOK, modules)
 }
 
+// AddModuleToHouse godoc
+// @Summary Добавление модуля в дом
+// @Description Запрос на добавление модуля в дом
+// @Tags modules
+// @Produce json
+// @Param houseID path string true "House ID"
+// @Param moduleID path string true "Module ID"
+// @Success 201 {object} web_schemas.ModuleOut
+// @Failure 400 {object} ErrorResponse
+// @Failure 409 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /houses/{houseID}/modules/{moduleID} [post]
 func AddModuleToHouse(c *gin.Context, container *shared.Container) {
 	houseIDStr := c.Param("houseID")
 	moduleIDStr := c.Param("moduleID")
@@ -66,6 +96,18 @@ func AddModuleToHouse(c *gin.Context, container *shared.Container) {
 	c.JSON(http.StatusCreated, newModuleResponse)
 }
 
+// TurnOnModule godoc
+// @Summary Включение модуля
+// @Description Включить модуль, привязанный к определенному дому
+// @Tags modules
+// @Produce json
+// @Param houseID path string true "House ID"
+// @Param moduleID path string true "Module ID"
+// @Success 200 {object} map[string]string "message"
+// @Failure 400 {object} ErrorResponse
+// @Failure 404 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /houses/{houseID}/modules/{moduleID}/turn-on [post]
 func TurnOnModule(c *gin.Context, container *shared.Container) {
 	houseIDStr := c.Param("houseID")
 	moduleIDStr := c.Param("moduleID")
@@ -90,6 +132,18 @@ func TurnOnModule(c *gin.Context, container *shared.Container) {
 	c.JSON(http.StatusOK, gin.H{"message": "Module turned on successfully"})
 }
 
+// TurnOffModule godoc
+// @Summary Выключение модуля
+// @Description Выключить модуль, привязанный к определенному дому
+// @Tags modules
+// @Produce json
+// @Param houseID path string true "House ID"
+// @Param moduleID path string true "Module ID"
+// @Success 200 {object} map[string]string "message"
+// @Failure 400 {object} ErrorResponse
+// @Failure 404 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /houses/{houseID}/modules/{moduleID}/turn-off [post]
 func TurnOffModule(c *gin.Context, container *shared.Container) {
 	houseIDStr := c.Param("houseID")
 	moduleIDStr := c.Param("moduleID")
