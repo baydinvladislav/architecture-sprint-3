@@ -62,8 +62,8 @@ entity "TelemetryData" {
 }
 
 User ||--o{ House : "1:M"
-House ||--o{ HouseModule : "M2M"
-Module ||--o{ HouseModule : "M2M"
+House ||--o{ HouseModule : "1:M"
+Module ||--o{ HouseModule : "1:M"
 Module ||--o{ Device : "1:M"
 
 Module ||--o{ SensorModule : "1:M"
