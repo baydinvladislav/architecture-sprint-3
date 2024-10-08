@@ -24,8 +24,8 @@ func NewModuleService(repo repository.ModuleRepository) *ModuleService {
 
 func (s *ModuleService) ProcessMessage(event schemas.Event) (bool, error) {
 	switch event.EventType {
-	case "AddModuleToHouse":
-		payload, ok := event.Payload.(schemas.ModuleAdditionPayload)
+	case "ModuleVerification":
+		payload, ok := event.Payload.(schemas.ModuleVerification)
 		if !ok {
 			return false, errors.New("invalid payload type")
 		}
@@ -39,12 +39,21 @@ func (s *ModuleService) ProcessMessage(event schemas.Event) (bool, error) {
 			return false, errors.New("invalid moduleID UUID")
 		}
 
-		_, err = s.AddModuleToHouse(houseID, moduleID)
-		if err != nil {
-			return false, errors.New("failed to add module to house")
+		if payload.Decision == "ACCEPTED" {
+			err = s.acceptModuleAddition(houseID, moduleID)
+			if err != nil {
+				return false, errors.New("failed to accept module addition")
+			}
+		} else if payload.Decision == "FAILED" {
+			err = s.failModuleAddition(houseID, moduleID)
+			if err != nil {
+				return false, errors.New("failed to process module failure")
+			}
+		} else {
+			return false, errors.New("unsupported decision type")
 		}
-
 		return true, nil
+
 	default:
 		return false, errors.New("unsupported event type")
 	}
@@ -81,9 +90,31 @@ func (s *ModuleService) TurnOffModule(houseID uuid.UUID, moduleID uuid.UUID) err
 	return s.repo.TurnOffModule(houseID, moduleID)
 }
 
-func (s *ModuleService) AddModuleToHouse(
+func (s *ModuleService) RequestAdditionModuleToHouse(
 	houseID uuid.UUID,
 	moduleID uuid.UUID,
 ) ([]web_schemas.ModuleOut, error) {
-	return s.repo.AddModuleToHouse(houseID, moduleID)
+	return s.repo.RequestAddingModuleToHouse(houseID, moduleID)
+}
+
+func (s *ModuleService) acceptModuleAddition(
+	houseID uuid.UUID,
+	moduleID uuid.UUID,
+) error {
+	err := s.repo.AcceptAdditionModuleToHouse(houseID, moduleID)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *ModuleService) failModuleAddition(
+	houseID uuid.UUID,
+	moduleID uuid.UUID,
+) error {
+	err := s.repo.FailAdditionModuleToHouse(houseID, moduleID)
+	if err != nil {
+		return err
+	}
+	return nil
 }

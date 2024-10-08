@@ -12,7 +12,9 @@ type ModuleRepository interface {
 	GetModulesByHouseID(houseID uuid.UUID) ([]web_schemas.ModuleOut, error)
 	TurnOnModule(houseID uuid.UUID, moduleID uuid.UUID) error
 	TurnOffModule(houseID uuid.UUID, moduleID uuid.UUID) error
-	AddModuleToHouse(houseID uuid.UUID, moduleID uuid.UUID) ([]web_schemas.ModuleOut, error)
+	RequestAddingModuleToHouse(houseID uuid.UUID, moduleID uuid.UUID) ([]web_schemas.ModuleOut, error)
+	AcceptAdditionModuleToHouse(houseID uuid.UUID, moduleID uuid.UUID) error
+	FailAdditionModuleToHouse(houseID uuid.UUID, moduleID uuid.UUID) error
 }
 
 type GORMModuleRepository struct {
@@ -66,13 +68,14 @@ func (r *GORMModuleRepository) GetModulesByHouseID(houseID uuid.UUID) ([]web_sch
 	return moduleOuts, nil
 }
 
-func (r *GORMModuleRepository) AddModuleToHouse(
+func (r *GORMModuleRepository) RequestAddingModuleToHouse(
 	houseID uuid.UUID,
 	moduleID uuid.UUID,
 ) ([]web_schemas.ModuleOut, error) {
 	module := persistance.HouseModuleModel{
 		HouseID:  houseID,
 		ModuleID: moduleID,
+		Status:   persistance.InstallRequested,
 		TurnOn:   true,
 	}
 
@@ -86,6 +89,42 @@ func (r *GORMModuleRepository) AddModuleToHouse(
 	}
 
 	return modules, nil
+}
+
+func (r *GORMModuleRepository) AcceptAddingModuleToHouse(
+	houseID uuid.UUID,
+	moduleID uuid.UUID,
+) error {
+	var existingModule persistance.HouseModuleModel
+
+	if err := r.db.Where("house_id = ? AND module_id = ?", houseID, moduleID).First(&existingModule).Error; err != nil {
+		return fmt.Errorf("module with houseID %s and moduleID %s not found", houseID, moduleID)
+	}
+
+	existingModule.Status = persistance.InstallCompleted
+	if err := r.db.Save(&existingModule).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *GORMModuleRepository) FailAdditionModuleToHouse(
+	houseID uuid.UUID,
+	moduleID uuid.UUID,
+) error {
+	var existingModule persistance.HouseModuleModel
+
+	if err := r.db.Where("house_id = ? AND module_id = ?", houseID, moduleID).First(&existingModule).Error; err != nil {
+		return fmt.Errorf("module with houseID %s and moduleID %s not found", houseID, moduleID)
+	}
+
+	existingModule.Status = persistance.InstallFailed
+	if err := r.db.Save(&existingModule).Error; err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (r *GORMModuleRepository) TurnOnModule(houseID uuid.UUID, moduleID uuid.UUID) error {

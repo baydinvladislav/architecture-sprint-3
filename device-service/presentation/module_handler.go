@@ -51,7 +51,7 @@ func AddModuleToHouse(c *gin.Context, container *shared.Container) {
 		return
 	}
 
-	newModuleResponse, err := container.ModuleService.AddModuleToHouse(houseID, moduleID)
+	newModuleResponse, err := container.ModuleService.RequestAdditionModuleToHouse(houseID, moduleID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to add module"})
 		return

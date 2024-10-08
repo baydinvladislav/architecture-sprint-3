@@ -9,11 +9,12 @@ type EventPayload interface {
 	IsEventPayload()
 }
 
-type ModuleAdditionPayload struct {
+type ModuleVerification struct {
 	HouseID  string `json:"source_id"`
 	ModuleID string `json:"source_type"`
 	UserID   string `json:"value"`
 	Time     int64  `json:"time"`
+	Decision string `json:"decision"`
 }
 
-func (ModuleAdditionPayload) IsEventPayload() {}
+func (ModuleVerification) IsEventPayload() {}
