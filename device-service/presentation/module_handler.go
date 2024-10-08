@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"net/http"
+	"strings"
 )
 
 func GetAvailableModules(c *gin.Context, container *shared.Container) {
@@ -53,6 +54,11 @@ func AddModuleToHouse(c *gin.Context, container *shared.Container) {
 
 	newModuleResponse, err := container.ModuleService.RequestAdditionModuleToHouse(houseID, moduleID)
 	if err != nil {
+		if strings.Contains(err.Error(), "already exists") {
+			c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
+			return
+		}
+
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to add module"})
 		return
 	}

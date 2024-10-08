@@ -3,6 +3,7 @@ package repository
 import (
 	"device-service/persistance"
 	"device-service/presentation/web-schemas"
+	"fmt"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -72,6 +73,11 @@ func (r *GORMModuleRepository) RequestAddingModuleToHouse(
 	houseID uuid.UUID,
 	moduleID uuid.UUID,
 ) ([]web_schemas.ModuleOut, error) {
+	var existingModule persistance.HouseModuleModel
+	if err := r.db.Where("house_id = ? AND module_id = ?", houseID, moduleID).First(&existingModule).Error; err == nil {
+		return nil, fmt.Errorf("module with houseID %s and moduleID %s already exists", houseID, moduleID)
+	}
+
 	module := persistance.HouseModuleModel{
 		HouseID:  houseID,
 		ModuleID: moduleID,
