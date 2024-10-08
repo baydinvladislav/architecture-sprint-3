@@ -106,6 +106,17 @@ func LoginUser(c *gin.Context, container *shared.Container) {
 	c.JSON(http.StatusOK, response)
 }
 
+// RefreshToken godoc
+// @Summary Обновление токена доступа
+// @Description Обновить Access и Refresh токены с использованием действующего Refresh токена
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param request body struct{ RefreshToken string `json:"refresh_token"` } true "Refresh Token"
+// @Success 200 {object} map[string]string "Access и Refresh токены"
+// @Failure 400 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Router /users/refresh-token [post]
 func RefreshToken(c *gin.Context, container *shared.Container) {
 	var request struct {
 		RefreshToken string `json:"refresh_token"`

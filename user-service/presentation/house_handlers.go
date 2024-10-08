@@ -7,6 +7,18 @@ import (
 	"user-service/shared"
 )
 
+// CreateUserHouse godoc
+// @Summary Создание нового дома для пользователя
+// @Description Создать новый дом, связанный с пользователем, и вернуть информацию о доме
+// @Tags houses
+// @Accept json
+// @Produce json
+// @Param house body web_schemas.NewHouseIn true "New House"
+// @Success 201 {object} web_schemas.HouseOut
+// @Failure 400 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /houses [post]
 func CreateUserHouse(c *gin.Context, container *shared.Container) {
 	var house web_schemas.NewHouseIn
 
@@ -43,6 +55,16 @@ func CreateUserHouse(c *gin.Context, container *shared.Container) {
 	c.JSON(http.StatusCreated, newHouseResponse)
 }
 
+// GetUserHouses godoc
+// @Summary Получение всех домов пользователя
+// @Description Получить список всех домов, связанных с пользователем
+// @Tags houses
+// @Produce json
+// @Success 200 {array} web_schemas.HouseOut
+// @Failure 401 {object} ErrorResponse
+// @Failure 404 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /houses [get]
 func GetUserHouses(c *gin.Context, container *shared.Container) {
 	username, exists := c.Get("username")
 	if !exists {
@@ -70,4 +92,19 @@ func GetUserHouses(c *gin.Context, container *shared.Container) {
 	c.JSON(http.StatusOK, houses)
 }
 
-func UpdateUserHouse(c *gin.Context, container *shared.Container) {}
+// UpdateUserHouse godoc
+// @Summary Обновление информации о доме пользователя
+// @Description Обновить информацию о существующем доме пользователя
+// @Tags houses
+// @Accept json
+// @Produce json
+// @Param house body web_schemas.UpdateHouseIn true "Updated House"
+// @Success 200 {object} web_schemas.HouseOut
+// @Failure 400 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Failure 404 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /houses/{id} [put]
+func UpdateUserHouse(c *gin.Context, container *shared.Container) {
+	// пока не пригодился, пока заглушка
+}
