@@ -1,5 +1,7 @@
 package schemas
 
+import "github.com/google/uuid"
+
 type Event struct {
 	EventType string      `json:"event_type"`
 	Payload   interface{} `json:"payload"`
@@ -26,5 +28,11 @@ type EmergencyPayload struct {
 	Reason      string `json:"reason"`
 }
 
-func (TelemetryPayload) IsEventPayload() {}
-func (EmergencyPayload) IsEventPayload() {}
+type InstallModuleToHousePayload struct {
+	HouseID  uint      `json:"house_id"`
+	ModuleID uuid.UUID `json:"module_id"`
+}
+
+func (TelemetryPayload) IsEventPayload()            {}
+func (EmergencyPayload) IsEventPayload()            {}
+func (InstallModuleToHousePayload) IsEventPayload() {}

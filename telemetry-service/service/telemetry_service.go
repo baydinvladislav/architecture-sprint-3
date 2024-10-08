@@ -83,6 +83,22 @@ func (s *TelemetryService) ProcessEvent(event schemas.Event) error {
 			return err
 		}
 
+	case "InstallModuleToHouse":
+		data, ok := event.Payload.(schemas.InstallModuleToHousePayload)
+		if !ok {
+			return fmt.Errorf("invalid payload for InstallModuleToHouse event")
+		}
+
+		err := s.saveEvent(data)
+		if err != nil {
+			return err
+		}
+
+		err = s.moduleConnect(data)
+		if err != nil {
+			return err
+		}
+
 	default:
 		return fmt.Errorf("unknown event type: %s", event.EventType)
 	}
@@ -103,6 +119,11 @@ func (s *TelemetryService) saveEvent(event schemas.EventPayload) error {
 }
 
 func (s *TelemetryService) emergencyShutdownModule(event schemas.EmergencyPayload) error {
-	log.Println("emergencyShutdownModule method is called (stub).")
+	log.Printf("shutdown module %s because of reason %s\n", event.EquipmentID, event.Reason)
+	return nil
+}
+
+func (s *TelemetryService) moduleConnect(event schemas.InstallModuleToHousePayload) error {
+	log.Printf("new module %s to house %d", event.ModuleID, event.HouseID)
 	return nil
 }
