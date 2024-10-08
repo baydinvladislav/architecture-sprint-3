@@ -30,7 +30,11 @@ public class HeatingSystemController {
     // гошка должна вернуть модуль отопления все остальные модуль отклонить
     public ResponseEntity<HeatingSystemDto> getHeatingSystem(@PathVariable("id") Long id) {
         logger.info("Fetching heating system with id {}", id);
-        return ResponseEntity.ok(heatingSystemService.getHeatingSystem(id));
+        HeatingSystemDto heatingSystem = httpAdapter.getHeatingSystem(id);
+
+        heatingSystemService.getHeatingSystem(id);
+
+        return ResponseEntity.ok(heatingSystem);
     }
 
     @PutMapping("/{id}")
@@ -38,14 +42,21 @@ public class HeatingSystemController {
     public ResponseEntity<HeatingSystemDto> updateHeatingSystem(@PathVariable("id") Long id,
                                                                 @RequestBody HeatingSystemDto heatingSystemDto) {
         logger.info("Updating heating system with id {}", id);
-        return ResponseEntity.ok(heatingSystemService.updateHeatingSystem(id, heatingSystemDto));
+        HeatingSystemDto updatedHeatingSystem = httpAdapter.updateHeatingSystem(id, heatingSystemDto);
+
+        heatingSystemService.updateHeatingSystem(id, heatingSystemDto);
+
+        return ResponseEntity.ok(updatedHeatingSystem);
     }
 
     @PostMapping("/{id}/turn-on")
     // http прокси на гошку
     public ResponseEntity<Void> turnOn(@PathVariable("id") Long id) {
         logger.info("Turning on heating system with id {}", id);
+        httpAdapter.turnOnHeatingSystem(id);
+
         heatingSystemService.turnOn(id);
+
         return ResponseEntity.noContent().build();
     }
 
@@ -53,7 +64,10 @@ public class HeatingSystemController {
     // http прокси на гошку
     public ResponseEntity<Void> turnOff(@PathVariable("id") Long id) {
         logger.info("Turning off heating system with id {}", id);
+        httpAdapter.turnOffHeatingSystem(id);
+
         heatingSystemService.turnOff(id);
+
         return ResponseEntity.noContent().build();
     }
 
@@ -64,9 +78,12 @@ public class HeatingSystemController {
     // microservice endpoint: {"action": "set_temperature", "temperature": 23.0, ...}
     public ResponseEntity<Void> setTargetTemperature(@PathVariable("id") Long id, @RequestParam double temperature) {
         logger.info("Setting target temperature to {} for heating system with id {}", temperature, id);
-        var response = httpAdapter.SendSetTemperatureRequest(id, temperature);
+
+        var response = httpAdapter.sendSetTemperatureRequest(id, temperature);
         logger.info("Got response from microservice API Gateway {}", response);
+
         heatingSystemService.setTargetTemperature(id, temperature);
+
         return ResponseEntity.accepted().build();
     }
 
@@ -74,6 +91,12 @@ public class HeatingSystemController {
     // используем адаптер, чтобы переформатировать запрос в Smarthome
     public ResponseEntity<Double> getCurrentTemperature(@PathVariable("id") Long id) {
         logger.info("Fetching current temperature for heating system with id {}", id);
-        return ResponseEntity.ok(heatingSystemService.getCurrentTemperature(id));
+
+        var response = httpAdapter.getCurrentTemperature(id);
+        logger.info("Got response from microservice API Gateway {}", response);
+
+        heatingSystemService.getCurrentTemperature(id);
+
+        return ResponseEntity.ok(response.getCurrentTemperature());
     }
 }
