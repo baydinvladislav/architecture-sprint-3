@@ -46,3 +46,7 @@ func (s *UserService) GetCurrent(username string) (dto_schemas.UserDtoSchema, er
 func (s *UserService) GetByUsername(username string) (dto_schemas.UserDtoSchema, error) {
 	return s.repo.GetByUsername(username)
 }
+
+func (s *UserService) GetRequiredById(id uint) (dto_schemas.UserDtoSchema, error) {
+	return s.repo.GetRequiredById(id)
+}

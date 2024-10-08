@@ -13,6 +13,7 @@ type UserRepository interface {
 	Create(user web_schemas.NewUserIn) error
 	GetByUsername(username string) (dto_schemas.UserDtoSchema, error)
 	Update(user web_schemas.NewUserIn) error
+	GetRequiredById(id uint) (dto_schemas.UserDtoSchema, error)
 }
 
 type GORMUserRepository struct {
@@ -42,6 +43,22 @@ func (r *GORMUserRepository) Create(user web_schemas.NewUserIn) error {
 func (r *GORMUserRepository) GetByUsername(username string) (dto_schemas.UserDtoSchema, error) {
 	var user persistance.UserModel
 	err := r.db.Where("username = ?", username).First(&user).Error
+	if err != nil {
+		return dto_schemas.UserDtoSchema{}, errors.New("user not found")
+	}
+
+	userDto := dto_schemas.UserDtoSchema{
+		ID:       user.ID,
+		Username: user.Username,
+		Password: user.Password,
+	}
+
+	return userDto, nil
+}
+
+func (r *GORMUserRepository) GetRequiredById(id uint) (dto_schemas.UserDtoSchema, error) {
+	var user persistance.UserModel
+	err := r.db.Where("id = ?", id).First(&user).Error
 	if err != nil {
 		return dto_schemas.UserDtoSchema{}, errors.New("user not found")
 	}
