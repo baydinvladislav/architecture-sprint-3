@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/gin-gonic/gin"
 	"log"
+	"telemetry-service/presentation"
 	"telemetry-service/shared"
 )
 
@@ -16,19 +17,9 @@ func CreateApp(ctx context.Context, container *shared.AppContainer) *gin.Engine 
 		})
 	})
 
-	go func() {
-		for {
-			event, err := container.TelemetryService.ReadMessage(ctx)
-			if err != nil {
-				log.Printf("Error while reading message: %v", err)
-				continue
-			}
-
-			if err := container.TelemetryService.ProcessEvent(event); err != nil {
-				log.Printf("Error handling event: %v", err)
-			}
-		}
-	}()
+	go presentation.HandleTelemetryTopic(ctx, container)
+	go presentation.HandleEmergencyTopic(ctx, container)
+	go presentation.HandleNewHouseTopic(ctx, container)
 
 	return r
 }

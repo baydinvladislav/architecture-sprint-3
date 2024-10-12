@@ -2,40 +2,51 @@ package shared
 
 import (
 	"context"
+	"telemetry-service/presentation"
 	"telemetry-service/repository"
 	"telemetry-service/service"
 	"telemetry-service/suppliers"
 )
 
 type AppContainer struct {
-	TelemetryService *service.TelemetryService
-	AppSettings      *AppSettings
+	ProcessService *presentation.KafkaDispatcher
+	AppSettings    *AppSettings
 }
 
 func NewAppContainer(ctx context.Context) *AppContainer {
 	appSettings := NewAppSettings()
 
-	telemetryRepo := repository.NewTelemetryRepository(
+	telemetryRepository := repository.NewTelemetryRepository(
 		appSettings.MongoURI,
 		appSettings.DatabaseName,
-		appSettings.CollectionName,
+		appSettings.TelemetryCollection,
 	)
 
-	kafkaClient := suppliers.NewKafkaSupplier(
-		appSettings.KafkaBroker,
-		appSettings.TelemetryTopic,
+	houseRepository := repository.NewHouseRepository(
+		appSettings.MongoURI,
+		appSettings.DatabaseName,
+		appSettings.TelemetryCollection,
+	)
+
+	kafkaSupplier := suppliers.NewKafkaSupplier(
+		[]string{appSettings.KafkaBroker},
 		appSettings.GroupID,
 	)
 
 	deviceServiceSupplier := suppliers.NewDeviceServiceSupplier(appSettings.DeviceServiceUrl)
 
-	telemetryService := service.NewTelemetryService(
-		kafkaClient,
-		deviceServiceSupplier,
-		telemetryRepo,
+	telemetryService := service.NewTelemetryService(telemetryRepository)
+	emergencyService := service.NewEmergencyService(deviceServiceSupplier)
+	initHouseService := service.NewInitHouseService(houseRepository)
+
+	processService := presentation.NewKafkaDispatcher(
+		telemetryService,
+		emergencyService,
+		initHouseService,
+		kafkaSupplier,
 	)
 	return &AppContainer{
-		TelemetryService: telemetryService,
-		AppSettings:      appSettings,
+		ProcessService: processService,
+		AppSettings:    appSettings,
 	}
 }

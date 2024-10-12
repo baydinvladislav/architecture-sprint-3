@@ -7,33 +7,39 @@ import (
 )
 
 type KafkaSupplier struct {
-	consumer *kafka.Reader
+	brokers []string
+	groupID string
 }
 
-func NewKafkaSupplier(broker string, topic string, groupID string) *KafkaSupplier {
-	consumer := kafka.NewReader(kafka.ReaderConfig{
-		Brokers: []string{broker},
+func NewKafkaSupplier(brokers []string, groupID string) *KafkaSupplier {
+	return &KafkaSupplier{
+		brokers: brokers,
+		groupID: groupID,
+	}
+}
+
+func (kc *KafkaSupplier) createReader(topic string) *kafka.Reader {
+	return kafka.NewReader(kafka.ReaderConfig{
+		Brokers: kc.brokers,
 		Topic:   topic,
-		GroupID: groupID,
+		GroupID: kc.groupID,
 	})
-	return &KafkaSupplier{consumer: consumer}
 }
 
-func (kc *KafkaSupplier) ReadMessage(ctx context.Context) (kafka.Message, error) {
-	msg, err := kc.consumer.ReadMessage(ctx)
+func (kc *KafkaSupplier) ReadMessage(ctx context.Context, topic string) (kafka.Message, error) {
+	reader := kc.createReader(topic)
+	defer reader.Close()
+
+	msg, err := reader.ReadMessage(ctx)
 	if err != nil {
 		return kafka.Message{}, err
 	}
+
+	log.Printf("Received message from topic %s: %s", topic, string(msg.Value))
 	return msg, nil
 }
 
 func (kc *KafkaSupplier) SendMessage(msg kafka.Message) error {
 	log.Printf("Sent message: %s", string(msg.Value))
 	return nil
-}
-
-func (kc *KafkaSupplier) Close() {
-	if err := kc.consumer.Close(); err != nil {
-		log.Fatalf("Failed to close Kafka consumer: %v", err)
-	}
 }
