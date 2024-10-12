@@ -97,7 +97,7 @@ func (r *GORMModuleRepository) RequestAddingModuleToHouse(
 	return modules, nil
 }
 
-func (r *GORMModuleRepository) AcceptAddingModuleToHouse(
+func (r *GORMModuleRepository) AcceptAdditionModuleToHouse(
 	houseID uuid.UUID,
 	moduleID uuid.UUID,
 ) error {
