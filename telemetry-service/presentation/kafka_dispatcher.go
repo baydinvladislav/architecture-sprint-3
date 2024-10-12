@@ -47,32 +47,18 @@ func (s *KafkaDispatcher) ReadMessage(ctx context.Context, topic string) (schema
 	return event, nil
 }
 
-func (s *KafkaDispatcher) ProcessEvent(event schemas.Event) error {
-	log.Println("ProcessEvent method is called (stub).", event)
+func (s *KafkaDispatcher) RouteEvent(event schemas.Event) error {
+	log.Println("RouteEvent method is called (stub).", event)
 
-	// TODO: make map instead of switch
-	switch event.EventType {
-	case "TelemetryData":
-		err := s.telemetryService.ProcessEvent(event)
-		if err != nil {
-			return err
-		}
-
-	case "EmergencyShutdown":
-		err := s.emergencyService.ProcessEvent(event)
-		if err != nil {
-			return err
-		}
-
-	case "InstallModuleToHouse":
-		err := s.initHouseService.ProcessEvent(event)
-		if err != nil {
-			return err
-		}
-
-	default:
-		return fmt.Errorf("unknown event type: %s", event.EventType)
+	eventHandlers := map[string]func(event schemas.Event) error{
+		"TelemetryData":        s.telemetryService.ProcessEvent,
+		"EmergencyShutdown":    s.emergencyService.ProcessEvent,
+		"InstallModuleToHouse": s.initHouseService.ProcessEvent,
 	}
 
-	return nil
+	if handler, found := eventHandlers[event.EventType]; found {
+		return handler(event)
+	}
+
+	return fmt.Errorf("unknown event type: %s", event.EventType)
 }

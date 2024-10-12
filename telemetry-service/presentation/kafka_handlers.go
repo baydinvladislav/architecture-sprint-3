@@ -18,7 +18,7 @@ func HandleTelemetryTopic(ctx context.Context, container *shared.AppContainer) {
 			continue
 		}
 
-		if err := container.KafkaDispatcher.ProcessEvent(event); err != nil {
+		if err := container.KafkaDispatcher.RouteEvent(event); err != nil {
 			log.Printf("Error handling event from topic %s: %v", topic, err)
 		}
 	}
@@ -36,7 +36,7 @@ func HandleEmergencyTopic(ctx context.Context, container *shared.AppContainer) {
 			continue
 		}
 
-		if err := container.KafkaDispatcher.ProcessEvent(event); err != nil {
+		if err := container.KafkaDispatcher.RouteEvent(event); err != nil {
 			log.Printf("Error handling event from topic %s: %v", topic, err)
 		}
 	}
@@ -54,7 +54,7 @@ func HandleNewHouseTopic(ctx context.Context, container *shared.AppContainer) {
 			continue
 		}
 
-		if err := container.KafkaDispatcher.ProcessEvent(event); err != nil {
+		if err := container.KafkaDispatcher.RouteEvent(event); err != nil {
 			log.Printf("Error handling event from topic %s: %v", topic, err)
 		}
 	}
