@@ -1,6 +1,7 @@
 package shared
 
 type AppSettings struct {
+	// db
 	DBHost     string
 	DBUser     string
 	DBPassword string
@@ -8,6 +9,7 @@ type AppSettings struct {
 	DBPort     string
 	DBSSLMode  string
 
+	// broker
 	KafkaBroker                  string
 	ModuleAddedKafkaTopic        string
 	ModuleVerificationKafkaTopic string
