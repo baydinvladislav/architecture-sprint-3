@@ -31,20 +31,25 @@ func NewKafkaDispatcher(
 	}
 }
 
-func (s *KafkaDispatcher) ReadMessage(ctx context.Context, topic string) (schemas.Event, error) {
+func (s *KafkaDispatcher) ReadMessage(ctx context.Context, topic string) error {
 	msg, err := s.kafkaSupplier.ReadMessage(ctx, topic)
 	if err != nil {
-		return schemas.Event{}, fmt.Errorf("failed to read message from Kafka: %v", err)
+		return fmt.Errorf("failed to read message from Kafka: %v", err)
 	}
 
 	log.Printf("Received message: %s", string(msg.Value))
 
 	var event schemas.Event
 	if err := json.Unmarshal(msg.Value, &event); err != nil {
-		return schemas.Event{}, fmt.Errorf("failed to unmarshal event: %v", err)
+		return fmt.Errorf("failed to unmarshal event: %v", err)
 	}
 
-	return event, nil
+	err = s.RouteEvent(event)
+	if err != nil {
+		return fmt.Errorf("failed to route event: %v", err)
+	}
+
+	return nil
 }
 
 func (s *KafkaDispatcher) RouteEvent(event schemas.Event) error {
@@ -60,5 +65,6 @@ func (s *KafkaDispatcher) RouteEvent(event schemas.Event) error {
 		return handler(event)
 	}
 
+	log.Printf("Unknown event type: %s", event.EventType)
 	return fmt.Errorf("unknown event type: %s", event.EventType)
 }
