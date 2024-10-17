@@ -37,7 +37,7 @@ func (s *KafkaDispatcher) ReadMessage(ctx context.Context, topic string) error {
 		return fmt.Errorf("failed to read message from Kafka: %v", err)
 	}
 
-	log.Printf("Received message: %s", string(msg.Value))
+	log.Printf("Received message from topic %s: %v", topic, msg)
 
 	var event schemas.Event
 	if err := json.Unmarshal(msg.Value, &event); err != nil {

@@ -9,8 +9,11 @@ import (
 )
 
 type AppContainer struct {
-	KafkaDispatcher *presentation.KafkaDispatcher
-	AppSettings     *AppSettings
+	KafkaDispatcher  *presentation.KafkaDispatcher
+	AppSettings      *AppSettings
+	TelemetryService *service.TelemetryService
+	EmergencyService *service.EmergencyService
+	InitHouseService *service.InitHouseService
 }
 
 func NewAppContainer(ctx context.Context) *AppContainer {
@@ -46,7 +49,10 @@ func NewAppContainer(ctx context.Context) *AppContainer {
 		kafkaSupplier,
 	)
 	return &AppContainer{
-		KafkaDispatcher: kafkaDispatcher,
-		AppSettings:     appSettings,
+		TelemetryService: telemetryService,
+		EmergencyService: emergencyService,
+		InitHouseService: initHouseService,
+		KafkaDispatcher:  kafkaDispatcher,
+		AppSettings:      appSettings,
 	}
 }
