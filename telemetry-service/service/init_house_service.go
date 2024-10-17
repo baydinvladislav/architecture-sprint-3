@@ -23,6 +23,13 @@ func (s *InitHouseService) ProcessEvent(event schemas.Event) error {
 		return fmt.Errorf("invalid payload for InstallModuleToHouse event")
 	}
 
+	// some logic with data from event ...
+
+	err := s.houseRepository.InsertHouse(event)
+	if err != nil {
+		return err
+	}
+
 	log.Println("msg data: ", data)
 	return nil
 }

@@ -4,16 +4,24 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"telemetry-service/repository"
 	"telemetry-service/schemas"
 	"telemetry-service/suppliers"
 )
 
 type EmergencyService struct {
 	deviceServiceSupplier *suppliers.DeviceServiceSupplier
+	emergencyRepository   *repository.EmergencyRepository
 }
 
-func NewEmergencyService(deviceServiceSupplier *suppliers.DeviceServiceSupplier) *EmergencyService {
-	return &EmergencyService{deviceServiceSupplier: deviceServiceSupplier}
+func NewEmergencyService(
+	deviceServiceSupplier *suppliers.DeviceServiceSupplier,
+	emergencyRepository *repository.EmergencyRepository,
+) *EmergencyService {
+	return &EmergencyService{
+		deviceServiceSupplier: deviceServiceSupplier,
+		emergencyRepository:   emergencyRepository,
+	}
 }
 
 func (s *EmergencyService) ProcessEvent(event schemas.Event) error {
@@ -28,5 +36,11 @@ func (s *EmergencyService) ProcessEvent(event schemas.Event) error {
 	}
 
 	log.Println("msg data finish log: ", data)
+
+	err = s.emergencyRepository.SaveEmergencyEvent(event)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

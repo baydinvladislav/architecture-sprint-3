@@ -24,23 +24,28 @@ func NewAppContainer(ctx context.Context) *AppContainer {
 		appSettings.DatabaseName,
 		appSettings.TelemetryCollection,
 	)
+	telemetryService := service.NewTelemetryService(telemetryRepository)
+
+	deviceServiceSupplier := suppliers.NewDeviceServiceSupplier(appSettings.DeviceServiceUrl)
+
+	emergencyRepository := repository.NewEmergencyRepository(
+		appSettings.MongoURI,
+		appSettings.DatabaseName,
+		appSettings.TelemetryCollection,
+	)
+	emergencyService := service.NewEmergencyService(deviceServiceSupplier, emergencyRepository)
 
 	houseRepository := repository.NewHouseRepository(
 		appSettings.MongoURI,
 		appSettings.DatabaseName,
 		appSettings.TelemetryCollection,
 	)
+	initHouseService := service.NewInitHouseService(houseRepository)
 
 	kafkaSupplier := suppliers.NewKafkaSupplier(
 		[]string{appSettings.KafkaBroker},
 		appSettings.GroupID,
 	)
-
-	deviceServiceSupplier := suppliers.NewDeviceServiceSupplier(appSettings.DeviceServiceUrl)
-
-	telemetryService := service.NewTelemetryService(telemetryRepository)
-	emergencyService := service.NewEmergencyService(deviceServiceSupplier)
-	initHouseService := service.NewInitHouseService(houseRepository)
 
 	kafkaDispatcher := presentation.NewKafkaDispatcher(
 		telemetryService,

@@ -32,6 +32,8 @@ func NewKafkaDispatcher(
 }
 
 func (s *KafkaDispatcher) ReadMessage(ctx context.Context, topic string) error {
+	log.Printf("Read topic %s ...", topic)
+
 	msg, err := s.kafkaSupplier.ReadMessage(ctx, topic)
 	if err != nil {
 		return fmt.Errorf("failed to read message from Kafka: %v", err)
@@ -53,8 +55,6 @@ func (s *KafkaDispatcher) ReadMessage(ctx context.Context, topic string) error {
 }
 
 func (s *KafkaDispatcher) RouteEvent(event schemas.Event) error {
-	log.Println("RouteEvent method is called (stub).", event)
-
 	eventHandlers := map[string]func(event schemas.Event) error{
 		"TelemetryData":        s.telemetryService.ProcessEvent,
 		"EmergencyShutdown":    s.emergencyService.ProcessEvent,

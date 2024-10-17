@@ -7,12 +7,12 @@ import (
 	"log"
 )
 
-type HouseRepository struct {
+type EmergencyRepository struct {
 	client     *mongo.Client
 	collection *mongo.Collection
 }
 
-func NewHouseRepository(uri, database, collection string) *HouseRepository {
+func NewEmergencyRepository(uri, database, collection string) *EmergencyRepository {
 	clientOptions := options.Client().ApplyURI(uri)
 	client, err := mongo.Connect(context.Background(), clientOptions)
 	if err != nil {
@@ -20,12 +20,12 @@ func NewHouseRepository(uri, database, collection string) *HouseRepository {
 	}
 
 	collectionRef := client.Database(database).Collection(collection)
-	return &HouseRepository{
+	return &EmergencyRepository{
 		client: client, collection: collectionRef,
 	}
 }
 
-func (m *HouseRepository) InsertHouse(event interface{}) error {
+func (m *EmergencyRepository) SaveEmergencyEvent(event interface{}) error {
 	_, err := m.collection.InsertOne(context.Background(), event)
 	log.Println("Event successfully saved in MongoDB", event)
 	return err
