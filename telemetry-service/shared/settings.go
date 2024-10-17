@@ -1,5 +1,9 @@
 package shared
 
+import (
+	"os"
+)
+
 type AppSettings struct {
 	// broker
 	KafkaBroker    string
@@ -20,16 +24,23 @@ type AppSettings struct {
 
 func NewAppSettings() *AppSettings {
 	return &AppSettings{
-		KafkaBroker:    "kafka:9092",
-		TelemetryTopic: "telemetry.data.topic",
-		EmergencyTopic: "forced.module.shutdown.topic",
-		NewHouseTopic:  "house.initialization.topic",
-		GroupID:        "telemetry_group",
+		KafkaBroker:    getEnv("KAFKA_BROKER", "kafka:9092"),
+		TelemetryTopic: getEnv("TELEMETRY_TOPIC", "telemetry.data"),
+		EmergencyTopic: getEnv("EMERGENCY_TOPIC", "forced.module.shutdown"),
+		NewHouseTopic:  getEnv("NEW_HOUSE_TOPIC", "house.initialization"),
+		GroupID:        getEnv("KAFKA_GROUP_ID", "telemetry_group"),
 
-		MongoURI:            "mongodb://root:mongodb@mongo:27017",
-		DatabaseName:        "telemetry_database",
-		TelemetryCollection: "events",
+		MongoURI:            getEnv("MONGO_URI", "mongodb://root:mongodb@mongo:27017"),
+		DatabaseName:        getEnv("MONGO_DATABASE_NAME", "telemetry_database"),
+		TelemetryCollection: getEnv("MONGO_TELEMETRY_COLLECTION", "events"),
 
-		DeviceServiceUrl: "http://device-service:8081",
+		DeviceServiceUrl: getEnv("DEVICE_SERVICE_URL", "http://device-service:8081"),
 	}
+}
+
+func getEnv(key, defaultValue string) string {
+	if value, exists := os.LookupEnv(key); exists {
+		return value
+	}
+	return defaultValue
 }
