@@ -6,15 +6,18 @@ import (
 	"gorm.io/gorm"
 	"log"
 	"user-service/persistance"
+	"user-service/presentation/kafka-presentation"
 	"user-service/repository"
 	"user-service/service"
+	"user-service/suppliers"
 )
 
 type Container struct {
-	AuthService  *service.AuthService
-	UserService  *service.UserService
-	HouseService *service.HouseService
-	AppSettings  *AppSettings
+	KafkaDispatcher *kafka_presentation.KafkaDispatcher
+	AuthService     *service.AuthService
+	UserService     *service.UserService
+	HouseService    *service.HouseService
+	AppSettings     *AppSettings
 }
 
 func NewAppContainer(ctx context.Context) *Container {
@@ -40,10 +43,21 @@ func NewAppContainer(ctx context.Context) *Container {
 
 	houseRepo := repository.NewGORMHouseRepository(db)
 	houseService := service.NewHouseService(houseRepo)
+
+	kafkaSupplier := suppliers.NewKafkaSupplier(
+		[]string{appSettings.KafkaBroker},
+		appSettings.KafkaGroupID,
+	)
+
+	kafkaDispatcher := kafka_presentation.NewKafkaDispatcher(
+		kafkaSupplier,
+		houseService,
+	)
 	return &Container{
-		UserService:  userService,
-		AuthService:  authService,
-		HouseService: houseService,
-		AppSettings:  appSettings,
+		UserService:     userService,
+		AuthService:     authService,
+		HouseService:    houseService,
+		KafkaDispatcher: kafkaDispatcher,
+		AppSettings:     appSettings,
 	}
 }

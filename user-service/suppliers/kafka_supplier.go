@@ -7,61 +7,39 @@ import (
 )
 
 type KafkaSupplier struct {
-	moduleAdditionProducer     *kafka.Writer
-	moduleVerificationConsumer *kafka.Reader
+	brokers []string
+	groupID string
 }
 
-func NewKafkaSupplier(
-	kafkaBroker string,
-	moduleAdditionTopic string,
-	moduleVerificationTopic string,
-	groupID string,
-) *KafkaSupplier {
-	moduleAdditionProducer := &kafka.Writer{
-		Addr:     kafka.TCP("localhost:9092"),
-		Topic:    moduleVerificationTopic,
-		Balancer: &kafka.LeastBytes{},
-	}
-
-	moduleVerificationConsumer := kafka.NewReader(kafka.ReaderConfig{
-		Brokers: []string{kafkaBroker},
-		Topic:   moduleAdditionTopic,
-		GroupID: groupID,
-	})
-
+func NewKafkaSupplier(brokers []string, groupID string) *KafkaSupplier {
 	return &KafkaSupplier{
-		moduleAdditionProducer:     moduleAdditionProducer,
-		moduleVerificationConsumer: moduleVerificationConsumer,
+		brokers: brokers,
+		groupID: groupID,
 	}
 }
 
-func (kc *KafkaSupplier) SendMessage(ctx context.Context, key, value []byte) error {
-	msg := kafka.Message{
-		Key:   key,
-		Value: value,
-	}
-
-	err := kc.moduleAdditionProducer.WriteMessages(ctx, msg)
-	if err != nil {
-		return err
-	}
-	return nil
+func (kc *KafkaSupplier) createReader(topic string) *kafka.Reader {
+	return kafka.NewReader(kafka.ReaderConfig{
+		Brokers: kc.brokers,
+		Topic:   topic,
+		GroupID: kc.groupID,
+	})
 }
 
-func (kc *KafkaSupplier) ReadMessage(ctx context.Context) (kafka.Message, error) {
-	msg, err := kc.moduleVerificationConsumer.ReadMessage(ctx)
+func (kc *KafkaSupplier) ReadMessage(ctx context.Context, topic string) (kafka.Message, error) {
+	reader := kc.createReader(topic)
+	defer reader.Close()
+
+	msg, err := reader.ReadMessage(ctx)
 	if err != nil {
 		return kafka.Message{}, err
 	}
+
+	log.Printf("Received message from topic %s: %s", topic, string(msg.Value))
 	return msg, nil
 }
 
-func (kc *KafkaSupplier) Close() {
-	if err := kc.moduleAdditionProducer.Close(); err != nil {
-		log.Fatalf("Failed to close Kafka moduleVerificationProducer: %v", err)
-	}
-
-	if err := kc.moduleVerificationConsumer.Close(); err != nil {
-		log.Fatalf("Failed to close Kafka moduleVerificationConsumer: %v", err)
-	}
+func (kc *KafkaSupplier) SendMessage(msg kafka.Message) error {
+	log.Printf("Sent message: %s", string(msg.Value))
+	return nil
 }
