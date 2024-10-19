@@ -49,7 +49,9 @@ func (s *KafkaDispatcher) ReadMessage(ctx context.Context, topic string) error {
 }
 
 func (s *KafkaDispatcher) RouteEvent(event schemas.Event) error {
-	eventHandlers := map[string]func(event schemas.Event) error{}
+	eventHandlers := map[string]func(event schemas.Event) error{
+		"ModuleVerify": s.houseService.ProcessEvent,
+	}
 
 	if handler, found := eventHandlers[event.EventType]; found {
 		return handler(event)

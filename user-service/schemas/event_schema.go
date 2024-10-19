@@ -9,7 +9,7 @@ type EventPayload interface {
 	IsEventPayload()
 }
 
-type InitHousePayload struct {
+type ModuleVerifyPayload struct {
 	Time     int64  `json:"time"`
 	HomeID   string `json:"home_id"`
 	ModuleID string `json:"module_id"`

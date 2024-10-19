@@ -1,10 +1,13 @@
 package service
 
 import (
+	"encoding/json"
 	"fmt"
+	"log"
 	"user-service/persistance"
 	web_schemas "user-service/presentation/web-schemas"
 	"user-service/repository"
+	"user-service/schemas"
 	"user-service/suppliers"
 )
 
@@ -45,6 +48,26 @@ func (s *HouseService) GetUserHouses(userID uint) ([]web_schemas.HouseOut, error
 
 func (s *HouseService) UpdateUserHouse(house web_schemas.UpdateHouseIn) (*persistance.HouseModel, error) {
 	return s.repo.UpdateUserHouse(house)
+}
+
+func (s *HouseService) ProcessEvent(event schemas.Event) error {
+	var data schemas.ModuleVerifyPayload
+
+	payloadBytes, err := json.Marshal(event.Payload)
+	if err != nil {
+		return fmt.Errorf("failed to marshal payload: %v", err)
+	}
+
+	if err := json.Unmarshal(payloadBytes, &data); err != nil {
+		return fmt.Errorf("failed to unmarshal payload to TelemetryPayload: %v", err)
+	}
+
+	log.Println("msg data: ", data)
+
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (s *HouseService) verifyUserAndHouse(userId uint, houseId uint) (bool, error) {
