@@ -1,0 +1,25 @@
+@startuml
+!include <C4/C4_Container>
+
+skinparam linetype ortho
+skinparam rectangle {
+  BackgroundColor #white
+  BorderColor #black
+  Shadowing false
+}
+
+Person(client, "Клиент", "Взаимодействует с DeviceService через API для управления модулями")
+
+System_Boundary(b_system, "Device Service") {
+    Container(device_service, "DeviceService", "Golang", "Управляет модулями: подключение, получение списка, включение/выключение")
+
+    ContainerDb(modules_db, "База Данных Модулей", "PostgreSQL", "Хранит информацию о подключенных модулях и их состоянии")
+
+    Container(kafka_broker, "Kafka", "Брокер Сообщений", "Обрабатывает события системы")
+}
+
+Rel(client, device_service, "Запросы к API: подключение, получение списка, управление модулями", "HTTP/HTTPS")
+Rel(device_service, modules_db, "Читает и записывает данные о модулях", "PostgreSQL драйвер")
+Rel(kafka_broker, device_service, "Получает результат верификации", "module.verification.topic")
+
+@enduml
