@@ -12,7 +12,7 @@ System_Boundary(b_system, "Система Умной Деревни") {
     Container_Boundary(services, "Микросервисы") {
         Container(user_service, "UserService", "Golang", "Управляет информацией о пользователях и их взаимодействиями")
         Container(device_service, "DeviceService", "Golang", "Управляет оборудованием и его контролем")
-        Container(telemetry_service, "TelemetryService", "Golang", "Обрабатывает телеметрию от оборудования")
+        Container(telemetry_service, "TelemetryService", "Golang", "Обрабатывает телеметрию от оборудования и может выключить оборудование")
     }
 
     ContainerDb(user_db, "База Данных Пользователей", "PostgreSQL", "Хранит данные о пользователях")
@@ -37,4 +37,5 @@ Rel(kafka, services, "Обрабатывает события", "Kafka topic")
 
 Rel(services, external_system, "Отправляет запросы к", "MQTT/HTTP/CoAP")
 
+Rel(telemetry_service, device_service, "Команда выключить оборудование", "gRPC/HTTP")
 @enduml
