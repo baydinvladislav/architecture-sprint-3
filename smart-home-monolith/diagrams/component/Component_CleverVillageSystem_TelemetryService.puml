@@ -15,7 +15,7 @@ System_Boundary(b_system, "Telemetry Service") {
 
     ContainerDb(telemetry_db, "База Данных", "MongoDB", "Хранит телеметрию")
 
-    Container(kafka_broker, "Kafka", "Брокер Сообщений", "Передает события системы")
+    ContainerQueue(kafka_broker, "Kafka", "Брокер Сообщений", "Передает события системы")
 }
 
 Rel(external_device, kafka_broker, "Публикует данные", "telemetry.events")

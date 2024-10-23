@@ -15,7 +15,7 @@ System_Boundary(b_system, "Device Service") {
 
     ContainerDb(modules_db, "База Данных Модулей", "PostgreSQL", "Хранит информацию о подключенных модулях и их состоянии")
 
-    Container(kafka_broker, "Kafka", "Брокер Сообщений", "Обрабатывает события системы")
+    ContainerQueue(kafka_broker, "Kafka", "Брокер Сообщений", "Обрабатывает события системы")
 }
 
 Rel(client, device_service, "Запросы к API: подключение, получение списка, управление модулями", "HTTP/HTTPS")

@@ -15,7 +15,7 @@ System_Boundary(b_system, "User Service") {
 
     ContainerDb(user_db, "База Данных Пользователей", "PostgreSQL", "Хранит данные о пользователях")
 
-    Container(kafka_broker, "Kafka", "Брокер Сообщений", "Обрабатывает события системы")
+    ContainerQueue(kafka_broker, "Kafka", "Брокер Сообщений", "Обрабатывает события системы")
 }
 
 Rel(client, user_service, "Запросы к API (включая JWT аутентификацию)", "HTTP/HTTPS + JWT")
