@@ -164,7 +164,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/users/login": {
+        "/login": {
             "post": {
                 "description": "Аутентификация пользователя с генерацией Access и Refresh токенов",
                 "consumes": [
@@ -210,7 +210,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/users/refresh-token": {
+        "/refresh-token": {
             "post": {
                 "description": "Обновить Access и Refresh токены с использованием действующего Refresh токена",
                 "consumes": [
@@ -259,7 +259,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/users/register": {
+        "/register": {
             "post": {
                 "description": "Зарегистрировать нового пользователя и получить Access и Refresh токены",
                 "consumes": [
@@ -305,7 +305,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/users/username/{username}": {
+        "/username/{username}": {
             "get": {
                 "description": "Получить данные пользователя по его имени пользователя (username)",
                 "produces": [
@@ -341,7 +341,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/users/{userId}": {
+        "{userId}": {
             "get": {
                 "description": "Получить данные пользователя по его ID",
                 "produces": [

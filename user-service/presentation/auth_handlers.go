@@ -21,7 +21,7 @@ type ErrorResponse struct {
 // @Success 201 {object} web_schemas.NewUserOut
 // @Failure 400 {object} ErrorResponse
 // @Failure 409 {object} ErrorResponse
-// @Router /users/register [post]
+// @Router /register [post]
 func RegisterUser(c *gin.Context, container *shared.Container) {
 	var user web_schemas.NewUserIn
 
@@ -69,7 +69,7 @@ func RegisterUser(c *gin.Context, container *shared.Container) {
 // @Success 200 {object} web_schemas.LoginResponse
 // @Failure 400 {object} ErrorResponse
 // @Failure 401 {object} ErrorResponse
-// @Router /users/login [post]
+// @Router /login [post]
 func LoginUser(c *gin.Context, container *shared.Container) {
 	var credentials web_schemas.LoginRequest
 
@@ -116,7 +116,7 @@ func LoginUser(c *gin.Context, container *shared.Container) {
 // @Success 200 {object} map[string]string "Access и Refresh токены"
 // @Failure 400 {object} ErrorResponse
 // @Failure 401 {object} ErrorResponse
-// @Router /users/refresh-token [post]
+// @Router /refresh-token [post]
 func RefreshToken(c *gin.Context, container *shared.Container) {
 	var request struct {
 		RefreshToken string `json:"refresh_token"`

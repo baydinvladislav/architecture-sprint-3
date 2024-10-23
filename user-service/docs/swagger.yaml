@@ -175,7 +175,7 @@ paths:
       summary: Обновление информации о доме пользователя
       tags:
       - houses
-  /users/{userId}:
+  /{userId}:
     get:
       description: Получить данные пользователя по его ID
       parameters:
@@ -233,7 +233,7 @@ paths:
       summary: Обновление данных пользователя
       tags:
       - users
-  /users/login:
+  /login:
     post:
       consumes:
       - application/json
@@ -263,7 +263,7 @@ paths:
       summary: Вход пользователя
       tags:
       - users
-  /users/refresh-token:
+  /refresh-token:
     post:
       consumes:
       - application/json
@@ -296,7 +296,7 @@ paths:
       summary: Обновление токена доступа
       tags:
       - users
-  /users/register:
+  /register:
     post:
       consumes:
       - application/json
@@ -327,7 +327,7 @@ paths:
       summary: Регистрация нового пользователя
       tags:
       - users
-  /users/username/{username}:
+  /username/{username}:
     get:
       description: Получить данные пользователя по его имени пользователя (username)
       parameters:
