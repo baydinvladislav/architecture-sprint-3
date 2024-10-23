@@ -46,7 +46,7 @@ func GetUserByUsername(c *gin.Context, container *shared.Container) {
 // @Tags users
 // @Accept json
 // @Produce json
-// @Param user body web_schemas.UpdateUserIn true "Updated User Data"
+// @Param user body web_schemas.LoginRequest true "Updated User Data"
 // @Success 200 {object} map[string]interface{} "user"
 // @Failure 400 {object} ErrorResponse
 // @Failure 404 {object} ErrorResponse

@@ -112,7 +112,7 @@ func LoginUser(c *gin.Context, container *shared.Container) {
 // @Tags users
 // @Accept json
 // @Produce json
-// @Param request body struct{ RefreshToken string `json:"refresh_token"` } true "Refresh Token"
+// @Param user body web_schemas.RefreshTokenRequest true "New User"
 // @Success 200 {object} map[string]string "Access и Refresh токены"
 // @Failure 400 {object} ErrorResponse
 // @Failure 401 {object} ErrorResponse
