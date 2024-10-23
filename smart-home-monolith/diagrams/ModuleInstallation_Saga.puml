@@ -1,32 +1,33 @@
 @startuml
 
-actor User
+actor Пользователь
 
 participant DeviceService
 participant UserService
 participant Kafka
 participant TelemetryService
 
-User -> DeviceService: Add Module to House Request
-DeviceService -> Kafka: Publish "module.added" event
+Пользователь -> DeviceService: Запрос на добавление модуля в дом
+DeviceService -> Пользователь: Подтверждение запроса (Верификаиция модуля начата)
+DeviceService -> Kafka: Публикует событие "module.added"
 
-Kafka -> UserService: Consume "module.added" event
-UserService -> UserService: Check house and permissions
-alt House exists and user has permission
-    UserService -> Kafka: Publish "module.verification.succeeded" event
-else House does not exist or user has no permission
-    UserService -> Kafka: Publish "module.verification.failed" event
+Kafka -> UserService: Потребляет событие "module.added"
+UserService -> UserService: Проверяет дом и права доступа
+alt Дом существует и у пользователя есть права
+    UserService -> Kafka: Публикует событие "module.verification.succeeded"
+else Дом не существует или у пользователя нет прав
+    UserService -> Kafka: Публикует событие "module.verification.failed"
 end
 
-Kafka -> DeviceService: Consume "module.verification.succeeded" or "module.verification.failed" event
-alt Verification succeeded
-    DeviceService -> DeviceService: Update status to PENDING_INSTALL
-    DeviceService -> Kafka: Publish "module.installed" event
-else Verification failed
-    DeviceService -> DeviceService: Update status to PENDING_FAILED
+Kafka -> DeviceService: Потребляет событие "module.verification.succeeded" или "module.verification.failed"
+alt Верификация успешна
+    DeviceService -> DeviceService: Обновляет статус на PENDING_INSTALL
+    DeviceService -> Kafka: Публикует событие "module.installed"
+else Верификация провалилась
+    DeviceService -> DeviceService: Обновляет статус на PENDING_FAILED
 end
 
-Kafka -> TelemetryService: Consume "module.installed" event
-TelemetryService -> TelemetryService: Log module installation success
+Kafka -> TelemetryService: Потребляет событие "module.installed"
+TelemetryService -> TelemetryService: Логирует успешную установку модуля
 
 @enduml
