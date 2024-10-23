@@ -1,40 +1,32 @@
 @startuml
-!include <C4/C4_Container>
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
 
-skinparam linetype ortho
+Person(user, "Пользователь", "Пользователь мобильного приложения")
 
-Person(mobile_user, "Мобильный Пользователь", "Пользователь, взаимодействующий с мобильным приложением")
+System_Boundary(system_boundary, "Экосистема умной деревни") {
 
-System_Boundary(b_system, "Система Умной Деревни") {
-    Container(mobile_app, "Мобильное Приложение", "iOS/Android", "Позволяет пользователям взаимодействовать с системой")
-    Container(api_gateway, "API Gateway", "Nginx/Envoy", "Маршрутизирует запросы к соответствующим микросервисам")
+    Container(mobileApp, "Мобильное приложение", "iOS/Android", "Позволяет пользователям управлять оборудованием и просматривать данные о состоянии дома")
+    Container(apiGateway, "API Gateway", "API Gateway", "Обрабатывает все входящие запросы и маршрутизирует их к серверу")
+    Container(server, "Сервер", "Сервис бэкенда", "Обрабатывает запросы от моб. приложения, взаимодействует с базой данных, управляет электро-оборудованием и читает события из Kafka")
+    ContainerDb(database, "База данных", "SQL-база данных", "Хранит данные пользователей и данные системы умного дома")
+    Container(messageQueue, "Kafka", "Брокер сообщений", "Обрабатывает события от датчиков и электро-оборудования")
 
-    Container_Boundary(services, "Микросервисы") {
-        Container(user_service, "UserService", "Golang", "Управляет информацией о пользователях и их взаимодействиями")
-        Container(device_service, "DeviceService", "Golang", "Управляет оборудованием и его контролем")
-        Container(telemetry_service, "TelemetryService", "Golang", "Обрабатывает телеметрию от оборудования")
-    }
-
-    ContainerDb(user_db, "База Данных Пользователей", "PostgreSQL", "Хранит данные о пользователях")
-    ContainerDb(equipment_db, "База Данных Оборудования", "PostgreSQL", "Хранит данные об оборудовании")
-    ContainerDb(telemetry_db, "База Данных Телеметрии", "MongoDB", "Хранит данные телеметрии")
-
-    Container(kafka, "Kafka", "Брокер Сообщений", "Обрабатывает события системы")
+    System_Ext(heatingEquipment, "Интерфейс электро-оборудования (котлы, фонари, ворота, камеры и т.д)", "Получает команды для включения/выключения и отправляет события в Kafka")
+    System_Ext(temperatureSensor, "Интерфейс датчика в доме", "Отправляет данные о состоянии дома (температура, влажность, движение, уровень освещённости) в Kafka")
 }
 
-System_Ext(external_system, "Электрооборудование", "Публикует события в Kafka и получает команды управления")
-
-Rel(mobile_user, mobile_app, "HTTP/HTTPS")
-Rel(mobile_app, api_gateway, "Отправляет запросы в", "HTTP/HTTPS")
-Rel_D(api_gateway, services, "Маршрутизирует запросы", "HTTP/HTTPS")
-
-Rel(user_service, user_db, "Читает и записывает", "ORM")
-Rel(device_service, equipment_db, "Читает и записывает", "ORM")
-Rel(telemetry_service, telemetry_db, "Читает и записывает", "MongoDB драйвер")
-
-Rel(external_system, kafka, " ")
-Rel(kafka, services, "Обрабатывает события", "Kafka topic")
-
-Rel(services, external_system, "Отправляет запросы к", "MQTT/HTTP/CoAP")
+Rel(user, mobileApp, "Использует")
+Rel(mobileApp, apiGateway, "Отправляет запросы", "HTTP")
+Rel(apiGateway, server, "Маршрутизирует запросы", "HTTP")
+Rel(server, database, "Читает и записывает данные", "SQL")
+Rel(server, heatingEquipment, "Отправляет команды по HTTP", "Включить/Выключить и т.д.")
+Rel(heatingEquipment, messageQueue, "Отправляет события", "Kafka")
+Rel(temperatureSensor, messageQueue, "Публикует данные о состоянии", "Kafka")
+Rel(server, messageQueue, "Читает события", "Kafka")
+Rel(mobileApp, apiGateway, "Управление отоплением", "HTTP")
+Rel(mobileApp, apiGateway, "Вкл./выкл. свет", "HTTP")
+Rel(mobileApp, apiGateway, "Закр./откр. ворота", "HTTP")
+Rel(mobileApp, apiGateway, "Наблюдение за домом", "HTTP")
+Rel(mobileApp, apiGateway, "Будущее неуточнённое поведение", "HTTP")
 
 @enduml
