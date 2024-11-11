@@ -167,3 +167,28 @@ func TurnOffModule(c *gin.Context, container *shared.Container) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "Module turned off successfully"})
 }
+
+func GetModuleState(c *gin.Context, container *shared.Container) {
+	houseIDStr := c.Param("houseID")
+	moduleIDStr := c.Param("moduleID")
+
+	houseID, err := uuid.Parse(houseIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid house ID"})
+		return
+	}
+
+	moduleID, err := uuid.Parse(moduleIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid module ID"})
+		return
+	}
+
+	stateInfo, err := container.ModuleService.GetModuleState(houseID, moduleID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Could not fetch state due to an error"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"state": stateInfo})
+}

@@ -3,6 +3,7 @@ package repository
 import (
 	"device-service/persistance"
 	"device-service/presentation/web-schemas"
+	"errors"
 	"fmt"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -16,6 +17,7 @@ type ModuleRepository interface {
 	RequestAddingModuleToHouse(houseID uuid.UUID, moduleID uuid.UUID) ([]web_schemas.ModuleOut, error)
 	AcceptAdditionModuleToHouse(houseID uuid.UUID, moduleID uuid.UUID) error
 	FailAdditionModuleToHouse(houseID uuid.UUID, moduleID uuid.UUID) error
+	GetModuleState(houseID uuid.UUID, moduleID uuid.UUID) (*web_schemas.HouseModuleState, error)
 }
 
 type GORMModuleRepository struct {
@@ -151,4 +153,28 @@ func (r *GORMModuleRepository) TurnOffModule(houseID uuid.UUID, moduleID uuid.UU
 
 	houseModule.TurnOn = false
 	return r.db.Save(&houseModule).Error
+}
+
+func (r *GORMModuleRepository) GetModuleState(houseID uuid.UUID, moduleID uuid.UUID) (*web_schemas.HouseModuleState, error) {
+	var houseModule persistance.HouseModuleModel
+
+	if err := r.db.Where("house_id = ? AND module_id = ?", houseID, moduleID).First(&houseModule).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, fmt.Errorf("record not found for houseID: %s, moduleID: %s", houseID, moduleID)
+		}
+		return nil, err
+	}
+
+	state := "disabled"
+	if houseModule.TurnOn {
+		state = "activated"
+	}
+
+	response := &web_schemas.HouseModuleState{
+		HouseID:  houseModule.HouseID,
+		ModuleID: houseModule.ModuleID,
+		State:    state,
+	}
+
+	return response, nil
 }

@@ -90,6 +90,10 @@ func (s *ModuleService) TurnOffModule(houseID uuid.UUID, moduleID uuid.UUID) err
 	return s.repo.TurnOffModule(houseID, moduleID)
 }
 
+func (s *ModuleService) GetModuleState(houseID uuid.UUID, moduleID uuid.UUID) (*web_schemas.HouseModuleState, error) {
+	return s.repo.GetModuleState(houseID, moduleID)
+}
+
 func (s *ModuleService) RequestAdditionModuleToHouse(
 	houseID uuid.UUID,
 	moduleID uuid.UUID,

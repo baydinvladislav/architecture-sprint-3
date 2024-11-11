@@ -19,3 +19,10 @@ type ConnectModuleIn struct {
 type ConnectModuleOut struct {
 	Modules []ModuleOut `json:"modules"`
 }
+
+type HouseModuleState struct {
+	CreatedAt time.Time `json:"created_at"`
+	HouseID   uuid.UUID `json:"house_id"`
+	ModuleID  uuid.UUID `json:"module_id"`
+	State     string    `json:"state"`
+}
