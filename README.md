@@ -1,74 +1,66 @@
-# Базовая настройка
-
-## Запуск minikube
-
-[Инструкция по установке](https://minikube.sigs.k8s.io/docs/start/)
-
-```bash
-minikube start
+#### Поднять проект:
+```
+docker compose up --build
 ```
 
-
-## Добавление токена авторизации GitHub
-
-[Получение токена](https://github.com/settings/tokens/new)
-
-```bash
-kubectl create secret docker-registry ghcr --docker-server=https://ghcr.io --docker-username=<github_username> --docker-password=<github_token> -n default
+#### Регистрация:
 ```
-
-
-## Установка API GW kusk
-
-[Install Kusk CLI](https://docs.kusk.io/getting-started/install-kusk-cli)
-
-```bash
-kusk cluster install
-```
-
-
-## Настройка terraform
-
-[Установите Terraform](https://yandex.cloud/ru/docs/tutorials/infrastructure-management/terraform-quickstart#install-terraform)
-
-
-Создайте файл ~/.terraformrc
-
-```hcl
-provider_installation {
-  network_mirror {
-    url = "https://terraform-mirror.yandexcloud.net/"
-    include = ["registry.terraform.io/*/*"]
-  }
-  direct {
-    exclude = ["registry.terraform.io/*/*"]
-  }
+POST http://0.0.0.0:80/user/register
+{
+    "username": "new_user",
+    "password": "53047"
 }
 ```
 
-## Применяем terraform конфигурацию 
-
-```bash
-cd terraform
-terraform apply
+#### Вход:
+```
+POST http://0.0.0.0:80/user/login
+{
+    "username": "new_user",
+    "password": "53047"
+} + JWT
 ```
 
-## Настройка API GW
-
-```bash
-kusk deploy -i api.yaml
+#### Создать дом:
+```
+POST http://0.0.0.0:80/houses
+{
+    "address": "more test house",
+    "square": 23.0
+} + JWT
 ```
 
-## Проверяем работоспособность
-
-```bash
-kubectl port-forward svc/kusk-gateway-envoy-fleet -n kusk-system 8080:80
-curl localhost:8080/hello
+#### Получить дома:
+```
+GET http://0.0.0.0:80/user/houses + JWT
 ```
 
+#### Получить все предоставляемые модули компанией (слеш!):
+```
+GET http://0.0.0.0:80/device/modules/
+```
 
-## Delete minikube
+#### Подключить модуль к дому:
+```
+POST http://0.0.0.0:80/device/modules/houses/5d19d994-12ef-40fc-9569-67bcbc800cfe/modules/15584fb6-d251-43a1-98f7-96c8497b6b43/assign
+```
 
-```bash
-minikube delete
+#### Убедиться в подключении дома к модулю:
+```
+GET http://0.0.0.0:80/device/modules/houses/5d19d994-12ef-40fc-9569-67bcbc800cfe
+```
+
+#### Выключить модуль:
+```
+POST http://0.0.0.0:80/device/modules/houses/5d19d994-12ef-40fc-9569-67bcbc800cfe/modules/15584fb6-d251-43a1-98f7-96c8497b6b43/turn-off
+```
+
+#### Включить модуль:
+```
+POST http://0.0.0.0:80/device/modules/houses/5d19d994-12ef-40fc-9569-67bcbc800cfe/modules/15584fb6-d251-43a1-98f7-96c8497b6b43/turn-on
+```
+
+#### Получить текущее состояние подключенного модуля к дому:
+```
+http://0.0.0.0:80/device/modules/houses/5d19d994-12ef-40fc-9569-67bcbc800cfe/modules/8176acb6-b8ca-44a3-8038-3f3b845dc1b6/state
 ```
