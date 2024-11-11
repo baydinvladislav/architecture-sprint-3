@@ -44,21 +44,13 @@ func CreateApp(ctx context.Context) *gin.Engine {
 
 	go func() {
 		for {
-			event, err := appContainer.ModuleService.ReadMessage(ctx)
+			event, err := appContainer.KafkaSupplier.ReadMessage(ctx)
 			if err != nil {
 				log.Printf("Error while reading message: %v", err)
 				continue
 			}
 
-			ok, err := appContainer.ModuleService.ProcessMessage(event)
-			if err != nil {
-				log.Printf("Error handling event: %v", err)
-				continue
-			}
-
-			if ok {
-				log.Printf("Event successfully processed: %v", event)
-			}
+			log.Printf("Event successfully processed: %v", event)
 		}
 	}()
 
