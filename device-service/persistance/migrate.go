@@ -10,6 +10,17 @@ func Migrate(db *gorm.DB) {
 		log.Fatalf("failed to create uuid-ossp extension: %v", err)
 	}
 
+	if err := db.Exec(`
+		DO $$
+		BEGIN
+			IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'status_enum') THEN
+				CREATE TYPE status_enum AS ENUM ('INSTALL_REQUESTED', 'INSTALL_COMPLETED', 'INSTALL_FAILED', 'UNINSTALL');
+			END IF;
+		END$$;
+	`).Error; err != nil {
+		log.Fatalf("failed to create status_enum type: %v", err)
+	}
+
 	if err := db.AutoMigrate(
 		ModuleModel{},
 		HouseModuleModel{},
