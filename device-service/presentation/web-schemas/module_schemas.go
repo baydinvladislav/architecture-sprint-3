@@ -10,6 +10,7 @@ type ModuleOut struct {
 	CreatedAt   time.Time `json:"created_at"`
 	Type        string    `json:"type"`
 	Description string    `json:"description"`
+	State       string    `json:"state"`
 }
 
 type ConnectModuleIn struct {

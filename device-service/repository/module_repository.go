@@ -65,11 +65,17 @@ func (r *GORMModuleRepository) GetModulesByHouseID(houseID uuid.UUID) ([]web_sch
 	for _, houseModule := range houseModules {
 		var module persistance.ModuleModel
 		if err := r.db.First(&module, "id = ?", houseModule.ModuleID).Error; err == nil {
+			state := "activated"
+			if !houseModule.TurnOn {
+				state = "disabled"
+			}
+
 			moduleOuts = append(moduleOuts, web_schemas.ModuleOut{
 				ID:          module.ID,
 				CreatedAt:   module.CreatedAt,
 				Type:        module.Type,
 				Description: module.Description,
+				State:       state,
 			})
 		}
 	}
