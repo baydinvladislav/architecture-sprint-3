@@ -1,7 +1,9 @@
 package presentation
 
 import (
+	"device-service/repository"
 	"device-service/shared"
+	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"net/http"
@@ -125,8 +127,16 @@ func TurnOnModule(c *gin.Context, container *shared.Container) {
 	}
 
 	if err := container.ModuleService.TurnOnModule(houseID, moduleID); err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Module not found or could not be turned on"})
-		return
+		if errors.Is(err, repository.ErrModuleAlreadyOn) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Module is already turned on"})
+			return
+		} else if errors.Is(err, repository.ErrModuleNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Module not found"})
+			return
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not turn on module"})
+			return
+		}
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Module turned on successfully"})
@@ -161,8 +171,16 @@ func TurnOffModule(c *gin.Context, container *shared.Container) {
 	}
 
 	if err := container.ModuleService.TurnOffModule(houseID, moduleID); err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Module not found or could not be turned off"})
-		return
+		if errors.Is(err, repository.ErrModuleAlreadyOff) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Module is already turned off"})
+			return
+		} else if errors.Is(err, repository.ErrModuleNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Module not found"})
+			return
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not turn off module"})
+			return
+		}
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Module turned off successfully"})

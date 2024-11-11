@@ -9,6 +9,12 @@ import (
 	"gorm.io/gorm"
 )
 
+var (
+	ErrModuleAlreadyOff = fmt.Errorf("module is already turned off")
+	ErrModuleAlreadyOn  = fmt.Errorf("module is already turned on")
+	ErrModuleNotFound   = fmt.Errorf("module not found")
+)
+
 type ModuleRepository interface {
 	GetAllModules() ([]web_schemas.ModuleOut, error)
 	GetModulesByHouseID(houseID uuid.UUID) ([]web_schemas.ModuleOut, error)
@@ -141,6 +147,10 @@ func (r *GORMModuleRepository) TurnOnModule(houseID uuid.UUID, moduleID uuid.UUI
 		return err
 	}
 
+	if houseModule.TurnOn {
+		return ErrModuleAlreadyOn
+	}
+
 	houseModule.TurnOn = true
 	return r.db.Save(&houseModule).Error
 }
@@ -149,6 +159,10 @@ func (r *GORMModuleRepository) TurnOffModule(houseID uuid.UUID, moduleID uuid.UU
 	var houseModule persistance.HouseModuleModel
 	if err := r.db.Where("house_id = ? AND module_id = ?", houseID, moduleID).First(&houseModule).Error; err != nil {
 		return err
+	}
+
+	if !houseModule.TurnOn {
+		return ErrModuleAlreadyOff
 	}
 
 	houseModule.TurnOn = false
