@@ -22,12 +22,12 @@ Rel(app_client, controller_modules_view, "Requests list of available modules", "
 Rel(app_client, controller_module_management, "Manages connected modules in the home", "HTTP")
 
 Rel(user, app_client, "Uses the mobile application to manage the system")
-Rel(controller_modules_view, modules_db, "Reads data on company’s available modules", "GORM Golang")
-Rel(controller_module_management, modules_db, "Changes equipment status", "GORM Golang")
-Rel_L(controller_module_management, publisher, "Changes equipment status", "GORM Golang")
+Rel(controller_modules_view, modules_db, "Reads data on company’s available modules", "Golang GORM")
+Rel(controller_module_management, modules_db, "Changes equipment status", "Golang GORM")
+Rel_L(controller_module_management, publisher, "Changes equipment status", "Golang GORM")
 Rel_L(internal_system, kafka_broker, "Sends verification result events for home and user", "module.verification.topic")
 Rel_U(publisher, kafka_broker, "Publishes messages requesting home connection", "module.addition.topic")
 Rel(processor, kafka_broker, "Reads home verification events for connection", "module.verification.topic")
-Rel_L(processor, modules_db, "Updates data based on home verification", "GORM Golang")
+Rel_L(processor, modules_db, "Updates data based on home verification", "Golang GORM")
 
 @enduml
