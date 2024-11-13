@@ -8,7 +8,7 @@ Container(app_client, "Mobile Application", "iOS/Android", "Uses API controllers
 Container(internal_system, "User Microservice", "Microservice", "Manages user data and performs verification before connecting a module to a home") #1368bd
 System_Ext(system, "Physical Equipment", "Some Physical Equipment, e.g. Heating Equipment, Gate Equipment, Moving Sensor")
 
-System_Boundary(b_system, "Device Service") {
+System_Boundary(b_system, "Device Microservice") {
     Container(controller_modules_view, "Module View Controller", "Golang Gin", "Provides information about modules available for connection")
     Container(controller_module_management, "Module Management Controller", "Golang Gin", "Manages modules in the home: adding, enabling/disabling, and removing modules")
 
