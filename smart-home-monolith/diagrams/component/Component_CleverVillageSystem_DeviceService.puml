@@ -8,24 +8,25 @@ Container(app_client, "Mobile Application", "iOS/Android", "Использует
 Container(internal_system, "Internal System", "Микросервис", "Генерирует события и отправляет их в Kafka") #1368bd
 
 System_Boundary(b_system, "Device Service") {
-    Container(controller_modules_view, "Контроллер Просмотра Модулей", "Golang", "Предоставляет информацию о доступных модулях для клиента")
-    Container(controller_module_management, "Контроллер Управления Модулями", "Golang", "Управляет модулями в доме: добавление, включение/выключение и удаление модуля")
+    Container(controller_modules_view, "Контроллер Просмотра Всех Модулей Компании", "Golang", "Предоставляет информацию о доступных к подключению модулей для клиента")
+    Container(controller_module_management, "Контроллер Управления Модулями", "Golang", "Управляет модулями в доме: добавление, включение/выключение и отключение модуля")
 
-    Container(processor, "Processor", "Golang", "Обрабатывает события из Kafka и инициирует действия в системе")
+    Container(publisher, "Publisher", "Издатель", "Публикует сообщения в Kafka о том что получен запрос на добавление модуля в новый дом")
+    Container(processor, "Processor", "Обработчик", "Обрабатывает события из Kafka о том, что модуль может быть добавлен, его верифицировал другой сервис")
 
     ContainerDb(modules_db, "База Данных Модулей", "PostgreSQL", "Хранит информацию о подключенных модулях и их состоянии")
-    ContainerQueue(kafka_broker, "Kafka", "Брокер Сообщений", "Обрабатывает события системы")
+    ContainerQueue(kafka_broker, "Kafka", "Брокер Сообщений", "Принимает и хранит события системы")
 }
 
-Rel(app_client, controller_modules_view, "Запрашивает список доступных модулей", "REST API")
-Rel(app_client, controller_module_management, "Управляет модулями в доме", "REST API")
+Rel(app_client, controller_modules_view, "Запрашивает список доступных модулей", "HTTP")
+Rel(app_client, controller_module_management, "Управляет подключенными модулями в доме", "HTTP")
 
-Rel(user, app_client, "Использует приложение для управления системой")
-Rel(controller_modules_view, modules_db, "Читает данные о доступных модулях", "PostgreSQL драйвер")
-Rel(controller_module_management, modules_db, "Читает и записывает данные о модулях", "PostgreSQL драйвер")
-Rel(controller_module_management, kafka_broker, "Публикует события о состоянии модулей", "module.events.topic")
-Rel(internal_system, kafka_broker, "Отправляет события на обработку", "event.input.topic")
-Rel(processor, kafka_broker, "Читает события о модулях", "module.events.topic / event.input.topic")
-Rel(processor, modules_db, "Обновляет состояние модулей по событиям", "PostgreSQL драйвер")
+Rel(user, app_client, "Использует мобильное приложение для управления системой")
+Rel(controller_modules_view, modules_db, "Читает данные о доступных модулях компании", "GORM Golang")
+Rel(controller_module_management, modules_db, "Меняет состояние оборудования", "GORM Golang")
+Rel_L(internal_system, kafka_broker, "Отправляет события об верификации дома", "module.verification.topic")
+Rel_U(publisher, kafka_broker, "Публикует сообщения о запросе на подключение дома", "module.addition.topic")
+Rel(processor, kafka_broker, "Читает события о верификации дома для подключения", "module.verification.topic")
+Rel_L(processor, modules_db, "Обновляет данные на основе верификации дома", "GORM Golang")
 
 @enduml
