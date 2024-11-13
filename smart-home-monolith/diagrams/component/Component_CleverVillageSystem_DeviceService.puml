@@ -3,9 +3,9 @@
 
 LAYOUT_WITH_LEGEND()
 
-Person(user, "Customer", "Smart Home system user")
-Container(app_client, "Mobile Application", "iOS/Android", "Использует API контроллеров для взаимодействия с модулями")
-System_Ext(external_system, "Внешняя Система", "Генерирует события и отправляет их в Kafka")
+Person(user, "Customer", "Пользователь системы 'Smart Home'")
+Container(app_client, "Mobile Application", "iOS/Android", "Использует API контроллеров для взаимодействия с модулями умного дома")
+Container(internal_system, "Internal System", "Микросервис", "Генерирует события и отправляет их в Kafka") #1368bd
 
 System_Boundary(b_system, "Device Service") {
     Container(controller_modules_view, "Контроллер Просмотра Модулей", "Golang", "Предоставляет информацию о доступных модулях для клиента")
@@ -20,11 +20,11 @@ System_Boundary(b_system, "Device Service") {
 Rel(app_client, controller_modules_view, "Запрашивает список доступных модулей", "REST API")
 Rel(app_client, controller_module_management, "Управляет модулями в доме", "REST API")
 
-Rel(user, app_client, "Use the application to manage system")
+Rel(user, app_client, "Использует приложение для управления системой")
 Rel(controller_modules_view, modules_db, "Читает данные о доступных модулях", "PostgreSQL драйвер")
 Rel(controller_module_management, modules_db, "Читает и записывает данные о модулях", "PostgreSQL драйвер")
 Rel(controller_module_management, kafka_broker, "Публикует события о состоянии модулей", "module.events.topic")
-Rel(external_system, kafka_broker, "Отправляет события на обработку", "event.input.topic")
+Rel(internal_system, kafka_broker, "Отправляет события на обработку", "event.input.topic")
 Rel(processor, kafka_broker, "Читает события о модулях", "module.events.topic / event.input.topic")
 Rel(processor, modules_db, "Обновляет состояние модулей по событиям", "PostgreSQL драйвер")
 
