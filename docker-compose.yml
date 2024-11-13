@@ -68,8 +68,10 @@ services:
       MONGO_INITDB_DATABASE: telemetry_database
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: mongodb
+      MONGO_URI: mongodb://root:mongodb@mongo:27017/telemetry_database?authSource=admin
     volumes:
       - mongo_data:/data/db
+      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js
 
   nginx:
     image: nginx:latest

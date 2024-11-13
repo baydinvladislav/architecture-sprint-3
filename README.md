@@ -81,3 +81,18 @@ kafka-console-producer.sh --broker-list localhost:9092 --topic telemetry.data
 
 {"event_type": "TelemetryData", "payload": {"source_id": "sensor_test", "source_type": "sensor", "value": 28.5, "time": 1633036888}}
 ```
+
+#### Подключиться к контейнеру MongoDB:
+```
+docker exec -it architecture-sprint-3-mongo-1 mongosh -u root -p mongodb --authenticationDatabase admin
+```
+
+#### Подключиться к БД телеметрии в MongoDB:
+```
+use telemetry_database
+```
+
+#### Вывести все ивенты из MongoDB:
+```
+db.events.find().pretty()
+```

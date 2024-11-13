@@ -30,7 +30,7 @@ func NewAppSettings() *AppSettings {
 		NewHouseTopic:  getEnv("NEW_HOUSE_TOPIC", "house.initialization"),
 		GroupID:        getEnv("KAFKA_GROUP_ID", "telemetry_group"),
 
-		MongoURI:            getEnv("MONGO_URI", "mongodb://root:mongodb@mongo:27017"),
+		MongoURI:            getEnv("MONGO_URI", "mongodb://root:mongodb@mongo:27017/telemetry_database?authSource=admin"),
 		DatabaseName:        getEnv("MONGO_DATABASE_NAME", "telemetry_database"),
 		TelemetryCollection: getEnv("MONGO_TELEMETRY_COLLECTION", "events"),
 
