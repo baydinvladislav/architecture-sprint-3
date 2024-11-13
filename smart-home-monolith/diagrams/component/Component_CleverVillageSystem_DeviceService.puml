@@ -3,31 +3,31 @@
 
 LAYOUT_WITH_LEGEND()
 
-Person(user, "Customer", "Пользователь системы 'Smart Home'")
-Container(app_client, "Mobile Application", "iOS/Android", "Использует API контроллеров для взаимодействия с модулями умного дома")
-Container(internal_system, "User Microservice", "Микросервис", "Отвечает за пользовательские данные, проводит верификацию перед подключением модуля к дому") #1368bd
+Person(user, "Customer", "'Smart Home' system user")
+Container(app_client, "Mobile Application", "iOS/Android", "Uses API controllers to interact with Smart Home modules")
+Container(internal_system, "User Microservice", "Microservice", "Manages user data and performs verification before connecting a module to a home") #1368bd
 
 System_Boundary(b_system, "Device Service") {
-    Container(controller_modules_view, "Module View Controller", "Golang Gin", "Предоставляет информацию о доступных к подключению модулей для клиента")
-    Container(controller_module_management, "Module Management Controller", "Golang Gin", "Управляет модулями в доме: добавление, включение/выключение и отключение модуля")
+    Container(controller_modules_view, "Module View Controller", "Golang Gin", "Provides information about modules available for connection")
+    Container(controller_module_management, "Module Management Controller", "Golang Gin", "Manages modules in the home: adding, enabling/disabling, and removing modules")
 
-    Container(publisher, "ModuleAdditionProducer", "Издатель", "Публикует сообщения в Kafka о том что получен запрос на добавление модуля в новый дом")
-    Container(processor, "ModuleVerificationConsumer", "Обработчик", "Обрабатывает события из Kafka о том, что модуль может быть добавлен, его верифицировал другой сервис")
+    Container(publisher, "ModuleAdditionProducer", "Producer", "Publishes messages to Kafka indicating that a request to add a module to a new home has been received")
+    Container(processor, "ModuleVerificationConsumer", "Consumer", "Processes events from Kafka indicating that a module can be added, as verified by another service")
 
-    ContainerDb(modules_db, "Module Database", "PostgreSQL", "Хранит информацию о подключенных модулях и их состоянии")
-    ContainerQueue(kafka_broker, "Apache Kafka", "Брокер Сообщений", "Принимает и хранит события системы")
+    ContainerDb(modules_db, "Module Database", "PostgreSQL", "Stores information about connected modules and their status")
+    ContainerQueue(kafka_broker, "Apache Kafka", "Message Broker", "Receives and stores system events")
 }
 
-Rel(app_client, controller_modules_view, "Запрашивает список доступных модулей", "HTTP")
-Rel(app_client, controller_module_management, "Управляет подключенными модулями в доме", "HTTP")
+Rel(app_client, controller_modules_view, "Requests list of available modules", "HTTP")
+Rel(app_client, controller_module_management, "Manages connected modules in the home", "HTTP")
 
-Rel(user, app_client, "Использует мобильное приложение для управления системой")
-Rel(controller_modules_view, modules_db, "Читает данные о доступных модулях компании", "GORM Golang")
-Rel(controller_module_management, modules_db, "Меняет состояние оборудования", "GORM Golang")
-Rel_L(controller_module_management, publisher, "Меняет состояние оборудования", "GORM Golang")
-Rel_L(internal_system, kafka_broker, "Отправляет события с результатом верификации дома и пользователя", "module.verification.topic")
-Rel_U(publisher, kafka_broker, "Публикует сообщения о запросе на подключение дома", "module.addition.topic")
-Rel(processor, kafka_broker, "Читает события о верификации дома для подключения", "module.verification.topic")
-Rel_L(processor, modules_db, "Обновляет данные на основе верификации дома", "GORM Golang")
+Rel(user, app_client, "Uses the mobile application to manage the system")
+Rel(controller_modules_view, modules_db, "Reads data on company’s available modules", "GORM Golang")
+Rel(controller_module_management, modules_db, "Changes equipment status", "GORM Golang")
+Rel_L(controller_module_management, publisher, "Changes equipment status", "GORM Golang")
+Rel_L(internal_system, kafka_broker, "Sends verification result events for home and user", "module.verification.topic")
+Rel_U(publisher, kafka_broker, "Publishes messages requesting home connection", "module.addition.topic")
+Rel(processor, kafka_broker, "Reads home verification events for connection", "module.verification.topic")
+Rel_L(processor, modules_db, "Updates data based on home verification", "GORM Golang")
 
 @enduml
