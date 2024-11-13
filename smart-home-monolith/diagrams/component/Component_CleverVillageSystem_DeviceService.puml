@@ -5,17 +5,17 @@ LAYOUT_WITH_LEGEND()
 
 Person(user, "Customer", "Пользователь системы 'Smart Home'")
 Container(app_client, "Mobile Application", "iOS/Android", "Использует API контроллеров для взаимодействия с модулями умного дома")
-Container(internal_system, "Internal System", "Микросервис", "Генерирует события и отправляет их в Kafka") #1368bd
+Container(internal_system, "User Microservice", "Микросервис", "Отвечает за пользовательские данные, проводит верификацию перед подключением модуля к дому") #1368bd
 
 System_Boundary(b_system, "Device Service") {
-    Container(controller_modules_view, "Контроллер Просмотра Всех Модулей Компании", "Golang", "Предоставляет информацию о доступных к подключению модулей для клиента")
-    Container(controller_module_management, "Контроллер Управления Модулями", "Golang", "Управляет модулями в доме: добавление, включение/выключение и отключение модуля")
+    Container(controller_modules_view, "Module View Controller", "Golang Gin", "Предоставляет информацию о доступных к подключению модулей для клиента")
+    Container(controller_module_management, "Module Management Controller", "Golang Gin", "Управляет модулями в доме: добавление, включение/выключение и отключение модуля")
 
-    Container(publisher, "Publisher", "Издатель", "Публикует сообщения в Kafka о том что получен запрос на добавление модуля в новый дом")
-    Container(processor, "Processor", "Обработчик", "Обрабатывает события из Kafka о том, что модуль может быть добавлен, его верифицировал другой сервис")
+    Container(publisher, "ModuleAdditionProducer", "Издатель", "Публикует сообщения в Kafka о том что получен запрос на добавление модуля в новый дом")
+    Container(processor, "ModuleVerificationConsumer", "Обработчик", "Обрабатывает события из Kafka о том, что модуль может быть добавлен, его верифицировал другой сервис")
 
-    ContainerDb(modules_db, "База Данных Модулей", "PostgreSQL", "Хранит информацию о подключенных модулях и их состоянии")
-    ContainerQueue(kafka_broker, "Kafka", "Брокер Сообщений", "Принимает и хранит события системы")
+    ContainerDb(modules_db, "Module Database", "PostgreSQL", "Хранит информацию о подключенных модулях и их состоянии")
+    ContainerQueue(kafka_broker, "Apache Kafka", "Брокер Сообщений", "Принимает и хранит события системы")
 }
 
 Rel(app_client, controller_modules_view, "Запрашивает список доступных модулей", "HTTP")
@@ -24,7 +24,8 @@ Rel(app_client, controller_module_management, "Управляет подключ
 Rel(user, app_client, "Использует мобильное приложение для управления системой")
 Rel(controller_modules_view, modules_db, "Читает данные о доступных модулях компании", "GORM Golang")
 Rel(controller_module_management, modules_db, "Меняет состояние оборудования", "GORM Golang")
-Rel_L(internal_system, kafka_broker, "Отправляет события об верификации дома", "module.verification.topic")
+Rel_L(controller_module_management, publisher, "Меняет состояние оборудования", "GORM Golang")
+Rel_L(internal_system, kafka_broker, "Отправляет события с результатом верификации дома и пользователя", "module.verification.topic")
 Rel_U(publisher, kafka_broker, "Публикует сообщения о запросе на подключение дома", "module.addition.topic")
 Rel(processor, kafka_broker, "Читает события о верификации дома для подключения", "module.verification.topic")
 Rel_L(processor, modules_db, "Обновляет данные на основе верификации дома", "GORM Golang")
