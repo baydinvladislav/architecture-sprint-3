@@ -3,18 +3,29 @@
 
 LAYOUT_WITH_LEGEND()
 
-System_Ext(internal_system, "Внутренняя Система", "Запускает процессы и взаимодействует с DeviceService для управления модулями")
+Person(user, "Customer", "Smart Home system user")
+Container(app_client, "Mobile Application", "iOS/Android", "Использует API контроллеров для взаимодействия с модулями")
 System_Ext(external_system, "Внешняя Система", "Генерирует события и отправляет их в Kafka")
 
 System_Boundary(b_system, "Device Service") {
-    Container(device_service, "DeviceService", "Golang", "Управляет модулями: подключение, получение списка, включение/выключение")
+    Container(controller_modules_view, "Контроллер Просмотра Модулей", "Golang", "Предоставляет информацию о доступных модулях для клиента")
+    Container(controller_module_management, "Контроллер Управления Модулями", "Golang", "Управляет модулями в доме: добавление, включение/выключение и удаление модуля")
+
+    Container(processor, "Processor", "Golang", "Обрабатывает события из Kafka и инициирует действия в системе")
+
     ContainerDb(modules_db, "База Данных Модулей", "PostgreSQL", "Хранит информацию о подключенных модулях и их состоянии")
     ContainerQueue(kafka_broker, "Kafka", "Брокер Сообщений", "Обрабатывает события системы")
 }
 
-Rel(internal_system, device_service, "Вызывает сервис для управления модулями", "HTTP/HTTPS")
-Rel(device_service, modules_db, "Читает и записывает данные о модулях", "PostgreSQL драйвер")
-Rel(device_service, kafka_broker, "Публикует события о состоянии модулей", "module.events.topic")
+Rel(app_client, controller_modules_view, "Запрашивает список доступных модулей", "REST API")
+Rel(app_client, controller_module_management, "Управляет модулями в доме", "REST API")
+
+Rel(user, app_client, "Use the application to manage system")
+Rel(controller_modules_view, modules_db, "Читает данные о доступных модулях", "PostgreSQL драйвер")
+Rel(controller_module_management, modules_db, "Читает и записывает данные о модулях", "PostgreSQL драйвер")
+Rel(controller_module_management, kafka_broker, "Публикует события о состоянии модулей", "module.events.topic")
 Rel(external_system, kafka_broker, "Отправляет события на обработку", "event.input.topic")
+Rel(processor, kafka_broker, "Читает события о модулях", "module.events.topic / event.input.topic")
+Rel(processor, modules_db, "Обновляет состояние модулей по событиям", "PostgreSQL драйвер")
 
 @enduml
