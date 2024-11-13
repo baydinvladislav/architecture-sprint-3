@@ -25,3 +25,7 @@ PUT /modules/:houseID/:moduleID/turn-off
 
 5. Добавление нового модуля:
 POST /houses/:houseID/modules
+
+
+### C4 Device Service component diagram
+![System Architecture](./Component_CleverVillageSystem_DeviceService.svg)
