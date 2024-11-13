@@ -6,6 +6,7 @@ LAYOUT_WITH_LEGEND()
 Person(user, "Customer", "'Smart Home' system user")
 Container(app_client, "Mobile Application", "iOS/Android", "Uses API controllers to interact with Smart Home modules")
 Container(internal_system, "User Microservice", "Microservice", "Manages user data and performs verification before connecting a module to a home") #1368bd
+System_Ext(system, "Physical Equipment", "Some Physical Equipment, e.g. Heating Equipment, Gate Equipment, Moving Sensor")
 
 System_Boundary(b_system, "Device Service") {
     Container(controller_modules_view, "Module View Controller", "Golang Gin", "Provides information about modules available for connection")
@@ -27,6 +28,7 @@ Rel(controller_module_management, modules_db, "Changes equipment status", "Golan
 Rel_L(controller_module_management, publisher, "Changes equipment status", "Golang GORM")
 Rel_L(internal_system, kafka_broker, "Sends verification result events for home and user", "module.verification.topic")
 Rel_U(publisher, kafka_broker, "Publishes messages requesting home connection", "module.addition.topic")
+Rel_D(kafka_broker, system, "Get command to change their state", "equipment.change.state.topic")
 Rel(processor, kafka_broker, "Reads home verification events for connection", "module.verification.topic")
 Rel_L(processor, modules_db, "Updates data based on home verification", "Golang GORM")
 
