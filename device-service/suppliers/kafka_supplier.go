@@ -47,13 +47,22 @@ func NewKafkaSupplier(
 	}
 }
 
-func (kc *KafkaSupplier) SendMessageToAdditionTopic(ctx context.Context, key, value []byte) error {
+func (kc *KafkaSupplier) SendMessageToAdditionTopic(
+	ctx context.Context,
+	key []byte,
+	event schemas.HomeVerificationEvent,
+) error {
+	value, err := json.Marshal(event)
+	if err != nil {
+		return fmt.Errorf("failed to serialize event: %w", err)
+	}
+
 	msg := kafka.Message{
 		Key:   key,
 		Value: value,
 	}
 
-	err := kc.moduleAdditionProducer.WriteMessages(ctx, msg)
+	err = kc.moduleAdditionProducer.WriteMessages(ctx, msg)
 	if err != nil {
 		return err
 	}

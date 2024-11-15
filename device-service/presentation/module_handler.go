@@ -1,7 +1,6 @@
 package presentation
 
 import (
-	"context"
 	"device-service/repository"
 	"device-service/service"
 	"device-service/shared"

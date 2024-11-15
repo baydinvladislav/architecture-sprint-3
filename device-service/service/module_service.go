@@ -140,7 +140,20 @@ func (s *ModuleService) RequestAdditionModuleToHouse(
 	houseID uuid.UUID,
 	moduleID uuid.UUID,
 ) ([]web_schemas.ModuleOut, error) {
-	return s.repo.RequestAddingModuleToHouse(houseID, moduleID)
+	response, err := s.repo.RequestAddingModuleToHouse(houseID, moduleID)
+
+	key := []byte(moduleID.String())
+	event := schemas.HomeVerificationEvent{
+		HouseID:  houseID.String(),
+		ModuleID: moduleID.String(),
+		Time:     time.Now().Unix(),
+	}
+
+	if err := s.kafkaSupplier.SendMessageToAdditionTopic(context.Background(), key, event); err != nil {
+		return nil, err
+	}
+
+	return response, err
 }
 
 func (s *ModuleService) acceptModuleAddition(
