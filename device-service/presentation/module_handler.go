@@ -129,7 +129,7 @@ func TurnOnModule(c *gin.Context, container *shared.Container) {
 
 	if err := container.ModuleService.TurnOnModule(houseID, moduleID); err != nil {
 		if errors.Is(err, repository.ErrModuleAlreadyOn) {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Module is already turned on"})
+			c.JSON(http.StatusConflict, gin.H{"error": "Module is already turned on"})
 			return
 		} else if errors.Is(err, repository.ErrModuleNotFound) {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Module not found"})
