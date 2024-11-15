@@ -98,7 +98,7 @@ func (s *ModuleService) TurnOnModule(houseID uuid.UUID, moduleID uuid.UUID) erro
 		ModuleID: moduleID.String(),
 		Time:     time.Now().Unix(),
 		State: map[string]interface{}{
-			"running": "off",
+			"running": "on",
 		},
 	}
 
@@ -110,7 +110,26 @@ func (s *ModuleService) TurnOnModule(houseID uuid.UUID, moduleID uuid.UUID) erro
 }
 
 func (s *ModuleService) TurnOffModule(houseID uuid.UUID, moduleID uuid.UUID) error {
-	return s.repo.TurnOffModule(houseID, moduleID)
+	err := s.repo.TurnOffModule(houseID, moduleID)
+	if err != nil {
+		return err
+	}
+
+	key := []byte(moduleID.String())
+	event := schemas.ChangeEquipmentState{
+		HouseID:  houseID.String(),
+		ModuleID: moduleID.String(),
+		Time:     time.Now().Unix(),
+		State: map[string]interface{}{
+			"running": "off",
+		},
+	}
+
+	if err := s.kafkaSupplier.SendMessageToEquipmentChangeStateTopic(context.Background(), key, event); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (s *ModuleService) GetModuleState(houseID uuid.UUID, moduleID uuid.UUID) (*web_schemas.HouseModuleState, error) {

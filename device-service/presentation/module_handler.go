@@ -182,6 +182,9 @@ func TurnOffModule(c *gin.Context, container *shared.Container) {
 		} else if errors.Is(err, repository.ErrModuleNotFound) {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Module not found"})
 			return
+		} else if errors.Is(err, service.ErrKafkaSupplier) {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send Kafka message"})
+			return
 		} else {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not turn off module"})
 			return
