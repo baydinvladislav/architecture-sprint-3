@@ -11,6 +11,7 @@ type AppSettings struct {
 	KafkaBroker                  string
 	ModuleAddedKafkaTopic        string
 	ModuleVerificationKafkaTopic string
+	EquipmentChangeStateTopic    string
 	KafkaGroupID                 string
 }
 
@@ -35,6 +36,7 @@ func NewAppSettings() *AppSettings {
 		KafkaBroker:                  "kafka:9092",
 		ModuleAddedKafkaTopic:        "module.addition.topic",
 		ModuleVerificationKafkaTopic: "module.verification.topic",
+		EquipmentChangeStateTopic:    "equipment.change.state.topic",
 		KafkaGroupID:                 "device_service_group",
 	}
 }

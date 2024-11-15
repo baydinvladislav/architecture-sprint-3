@@ -8,13 +8,17 @@ import (
 	"device-service/suppliers"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/google/uuid"
+	"time"
 )
 
 type ModuleService struct {
 	repo          repository.ModuleRepository
 	kafkaSupplier suppliers.KafkaSupplier
 }
+
+var ErrKafkaSupplier = fmt.Errorf("erorr during send message in kafka")
 
 func NewModuleService(repo repository.ModuleRepository) *ModuleService {
 	return &ModuleService{
@@ -60,7 +64,7 @@ func (s *ModuleService) ProcessMessage(event schemas.Event) (bool, error) {
 }
 
 func (s *ModuleService) ReadMessage(ctx context.Context) (schemas.Event, error) {
-	msg, err := s.kafkaSupplier.ReadMessage(ctx)
+	msg, err := s.kafkaSupplier.ReadModuleVerificationTopic(ctx)
 	if err != nil {
 		return schemas.Event{}, err
 	}
@@ -83,7 +87,26 @@ func (s *ModuleService) GetModulesByHouseID(houseID uuid.UUID) ([]web_schemas.Mo
 }
 
 func (s *ModuleService) TurnOnModule(houseID uuid.UUID, moduleID uuid.UUID) error {
-	return s.repo.TurnOnModule(houseID, moduleID)
+	err := s.repo.TurnOnModule(houseID, moduleID)
+	if err != nil {
+		return err
+	}
+
+	key := []byte(moduleID.String())
+	event := schemas.ChangeEquipmentState{
+		HouseID:  houseID.String(),
+		ModuleID: moduleID.String(),
+		Time:     time.Now().Unix(),
+		State: map[string]interface{}{
+			"running": "off",
+		},
+	}
+
+	if err := s.kafkaSupplier.SendMessageToEquipmentChangeStateTopic(context.Background(), key, event); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (s *ModuleService) TurnOffModule(houseID uuid.UUID, moduleID uuid.UUID) error {

@@ -1,7 +1,9 @@
 package presentation
 
 import (
+	"context"
 	"device-service/repository"
+	"device-service/service"
 	"device-service/shared"
 	"errors"
 	"github.com/gin-gonic/gin"
@@ -132,6 +134,9 @@ func TurnOnModule(c *gin.Context, container *shared.Container) {
 			return
 		} else if errors.Is(err, repository.ErrModuleNotFound) {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Module not found"})
+			return
+		} else if errors.Is(err, service.ErrKafkaSupplier) {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send Kafka message"})
 			return
 		} else {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not turn on module"})

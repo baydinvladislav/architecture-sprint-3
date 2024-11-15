@@ -43,6 +43,7 @@ services:
       - mongo
       - kafka
 
+  # TODO: make separated for user-service and device-service
   db:
     image: postgres:latest
     restart: always
@@ -101,7 +102,7 @@ services:
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-      KAFKA_CREATE_TOPICS: "forced.module.shutdown:1:1,telemetry.data:1:1, module.verification.topic:1:1"
+      KAFKA_CREATE_TOPICS: "forced.module.shutdown:1:1,telemetry.data:1:1,module.addition.topic:1:1,module.verification.topic:1:1,equipment.change.state.topic:1:1"
     depends_on:
       - zookeeper
 

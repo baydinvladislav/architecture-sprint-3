@@ -2,24 +2,35 @@ package suppliers
 
 import (
 	"context"
+	"device-service/schemas"
+	"encoding/json"
+	"fmt"
 	"github.com/segmentio/kafka-go"
 	"log"
 )
 
 type KafkaSupplier struct {
-	moduleAdditionProducer     *kafka.Writer
-	moduleVerificationConsumer *kafka.Reader
+	moduleAdditionProducer       *kafka.Writer
+	equipmentChangeStateProducer *kafka.Writer
+	moduleVerificationConsumer   *kafka.Reader
 }
 
 func NewKafkaSupplier(
 	kafkaBroker string,
 	moduleAdditionTopic string,
 	moduleVerificationTopic string,
+	equipmentChangeStateTopic string,
 	groupID string,
 ) *KafkaSupplier {
 	moduleAdditionProducer := &kafka.Writer{
 		Addr:     kafka.TCP("localhost:9092"),
 		Topic:    moduleVerificationTopic,
+		Balancer: &kafka.LeastBytes{},
+	}
+
+	equipmentChangeStateProducer := &kafka.Writer{
+		Addr:     kafka.TCP("localhost:9092"),
+		Topic:    equipmentChangeStateTopic,
 		Balancer: &kafka.LeastBytes{},
 	}
 
@@ -30,12 +41,13 @@ func NewKafkaSupplier(
 	})
 
 	return &KafkaSupplier{
-		moduleAdditionProducer:     moduleAdditionProducer,
-		moduleVerificationConsumer: moduleVerificationConsumer,
+		moduleAdditionProducer:       moduleAdditionProducer,
+		moduleVerificationConsumer:   moduleVerificationConsumer,
+		equipmentChangeStateProducer: equipmentChangeStateProducer,
 	}
 }
 
-func (kc *KafkaSupplier) SendMessage(ctx context.Context, key, value []byte) error {
+func (kc *KafkaSupplier) SendMessageToAdditionTopic(ctx context.Context, key, value []byte) error {
 	msg := kafka.Message{
 		Key:   key,
 		Value: value,
@@ -48,7 +60,29 @@ func (kc *KafkaSupplier) SendMessage(ctx context.Context, key, value []byte) err
 	return nil
 }
 
-func (kc *KafkaSupplier) ReadMessage(ctx context.Context) (kafka.Message, error) {
+func (kc *KafkaSupplier) SendMessageToEquipmentChangeStateTopic(
+	ctx context.Context,
+	key []byte,
+	event schemas.ChangeEquipmentState,
+) error {
+	value, err := json.Marshal(event)
+	if err != nil {
+		return fmt.Errorf("failed to serialize event: %w", err)
+	}
+
+	msg := kafka.Message{
+		Key:   key,
+		Value: value,
+	}
+
+	if err := kc.equipmentChangeStateProducer.WriteMessages(ctx, msg); err != nil {
+		return fmt.Errorf("failed to send message to Kafka: %w", err)
+	}
+
+	return nil
+}
+
+func (kc *KafkaSupplier) ReadModuleVerificationTopic(ctx context.Context) (kafka.Message, error) {
 	msg, err := kc.moduleVerificationConsumer.ReadMessage(ctx)
 	if err != nil {
 		return kafka.Message{}, err
@@ -59,6 +93,10 @@ func (kc *KafkaSupplier) ReadMessage(ctx context.Context) (kafka.Message, error)
 func (kc *KafkaSupplier) Close() {
 	if err := kc.moduleAdditionProducer.Close(); err != nil {
 		log.Fatalf("Failed to close Kafka moduleVerificationProducer: %v", err)
+	}
+
+	if err := kc.equipmentChangeStateProducer.Close(); err != nil {
+		log.Fatalf("Failed to close Kafka equipmentChangeStateProducer: %v", err)
 	}
 
 	if err := kc.moduleVerificationConsumer.Close(); err != nil {

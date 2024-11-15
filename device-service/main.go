@@ -48,7 +48,7 @@ func CreateApp(ctx context.Context) *gin.Engine {
 
 	go func() {
 		for {
-			event, err := appContainer.KafkaSupplier.ReadMessage(ctx)
+			event, err := appContainer.KafkaSupplier.ReadModuleVerificationTopic(ctx)
 			if err != nil {
 				log.Printf("Error while reading message: %v", err)
 				continue

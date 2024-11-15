@@ -35,6 +35,7 @@ func NewAppContainer(ctx context.Context) *Container {
 		appSettings.KafkaBroker,
 		appSettings.ModuleAddedKafkaTopic,
 		appSettings.ModuleVerificationKafkaTopic,
+		appSettings.EquipmentChangeStateTopic,
 		appSettings.KafkaGroupID,
 	)
 
