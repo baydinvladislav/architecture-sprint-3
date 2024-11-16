@@ -74,7 +74,7 @@ func (kc *KafkaSupplier) SendMessageToAdditionTopic(
 func (kc *KafkaSupplier) SendMessageToEquipmentChangeStateTopic(
 	ctx context.Context,
 	key []byte,
-	event schemas.ChangeEquipmentState,
+	event schemas.ChangeEquipmentStateEvent,
 ) error {
 	value, err := json.Marshal(event)
 	if err != nil {

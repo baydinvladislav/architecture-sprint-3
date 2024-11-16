@@ -27,10 +27,10 @@ func NewModuleService(repo repository.ModuleRepository, kafkaSupplier *suppliers
 	}
 }
 
-func (s *ModuleService) ProcessMessage(event schemas.Event) (bool, error) {
+func (s *ModuleService) ProcessMessage(event schemas.BaseEvent) (bool, error) {
 	switch event.EventType {
-	case "ModuleVerification":
-		payload, ok := event.Payload.(schemas.ModuleVerification)
+	case "ModuleVerificationEvent":
+		payload, ok := event.Payload.(schemas.ModuleVerificationEvent)
 		if !ok {
 			return false, errors.New("invalid payload type")
 		}
@@ -65,15 +65,16 @@ func (s *ModuleService) ProcessMessage(event schemas.Event) (bool, error) {
 }
 
 func (s *ModuleService) ReadMessage(ctx context.Context) (schemas.Event, error) {
+func (s *ModuleService) ReadMessage(ctx context.Context) (schemas.BaseEvent, error) {
 	msg, err := s.kafkaSupplier.ReadModuleVerificationTopic(ctx)
 	if err != nil {
-		return schemas.Event{}, err
+		return schemas.BaseEvent{}, err
 	}
 
-	var event schemas.Event
+	var event schemas.BaseEvent
 	err = json.Unmarshal(msg.Value, &event)
 	if err != nil {
-		return schemas.Event{}, errors.New("failed to unmarshal message to Event")
+		return schemas.BaseEvent{}, errors.New("failed to unmarshal message to BaseEvent")
 	}
 
 	return event, nil
@@ -94,7 +95,7 @@ func (s *ModuleService) TurnOnModule(houseID uuid.UUID, moduleID uuid.UUID) erro
 	}
 
 	key := []byte(moduleID.String())
-	event := schemas.ChangeEquipmentState{
+	event := schemas.ChangeEquipmentStateEvent{
 		HouseID:  houseID.String(),
 		ModuleID: moduleID.String(),
 		Time:     time.Now().Unix(),
@@ -117,7 +118,7 @@ func (s *ModuleService) TurnOffModule(houseID uuid.UUID, moduleID uuid.UUID) err
 	}
 
 	key := []byte(moduleID.String())
-	event := schemas.ChangeEquipmentState{
+	event := schemas.ChangeEquipmentStateEvent{
 		HouseID:  houseID.String(),
 		ModuleID: moduleID.String(),
 		Time:     time.Now().Unix(),

@@ -1,6 +1,6 @@
 package schemas
 
-type Event struct {
+type BaseEvent struct {
 	EventType string      `json:"event_type"`
 	Payload   interface{} `json:"payload"`
 }
@@ -17,7 +17,7 @@ type HomeVerificationEvent struct {
 
 func (HomeVerificationEvent) IsEventPayload() {}
 
-type ModuleVerification struct {
+type ModuleVerificationEvent struct {
 	HouseID  string `json:"source_id"`
 	ModuleID string `json:"source_type"`
 	UserID   string `json:"value"`
@@ -25,13 +25,13 @@ type ModuleVerification struct {
 	Decision string `json:"decision"`
 }
 
-func (ModuleVerification) IsEventPayload() {}
+func (ModuleVerificationEvent) IsEventPayload() {}
 
-type ChangeEquipmentState struct {
+type ChangeEquipmentStateEvent struct {
 	HouseID  string                 `json:"house_id"`
 	ModuleID string                 `json:"module_id"`
 	Time     int64                  `json:"time"`
 	State    map[string]interface{} `json:"state"`
 }
 
-func (ChangeEquipmentState) IsEventPayload() {}
+func (ChangeEquipmentStateEvent) IsEventPayload() {}
