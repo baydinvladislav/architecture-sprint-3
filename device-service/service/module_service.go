@@ -15,14 +15,15 @@ import (
 
 type ModuleService struct {
 	repo          repository.ModuleRepository
-	kafkaSupplier suppliers.KafkaSupplier
+	kafkaSupplier *suppliers.KafkaSupplier
 }
 
 var ErrKafkaSupplier = fmt.Errorf("erorr during send message in kafka")
 
-func NewModuleService(repo repository.ModuleRepository) *ModuleService {
+func NewModuleService(repo repository.ModuleRepository, kafkaSupplier *suppliers.KafkaSupplier) *ModuleService {
 	return &ModuleService{
-		repo: repo,
+		repo:          repo,
+		kafkaSupplier: kafkaSupplier,
 	}
 }
 

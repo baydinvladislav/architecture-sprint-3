@@ -21,15 +21,15 @@ func NewKafkaSupplier(
 	moduleVerificationTopic string,
 	equipmentChangeStateTopic string,
 	groupID string,
-) *KafkaSupplier {
+) (*KafkaSupplier, error) {
 	moduleAdditionProducer := &kafka.Writer{
-		Addr:     kafka.TCP("localhost:9092"),
+		Addr:     kafka.TCP("kafka:9092"),
 		Topic:    moduleAdditionTopic,
 		Balancer: &kafka.LeastBytes{},
 	}
 
 	equipmentChangeStateProducer := &kafka.Writer{
-		Addr:     kafka.TCP("localhost:9092"),
+		Addr:     kafka.TCP("kafka:9092"),
 		Topic:    equipmentChangeStateTopic,
 		Balancer: &kafka.LeastBytes{},
 	}
@@ -40,11 +40,13 @@ func NewKafkaSupplier(
 		GroupID: groupID,
 	})
 
-	return &KafkaSupplier{
+	kc := &KafkaSupplier{
 		moduleAdditionProducer:       moduleAdditionProducer,
 		moduleVerificationConsumer:   moduleVerificationConsumer,
 		equipmentChangeStateProducer: equipmentChangeStateProducer,
 	}
+
+	return kc, nil
 }
 
 func (kc *KafkaSupplier) SendMessageToAdditionTopic(
@@ -92,10 +94,15 @@ func (kc *KafkaSupplier) SendMessageToEquipmentChangeStateTopic(
 }
 
 func (kc *KafkaSupplier) ReadModuleVerificationTopic(ctx context.Context) (kafka.Message, error) {
+	log.Printf("Read topicModuleVerificationTopic ...")
+
 	msg, err := kc.moduleVerificationConsumer.ReadMessage(ctx)
 	if err != nil {
 		return kafka.Message{}, err
 	}
+
+	log.Printf("Received message: %v", msg)
+
 	return msg, nil
 }
 

@@ -28,16 +28,20 @@ func NewAppContainer(ctx context.Context) *Container {
 
 	persistance.Migrate(db)
 
-	moduleRepo := repository.NewGORMModuleRepository(db)
-	moduleService := service.NewModuleService(moduleRepo)
-
-	kafkaSupplier := suppliers.NewKafkaSupplier(
+	kafkaSupplier, err := suppliers.NewKafkaSupplier(
 		appSettings.KafkaBroker,
 		appSettings.ModuleAddedKafkaTopic,
 		appSettings.ModuleVerificationKafkaTopic,
 		appSettings.EquipmentChangeStateTopic,
 		appSettings.KafkaGroupID,
 	)
+
+	if err != nil {
+		log.Fatalf("Error initializing KafkaSupplier: %v", err)
+	}
+
+	moduleRepo := repository.NewGORMModuleRepository(db)
+	moduleService := service.NewModuleService(moduleRepo, kafkaSupplier)
 
 	return &Container{
 		ModuleService: moduleService,
