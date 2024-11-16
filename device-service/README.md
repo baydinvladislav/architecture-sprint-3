@@ -73,9 +73,7 @@
    * <i>POST /modules/houses/:houseID/modules/:moduleID/turn-on</i>
    * <i>POST /modules/houses/:houseID/modules/:moduleID/turn-off</i>
 
-После поднятия контейнеров более подробный Swagger доступен по ссылке:
-http://0.0.0.0:8080/service/swagger/index.html
- 
+
 1. **Получение всех модулей**, модули прописываются в БД во время миграций при запуске Docker контейнера:
 <i>GET /modules/</i>
 
@@ -86,6 +84,9 @@ http://0.0.0.0:8080/service/swagger/index.html
 также может придти ивент на включение некоторых модулей от сервиса телеметрии, 
 например датчик движения может триггеруть систему открыть ворота, выключить котлы, датчик тепла может триггеруть систему
 </i>
+
+<b>После поднятия контейнеров более подробный Swagger доступен по ссылке:
+http://0.0.0.0:8080/service/swagger/index.html </b>
 
 ### C4 Device Service component diagram
 ![System Architecture](./Component_CleverVillageSystem_DeviceService.svg)
