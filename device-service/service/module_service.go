@@ -172,6 +172,11 @@ func (s *ModuleService) ChangeEquipmentState(
 		return nil, fmt.Errorf("failed to get module state: %w", err)
 	}
 
+	err = s.repo.InsertNewHouseModuleState(houseModule.ID, state)
+	if err != nil {
+		return nil, err
+	}
+
 	key := []byte(moduleID.String())
 	event := schemas.ChangeEquipmentStateEvent{
 		HouseID:  houseID.String(),
