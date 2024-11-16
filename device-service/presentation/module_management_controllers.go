@@ -53,6 +53,57 @@ func AddModuleToHouse(c *gin.Context, container *shared.Container) {
 	c.JSON(http.StatusCreated, newModuleResponse)
 }
 
+// ChangeModuleState godoc
+// @Summary Изменение состояние физического оборудования
+// @Description Создать запись equipment_state в коллекции MongoDB
+// @Tags modules
+// @Produce json
+// @Param houseID path string true "House ID"
+// @Param moduleID path string true "Module ID"
+// @Success 200 {object} map[string]string "message"
+// @Failure 400 {object} ErrorResponse
+// @Failure 404 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /houses/{houseID}/modules/{moduleID}/state [post]
+func ChangeModuleState(c *gin.Context, container *shared.Container) {
+	houseIDStr := c.Param("houseID")
+	moduleIDStr := c.Param("moduleID")
+
+	houseID, err := uuid.Parse(houseIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid house ID"})
+		return
+	}
+
+	moduleID, err := uuid.Parse(moduleIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid module ID"})
+		return
+	}
+
+	var state map[string]interface{}
+	if err := c.BindJSON(&state); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON payload"})
+		return
+	}
+
+	houseModule, err := container.ModuleService.ChangeEquipmentState(houseID, moduleID, state)
+	if err != nil {
+		if errors.Is(err, repository.ErrConnectedModuleNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Requested module not found"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message":       "Changed equipment state successfully",
+		"houseModuleId": houseModule.ID,
+		"state":         state,
+	})
+}
+
 // TurnOnModule godoc
 // @Summary Включение модуля
 // @Description Включить модуль, привязанный к определенному дому

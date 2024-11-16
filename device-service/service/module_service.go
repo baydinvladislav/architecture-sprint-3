@@ -157,6 +157,36 @@ func (s *ModuleService) RequestAdditionModuleToHouse(
 	return response, err
 }
 
+func (s *ModuleService) ChangeEquipmentState(
+	houseID uuid.UUID,
+	moduleID uuid.UUID,
+	state map[string]interface{},
+) (*web_schemas.HouseModuleState, error) {
+	houseModule, err := s.repo.GetModuleState(houseID, moduleID)
+
+	if err != nil {
+		if errors.Is(err, repository.ErrConnectedModuleNotFound) {
+			return nil, repository.ErrConnectedModuleNotFound
+		}
+
+		return nil, fmt.Errorf("failed to get module state: %w", err)
+	}
+
+	key := []byte(moduleID.String())
+	event := schemas.ChangeEquipmentStateEvent{
+		HouseID:  houseID.String(),
+		ModuleID: moduleID.String(),
+		Time:     time.Now().Unix(),
+		State:    state,
+	}
+
+	if err := s.kafkaSupplier.SendMessageToEquipmentChangeStateTopic(context.Background(), key, event); err != nil {
+		return nil, err
+	}
+
+	return houseModule, nil
+}
+
 func (s *ModuleService) acceptModuleAddition(
 	houseID uuid.UUID,
 	moduleID uuid.UUID,

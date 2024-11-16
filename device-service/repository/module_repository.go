@@ -7,12 +7,14 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
+	"time"
 )
 
 var (
-	ErrModuleAlreadyOff = fmt.Errorf("module is already turned off")
-	ErrModuleAlreadyOn  = fmt.Errorf("module is already turned on")
-	ErrModuleNotFound   = fmt.Errorf("module not found")
+	ErrModuleAlreadyOff        = fmt.Errorf("module is already turned off")
+	ErrModuleAlreadyOn         = fmt.Errorf("module is already turned on")
+	ErrModuleNotFound          = fmt.Errorf("module not found")
+	ErrConnectedModuleNotFound = fmt.Errorf("module not found")
 )
 
 type ModuleRepository interface {
@@ -24,6 +26,7 @@ type ModuleRepository interface {
 	AcceptAdditionModuleToHouse(houseID uuid.UUID, moduleID uuid.UUID) error
 	FailAdditionModuleToHouse(houseID uuid.UUID, moduleID uuid.UUID) error
 	GetModuleState(houseID uuid.UUID, moduleID uuid.UUID) (*web_schemas.HouseModuleState, error)
+	InsertNewHouseModuleState(houseModuleId uuid.UUID, state map[string]interface{}) error
 }
 
 type GORMModuleRepository struct {
@@ -180,7 +183,7 @@ func (r *GORMModuleRepository) GetModuleState(houseID uuid.UUID, moduleID uuid.U
 
 	if err := r.db.Where("house_id = ? AND module_id = ?", houseID, moduleID).First(&houseModule).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, fmt.Errorf("record not found for houseID: %s, moduleID: %s", houseID, moduleID)
+			return nil, ErrConnectedModuleNotFound
 		}
 		return nil, err
 	}
@@ -198,4 +201,20 @@ func (r *GORMModuleRepository) GetModuleState(houseID uuid.UUID, moduleID uuid.U
 	}
 
 	return response, nil
+}
+
+func (r *GORMModuleRepository) InsertNewHouseModuleState(houseModuleId uuid.UUID, state map[string]interface{}) error {
+	houseModuleHistoryState := persistance.HouseModuleHistoryStateModel{
+		ID:            uuid.New(),
+		HouseModuleID: houseModuleId,
+		State:         state,
+		CreatedAt:     time.Now(),
+		UpdatedAt:     time.Now(),
+	}
+
+	if err := r.db.Create(&houseModuleHistoryState).Error; err != nil {
+		return fmt.Errorf("failed to insert new house module state: %w", err)
+	}
+
+	return nil
 }
