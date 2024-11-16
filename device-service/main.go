@@ -36,6 +36,10 @@ func CreateApp(ctx context.Context) *gin.Engine {
 			"/houses/:houseID/modules/:moduleID/state",
 			func(c *gin.Context) { presentation.GetModuleState(c, appContainer) },
 		)
+		moduleGroup.POST(
+			"/houses/:houseID/modules/:moduleID/state",
+			func(c *gin.Context) { presentation.ChangeModuleState(c, appContainer) },
+		)
 		moduleGroup.PUT(
 			"/houses/:houseID/modules/:moduleID/turn-on",
 			func(c *gin.Context) { presentation.TurnOnModule(c, appContainer) },

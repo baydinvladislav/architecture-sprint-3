@@ -24,6 +24,7 @@ func Migrate(db *gorm.DB) {
 	if err := db.AutoMigrate(
 		ModuleModel{},
 		HouseModuleModel{},
+		HouseModuleHistoryStateModel{},
 		Device{},
 	); err != nil {
 		log.Fatalf("failed to migrate database: %v", err)

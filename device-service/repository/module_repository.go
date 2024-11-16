@@ -191,6 +191,7 @@ func (r *GORMModuleRepository) GetModuleState(houseID uuid.UUID, moduleID uuid.U
 	}
 
 	response := &web_schemas.HouseModuleState{
+		ID:       houseModule.ID,
 		HouseID:  houseModule.HouseID,
 		ModuleID: houseModule.ModuleID,
 		State:    state,
