@@ -75,6 +75,11 @@ docker exec -it architecture-sprint-3-kafka-1 bash
 kafka-topics.sh --bootstrap-server localhost:9092 --list
 ```
 
+#### Прочитать ивент в Kafka:
+```
+kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic equipment.change.state.topic --from-beginning
+```
+
 #### Отправить тестовый ивент в Kafka, в топик телеметрии:
 ```
 kafka-console-producer.sh --broker-list localhost:9092 --topic telemetry.data
