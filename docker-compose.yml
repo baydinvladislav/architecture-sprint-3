@@ -40,8 +40,8 @@ services:
       - KAFKA_BROKER=kafka:9092
       - MONGO_URI=mongodb://root:mongodb@mongo:27017/telemetry_database
     depends_on:
-      - mongo
-      - kafka
+      db:
+        condition: service_healthy
 
   # TODO: make separated for user-service and device-service
   db:
@@ -83,14 +83,17 @@ services:
     depends_on:
       - user-service
       - device-service
+      - telemetry-service
 
   zookeeper:
     image: wurstmeister/zookeeper
+    platform: linux/amd64
     ports:
       - "2181:2181"
     depends_on:
       - user-service
       - device-service
+      - telemetry-service
 
   kafka:
     image: wurstmeister/kafka
