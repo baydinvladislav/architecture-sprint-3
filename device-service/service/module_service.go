@@ -64,8 +64,7 @@ func (s *ModuleService) ProcessMessage(event schemas.BaseEvent) (bool, error) {
 	}
 }
 
-func (s *ModuleService) ReadMessage(ctx context.Context) (schemas.Event, error) {
-func (s *ModuleService) ReadMessage(ctx context.Context) (schemas.BaseEvent, error) {
+func (s *ModuleService) GetModuleVerificationEvent(ctx context.Context) (schemas.BaseEvent, error) {
 	msg, err := s.kafkaSupplier.ReadModuleVerificationTopic(ctx)
 	if err != nil {
 		return schemas.BaseEvent{}, err
