@@ -101,3 +101,8 @@ use telemetry_database
 ```
 db.events.find().pretty()
 ```
+
+#### Сгенерировать .svg диаграмму из .plantuml файла:
+```
+plantuml -tsvg Component_CleverVillageSystem_DeviceService.puml
+```
