@@ -69,8 +69,9 @@
 
 2. **Отключения модуля**:  
    Помимо временной паузы работы модуля у сервиса `DeviceService` есть ручки для отключения/включения модуля:
-   <i>POST /modules/houses/:houseID/modules/:moduleID/turn-on</i>
-   <i>POST /modules/houses/:houseID/modules/:moduleID/turn-off</i>
+
+   * <i>POST /modules/houses/:houseID/modules/:moduleID/turn-on</i>
+   * <i>POST /modules/houses/:houseID/modules/:moduleID/turn-off</i>
 
 После поднятия контейнеров более подробный Swagger доступен по ссылке:
 http://0.0.0.0:8080/service/swagger/index.html
