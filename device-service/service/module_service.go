@@ -13,6 +13,7 @@ import (
 	"time"
 )
 
+// TODO: the change just to trigger CI
 type ModuleService struct {
 	repo          repository.ModuleRepository
 	kafkaSupplier *suppliers.KafkaSupplier
