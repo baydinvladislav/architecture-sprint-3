@@ -4,6 +4,7 @@ on:
   push:
 
 jobs:
+  # Существующая работа по сборке Docker-образа монолита
   docker:
     runs-on: ubuntu-latest
     steps:
@@ -33,3 +34,19 @@ jobs:
           tags: ghcr.io/yandex-practicum/architecture-sprint-3:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  device-microservice:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.22'
+
+      - name: Run tests
+        run: |
+          cd device-service
+          go test ./... -v -cover
