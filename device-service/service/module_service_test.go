@@ -104,7 +104,7 @@ func TestProcessMessage_Accepted(t *testing.T) {
 		Payload: schemas.ModuleVerificationEvent{
 			HouseID:  houseID.String(),
 			ModuleID: moduleID.String(),
-			Decision: "ACCEPTED",
+			Decision: "FAILED",
 		},
 	}
 
