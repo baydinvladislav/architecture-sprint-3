@@ -14,16 +14,16 @@ import (
 )
 
 type ModuleService struct {
-	repo          repository.ModuleRepository
-	kafkaSupplier suppliers.KafkaSupplierInterface
+	moduleRepository repository.ModuleRepository
+	kafkaSupplier    suppliers.KafkaSupplierInterface
 }
 
 var ErrKafkaSupplier = fmt.Errorf("erorr during send message in kafka")
 
 func NewModuleService(repo repository.ModuleRepository, kafkaSupplier suppliers.KafkaSupplierInterface) *ModuleService {
 	return &ModuleService{
-		repo:          repo,
-		kafkaSupplier: kafkaSupplier,
+		moduleRepository: repo,
+		kafkaSupplier:    kafkaSupplier,
 	}
 }
 
@@ -80,15 +80,15 @@ func (s *ModuleService) GetModuleVerificationEvent(ctx context.Context) (schemas
 }
 
 func (s *ModuleService) GetAllModules() ([]web_schemas.ModuleOut, error) {
-	return s.repo.GetAllModules()
+	return s.moduleRepository.GetAllModules()
 }
 
 func (s *ModuleService) GetModulesByHouseID(houseID uuid.UUID) ([]web_schemas.ModuleOut, error) {
-	return s.repo.GetModulesByHouseID(houseID)
+	return s.moduleRepository.GetModulesByHouseID(houseID)
 }
 
 func (s *ModuleService) TurnOnModule(houseID uuid.UUID, moduleID uuid.UUID) error {
-	err := s.repo.TurnOnModule(houseID, moduleID)
+	err := s.moduleRepository.TurnOnModule(houseID, moduleID)
 	if err != nil {
 		return err
 	}
@@ -111,7 +111,7 @@ func (s *ModuleService) TurnOnModule(houseID uuid.UUID, moduleID uuid.UUID) erro
 }
 
 func (s *ModuleService) TurnOffModule(houseID uuid.UUID, moduleID uuid.UUID) error {
-	err := s.repo.TurnOffModule(houseID, moduleID)
+	err := s.moduleRepository.TurnOffModule(houseID, moduleID)
 	if err != nil {
 		return err
 	}
@@ -134,14 +134,14 @@ func (s *ModuleService) TurnOffModule(houseID uuid.UUID, moduleID uuid.UUID) err
 }
 
 func (s *ModuleService) GetModuleState(houseID uuid.UUID, moduleID uuid.UUID) (*web_schemas.HouseModuleState, error) {
-	return s.repo.GetModuleState(houseID, moduleID)
+	return s.moduleRepository.GetModuleState(houseID, moduleID)
 }
 
 func (s *ModuleService) RequestAdditionModuleToHouse(
 	houseID uuid.UUID,
 	moduleID uuid.UUID,
 ) ([]web_schemas.ModuleOut, error) {
-	response, err := s.repo.RequestAddingModuleToHouse(houseID, moduleID)
+	response, err := s.moduleRepository.RequestAddingModuleToHouse(houseID, moduleID)
 
 	key := []byte(moduleID.String())
 	event := schemas.HomeVerificationEvent{
@@ -162,7 +162,7 @@ func (s *ModuleService) ChangeEquipmentState(
 	moduleID uuid.UUID,
 	state map[string]interface{},
 ) (*web_schemas.HouseModuleState, error) {
-	houseModule, err := s.repo.GetModuleState(houseID, moduleID)
+	houseModule, err := s.moduleRepository.GetModuleState(houseID, moduleID)
 
 	if err != nil {
 		if errors.Is(err, repository.ErrConnectedModuleNotFound) {
@@ -172,7 +172,7 @@ func (s *ModuleService) ChangeEquipmentState(
 		return nil, fmt.Errorf("failed to get module state: %w", err)
 	}
 
-	err = s.repo.InsertNewHouseModuleState(houseModule.ID, state)
+	err = s.moduleRepository.InsertNewHouseModuleState(houseModule.ID, state)
 	if err != nil {
 		return nil, err
 	}
@@ -196,7 +196,7 @@ func (s *ModuleService) acceptModuleAddition(
 	houseID uuid.UUID,
 	moduleID uuid.UUID,
 ) error {
-	err := s.repo.AcceptAdditionModuleToHouse(houseID, moduleID)
+	err := s.moduleRepository.AcceptAdditionModuleToHouse(houseID, moduleID)
 	if err != nil {
 		return err
 	}
@@ -207,7 +207,7 @@ func (s *ModuleService) failModuleAddition(
 	houseID uuid.UUID,
 	moduleID uuid.UUID,
 ) error {
-	err := s.repo.FailAdditionModuleToHouse(houseID, moduleID)
+	err := s.moduleRepository.FailAdditionModuleToHouse(houseID, moduleID)
 	if err != nil {
 		return err
 	}
