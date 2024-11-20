@@ -20,7 +20,7 @@ type ModuleService struct {
 
 var ErrKafkaSupplier = fmt.Errorf("erorr during send message in kafka")
 
-func NewModuleService(repo repository.ModuleRepository, kafkaSupplier *suppliers.KafkaSupplier) *ModuleService {
+func NewModuleService(repo repository.ModuleRepository, kafkaSupplier suppliers.KafkaSupplierInterface) *ModuleService {
 	return &ModuleService{
 		repo:          repo,
 		kafkaSupplier: kafkaSupplier,
