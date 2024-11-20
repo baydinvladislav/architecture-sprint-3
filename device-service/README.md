@@ -4,6 +4,7 @@
 - [Логика управления модулем](#логика-управления-модулем)
 - [Логика получения модулей](#логика-получения-модулей)
 - [C4 Device Service component diagram](#c4-device-service-component-diagram)
+- [C4 Device Service code diagram](#c4-device-service-code-diagram)
 
 ### Сервис для управления модулями умного дома "Smart Home"
 Отвечает за отображение всех модулей, доступных для подключения в системе "Smart Home", 
@@ -98,3 +99,6 @@ http://0.0.0.0:8080/service/swagger/index.html </b>
 
 ### C4 Device Service component diagram
 ![System Architecture](./Component_CleverVillageSystem_DeviceService.svg)
+
+### C4 Device Service code diagram
+![System Architecture](./Code_CleverVillageSystem_DeviceService.svg)
