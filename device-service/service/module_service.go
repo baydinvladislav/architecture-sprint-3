@@ -13,10 +13,9 @@ import (
 	"time"
 )
 
-// TODO: the change just to trigger CI
 type ModuleService struct {
 	repo          repository.ModuleRepository
-	kafkaSupplier *suppliers.KafkaSupplier
+	kafkaSupplier suppliers.KafkaSupplierInterface
 }
 
 var ErrKafkaSupplier = fmt.Errorf("erorr during send message in kafka")

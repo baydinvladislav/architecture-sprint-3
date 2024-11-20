@@ -9,6 +9,13 @@ import (
 	"log"
 )
 
+type KafkaSupplierInterface interface {
+	SendMessageToAdditionTopic(ctx context.Context, key []byte, event schemas.HomeVerificationEvent) error
+	SendMessageToEquipmentChangeStateTopic(ctx context.Context, key []byte, event schemas.ChangeEquipmentStateEvent) error
+	ReadModuleVerificationTopic(ctx context.Context) (kafka.Message, error)
+	Close()
+}
+
 type KafkaSupplier struct {
 	moduleAdditionProducer       *kafka.Writer
 	equipmentChangeStateProducer *kafka.Writer
