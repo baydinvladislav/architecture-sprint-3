@@ -106,3 +106,8 @@ db.events.find().pretty()
 ```
 plantuml -tsvg Component_CleverVillageSystem_DeviceService.puml
 ```
+
+#### Остановка и удаление контейнеров docker-compose:
+```
+docker-compose down
+```
