@@ -8,17 +8,17 @@ import (
 	"fmt"
 )
 
-type ExternalSystemMessagingService struct {
+type ExternalMessagingService struct {
 	supplier suppliers.KafkaSupplierInterface
 }
 
-func NewExternalSystemMessagingService(supplier suppliers.KafkaSupplierInterface) *ExternalSystemMessagingService {
-	return &ExternalSystemMessagingService{
+func NewExternalMessagingService(supplier suppliers.KafkaSupplierInterface) *ExternalMessagingService {
+	return &ExternalMessagingService{
 		supplier: supplier,
 	}
 }
 
-func (s *ExternalSystemMessagingService) SendModuleAdditionEvent(
+func (s *ExternalMessagingService) SendModuleAdditionEvent(
 	ctx context.Context,
 	key []byte,
 	event schemas.HomeVerificationEvent,
@@ -26,7 +26,7 @@ func (s *ExternalSystemMessagingService) SendModuleAdditionEvent(
 	return s.supplier.SendMessageToAdditionTopic(ctx, key, event)
 }
 
-func (s *ExternalSystemMessagingService) SendEquipmentStateChangeEvent(
+func (s *ExternalMessagingService) SendEquipmentStateChangeEvent(
 	ctx context.Context,
 	key []byte,
 	event schemas.ChangeEquipmentStateEvent,
@@ -34,7 +34,7 @@ func (s *ExternalSystemMessagingService) SendEquipmentStateChangeEvent(
 	return s.supplier.SendMessageToEquipmentChangeStateTopic(ctx, key, event)
 }
 
-func (s *ExternalSystemMessagingService) ReadModuleVerificationEvent(
+func (s *ExternalMessagingService) ReadModuleVerificationEvent(
 	ctx context.Context,
 ) (schemas.BaseEvent, error) {
 	msg, err := s.supplier.ReadModuleVerificationTopic(ctx)

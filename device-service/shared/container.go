@@ -41,7 +41,7 @@ func NewAppContainer(ctx context.Context) *Container {
 
 	moduleRepo := repository.NewGORMModuleRepository(db)
 	persistenceService := service.NewModulePersistenceService(moduleRepo)
-	messagingService := service.NewExternalSystemMessagingService(kafkaSupplier)
+	messagingService := service.NewExternalMessagingService(kafkaSupplier)
 
 	moduleService := service.NewModuleService(
 		persistenceService,

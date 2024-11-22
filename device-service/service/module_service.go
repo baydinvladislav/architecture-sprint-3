@@ -12,10 +12,13 @@ import (
 
 type ModuleService struct {
 	persistenceService *ModulePersistenceService
-	messagingService   *ExternalSystemMessagingService
+	messagingService   *ExternalMessagingService
 }
 
-func NewModuleService(persistenceService *ModulePersistenceService, messagingService *ExternalSystemMessagingService) *ModuleService {
+func NewModuleService(
+	persistenceService *ModulePersistenceService,
+	messagingService *ExternalMessagingService,
+) *ModuleService {
 	return &ModuleService{
 		persistenceService: persistenceService,
 		messagingService:   messagingService,

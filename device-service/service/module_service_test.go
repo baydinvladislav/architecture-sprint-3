@@ -96,7 +96,7 @@ func TestProcessMessage_Accepted(t *testing.T) {
 	kafkaSupplier := new(MockKafkaSupplier)
 
 	persistenceService := NewModulePersistenceService(moduleRepository)
-	messagingService := NewExternalSystemMessagingService(kafkaSupplier)
+	messagingService := NewExternalMessagingService(kafkaSupplier)
 
 	moduleService := NewModuleService(persistenceService, messagingService)
 

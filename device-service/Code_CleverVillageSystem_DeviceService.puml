@@ -4,7 +4,7 @@ title Device Service Architecture
 package "service" {
     class ModuleLogicService {
         - persistenceService: ModulePersistenceService
-        - messagingService: ExternalSystemMessagingService
+        - messagingService: ExternalMessagingService
         --
         + ProcessMessage(event: schemas.BaseEvent): (bool, error)
         + TurnOnModule(houseID: uuid.UUID, moduleID: uuid.UUID): error
@@ -26,7 +26,7 @@ package "service" {
         + FailAdditionModuleToHouse(houseID: uuid.UUID, moduleID: uuid.UUID): error
     }
 
-    class ExternalSystemMessagingService {
+    class ExternalMessagingService {
         - supplier: suppliers.KafkaSupplierInterface
         --
         + SendModuleAdditionEvent(ctx: context.Context, key: []byte, event: schemas.HomeVerificationEvent): error
@@ -74,9 +74,9 @@ package "suppliers" {
 }
 
 ModuleLogicService --> ModulePersistenceService : uses
-ModuleLogicService --> ExternalSystemMessagingService : uses
+ModuleLogicService --> ExternalMessagingService : uses
 ModulePersistenceService --> ModuleRepository : uses
 ModuleRepository <|-- GORMModuleRepository : implements
-ExternalSystemMessagingService --> KafkaSupplierInterface : uses
+ExternalMessagingService --> KafkaSupplierInterface : uses
 KafkaSupplierInterface <|-- KafkaSupplier : implements
 @enduml
