@@ -2,11 +2,8 @@ package service
 
 import (
 	"context"
-	"device-service/presentation/web-schemas"
-	"device-service/repository"
+	web_schemas "device-service/presentation/web-schemas"
 	"device-service/schemas"
-	"device-service/suppliers"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/google/uuid"
@@ -14,16 +11,14 @@ import (
 )
 
 type ModuleService struct {
-	moduleRepository repository.ModuleRepository
-	kafkaSupplier    suppliers.KafkaSupplierInterface
+	persistenceService *ModulePersistenceService
+	messagingService   *ExternalSystemMessagingService
 }
 
-var ErrKafkaSupplier = fmt.Errorf("erorr during send message in kafka")
-
-func NewModuleService(repo repository.ModuleRepository, kafkaSupplier suppliers.KafkaSupplierInterface) *ModuleService {
+func NewModuleService(persistenceService *ModulePersistenceService, messagingService *ExternalSystemMessagingService) *ModuleService {
 	return &ModuleService{
-		moduleRepository: repo,
-		kafkaSupplier:    kafkaSupplier,
+		persistenceService: persistenceService,
+		messagingService:   messagingService,
 	}
 }
 
@@ -45,115 +40,83 @@ func (s *ModuleService) ProcessMessage(event schemas.BaseEvent) (bool, error) {
 		}
 
 		if payload.Decision == "ACCEPTED" {
-			err = s.acceptModuleAddition(houseID, moduleID)
-			if err != nil {
-				return false, errors.New("failed to accept module addition")
-			}
+			return true, s.persistenceService.AcceptAdditionModuleToHouse(houseID, moduleID)
 		} else if payload.Decision == "FAILED" {
-			err = s.failModuleAddition(houseID, moduleID)
-			if err != nil {
-				return false, errors.New("failed to process module failure")
-			}
-		} else {
-			return false, errors.New("unsupported decision type")
+			return true, s.persistenceService.FailAdditionModuleToHouse(houseID, moduleID)
 		}
-		return true, nil
 
-	default:
-		return false, errors.New("unsupported event type")
+		return false, errors.New("unsupported decision type")
 	}
+
+	return false, errors.New("unsupported event type")
 }
 
 func (s *ModuleService) GetModuleVerificationEvent(ctx context.Context) (schemas.BaseEvent, error) {
-	msg, err := s.kafkaSupplier.ReadModuleVerificationTopic(ctx)
-	if err != nil {
-		return schemas.BaseEvent{}, err
-	}
-
-	var event schemas.BaseEvent
-	err = json.Unmarshal(msg.Value, &event)
-	if err != nil {
-		return schemas.BaseEvent{}, errors.New("failed to unmarshal message to BaseEvent")
-	}
-
-	return event, nil
+	return s.messagingService.ReadModuleVerificationEvent(ctx)
 }
 
 func (s *ModuleService) GetAllModules() ([]web_schemas.ModuleOut, error) {
-	return s.moduleRepository.GetAllModules()
+	return s.persistenceService.GetAllModules()
 }
 
 func (s *ModuleService) GetModulesByHouseID(houseID uuid.UUID) ([]web_schemas.ModuleOut, error) {
-	return s.moduleRepository.GetModulesByHouseID(houseID)
+	return s.persistenceService.GetModulesByHouseID(houseID)
 }
 
 func (s *ModuleService) TurnOnModule(houseID uuid.UUID, moduleID uuid.UUID) error {
-	err := s.moduleRepository.TurnOnModule(houseID, moduleID)
+	err := s.persistenceService.TurnOnModule(houseID, moduleID)
 	if err != nil {
 		return err
 	}
 
-	key := []byte(moduleID.String())
+	state := map[string]interface{}{"running": "on"}
 	event := schemas.ChangeEquipmentStateEvent{
 		HouseID:  houseID.String(),
 		ModuleID: moduleID.String(),
 		Time:     time.Now().Unix(),
-		State: map[string]interface{}{
-			"running": "on",
-		},
+		State:    state,
 	}
 
-	if err := s.kafkaSupplier.SendMessageToEquipmentChangeStateTopic(context.Background(), key, event); err != nil {
-		return err
-	}
-
-	return nil
+	return s.messagingService.SendEquipmentStateChangeEvent(context.Background(), []byte(moduleID.String()), event)
 }
 
 func (s *ModuleService) TurnOffModule(houseID uuid.UUID, moduleID uuid.UUID) error {
-	err := s.moduleRepository.TurnOffModule(houseID, moduleID)
+	err := s.persistenceService.TurnOffModule(houseID, moduleID)
 	if err != nil {
 		return err
 	}
 
-	key := []byte(moduleID.String())
+	state := map[string]interface{}{"running": "off"}
 	event := schemas.ChangeEquipmentStateEvent{
 		HouseID:  houseID.String(),
 		ModuleID: moduleID.String(),
 		Time:     time.Now().Unix(),
-		State: map[string]interface{}{
-			"running": "off",
-		},
+		State:    state,
 	}
 
-	if err := s.kafkaSupplier.SendMessageToEquipmentChangeStateTopic(context.Background(), key, event); err != nil {
-		return err
-	}
-
-	return nil
+	return s.messagingService.SendEquipmentStateChangeEvent(context.Background(), []byte(moduleID.String()), event)
 }
 
 func (s *ModuleService) GetModuleState(houseID uuid.UUID, moduleID uuid.UUID) (*web_schemas.HouseModuleState, error) {
-	return s.moduleRepository.GetModuleState(houseID, moduleID)
+	return s.persistenceService.GetModuleState(houseID, moduleID)
 }
 
 func (s *ModuleService) RequestAdditionModuleToHouse(
 	houseID uuid.UUID,
 	moduleID uuid.UUID,
 ) ([]web_schemas.ModuleOut, error) {
-	response, err := s.moduleRepository.RequestAddingModuleToHouse(houseID, moduleID)
+	response, err := s.persistenceService.RequestAddingModuleToHouse(houseID, moduleID)
+	if err != nil {
+		return nil, err
+	}
 
-	key := []byte(moduleID.String())
 	event := schemas.HomeVerificationEvent{
 		HouseID:  houseID.String(),
 		ModuleID: moduleID.String(),
 		Time:     time.Now().Unix(),
 	}
 
-	if err := s.kafkaSupplier.SendMessageToAdditionTopic(context.Background(), key, event); err != nil {
-		return nil, err
-	}
-
+	err = s.messagingService.SendModuleAdditionEvent(context.Background(), []byte(moduleID.String()), event)
 	return response, err
 }
 
@@ -162,22 +125,16 @@ func (s *ModuleService) ChangeEquipmentState(
 	moduleID uuid.UUID,
 	state map[string]interface{},
 ) (*web_schemas.HouseModuleState, error) {
-	houseModule, err := s.moduleRepository.GetModuleState(houseID, moduleID)
-
+	houseModule, err := s.persistenceService.GetModuleState(houseID, moduleID)
 	if err != nil {
-		if errors.Is(err, repository.ErrConnectedModuleNotFound) {
-			return nil, repository.ErrConnectedModuleNotFound
-		}
-
 		return nil, fmt.Errorf("failed to get module state: %w", err)
 	}
 
-	err = s.moduleRepository.InsertNewHouseModuleState(houseModule.ID, state)
+	err = s.persistenceService.InsertNewHouseModuleState(houseModule.ID, state)
 	if err != nil {
 		return nil, err
 	}
 
-	key := []byte(moduleID.String())
 	event := schemas.ChangeEquipmentStateEvent{
 		HouseID:  houseID.String(),
 		ModuleID: moduleID.String(),
@@ -185,31 +142,6 @@ func (s *ModuleService) ChangeEquipmentState(
 		State:    state,
 	}
 
-	if err := s.kafkaSupplier.SendMessageToEquipmentChangeStateTopic(context.Background(), key, event); err != nil {
-		return nil, err
-	}
-
-	return houseModule, nil
-}
-
-func (s *ModuleService) acceptModuleAddition(
-	houseID uuid.UUID,
-	moduleID uuid.UUID,
-) error {
-	err := s.moduleRepository.AcceptAdditionModuleToHouse(houseID, moduleID)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (s *ModuleService) failModuleAddition(
-	houseID uuid.UUID,
-	moduleID uuid.UUID,
-) error {
-	err := s.moduleRepository.FailAdditionModuleToHouse(houseID, moduleID)
-	if err != nil {
-		return err
-	}
-	return nil
+	err = s.messagingService.SendEquipmentStateChangeEvent(context.Background(), []byte(moduleID.String()), event)
+	return houseModule, err
 }

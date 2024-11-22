@@ -92,9 +92,13 @@ func (k *MockKafkaSupplier) Close() {
 }
 
 func TestProcessMessage_Accepted(t *testing.T) {
-	repository := new(MockModuleRepository)
+	moduleRepository := new(MockModuleRepository)
 	kafkaSupplier := new(MockKafkaSupplier)
-	service := NewModuleService(repository, kafkaSupplier)
+
+	persistenceService := NewModulePersistenceService(moduleRepository)
+	messagingService := NewExternalSystemMessagingService(kafkaSupplier)
+
+	moduleService := NewModuleService(persistenceService, messagingService)
 
 	houseID := uuid.New()
 	moduleID := uuid.New()
@@ -108,11 +112,11 @@ func TestProcessMessage_Accepted(t *testing.T) {
 		},
 	}
 
-	repository.On("AcceptAdditionModuleToHouse", houseID, moduleID).Return(nil)
+	moduleRepository.On("AcceptAdditionModuleToHouse", houseID, moduleID).Return(nil)
 
-	success, err := service.ProcessMessage(event)
+	success, err := moduleService.ProcessMessage(event)
 
 	require.NoError(t, err)
 	require.True(t, success)
-	repository.AssertCalled(t, "AcceptAdditionModuleToHouse", houseID, moduleID)
+	moduleRepository.AssertCalled(t, "AcceptAdditionModuleToHouse", houseID, moduleID)
 }

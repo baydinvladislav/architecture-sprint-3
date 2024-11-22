@@ -9,6 +9,8 @@ import (
 	"log"
 )
 
+var ErrKafkaSupplier = fmt.Errorf("error during send message in Kafka")
+
 type KafkaSupplierInterface interface {
 	SendMessageToAdditionTopic(ctx context.Context, key []byte, event schemas.HomeVerificationEvent) error
 	SendMessageToEquipmentChangeStateTopic(ctx context.Context, key []byte, event schemas.ChangeEquipmentStateEvent) error

@@ -40,7 +40,13 @@ func NewAppContainer(ctx context.Context) *Container {
 	}
 
 	moduleRepo := repository.NewGORMModuleRepository(db)
-	moduleService := service.NewModuleService(moduleRepo, kafkaSupplier)
+	persistenceService := service.NewModulePersistenceService(moduleRepo)
+	messagingService := service.NewExternalSystemMessagingService(kafkaSupplier)
+
+	moduleService := service.NewModuleService(
+		persistenceService,
+		messagingService,
+	)
 
 	return &Container{
 		ModuleService: moduleService,
