@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"device-service/schemas/dto"
 	"device-service/schemas/web"
 	"fmt"
 	"github.com/google/uuid"
@@ -14,7 +15,7 @@ var (
 )
 
 type ModuleRepository interface {
-	GetAllModules() ([]web.ModuleOut, error)
+	GetAllModules() ([]dto.ModuleDto, error)
 	GetModulesByHouseID(houseID uuid.UUID) ([]web.ModuleOut, error)
 	TurnOnModule(houseID uuid.UUID, moduleID uuid.UUID) error
 	TurnOffModule(houseID uuid.UUID, moduleID uuid.UUID) error

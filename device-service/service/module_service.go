@@ -59,7 +59,23 @@ func (s *ModuleService) GetModuleVerificationEvent(ctx context.Context) (events.
 }
 
 func (s *ModuleService) GetAllModules() ([]web_schemas.ModuleOut, error) {
-	return s.persistenceService.GetAllModules()
+	modulesDto, err := s.persistenceService.GetAllModules()
+	if err != nil {
+		return nil, err
+	}
+
+	var modulesOut []web_schemas.ModuleOut
+	for _, m := range modulesDto {
+		moduleOut := web_schemas.ModuleOut{
+			ID:          m.ID,
+			CreatedAt:   m.CreatedAt,
+			Type:        m.Type,
+			Description: m.Description,
+			State:       m.State,
+		}
+		modulesOut = append(modulesOut, moduleOut)
+	}
+	return modulesOut, nil
 }
 
 func (s *ModuleService) GetModulesByHouseID(houseID uuid.UUID) ([]web_schemas.ModuleOut, error) {

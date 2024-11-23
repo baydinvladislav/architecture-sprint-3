@@ -2,6 +2,7 @@ package repository
 
 import (
 	"device-service/persistance"
+	"device-service/schemas/dto"
 	"device-service/schemas/web"
 	"errors"
 	"fmt"
@@ -20,23 +21,22 @@ func NewGORMModuleRepository(db *gorm.DB) *GORMModuleRepository {
 	}
 }
 
-func (r *GORMModuleRepository) GetAllModules() ([]web.ModuleOut, error) {
+func (r *GORMModuleRepository) GetAllModules() ([]dto.ModuleDto, error) {
 	var modules []persistance.ModuleModel
 	if err := r.db.Find(&modules).Error; err != nil {
 		return nil, err
 	}
 
-	var moduleOuts []web.ModuleOut
+	var modulesDto []dto.ModuleDto
 	for _, module := range modules {
-		moduleOuts = append(moduleOuts, web.ModuleOut{
+		modulesDto = append(modulesDto, dto.ModuleDto{
 			ID:          module.ID,
 			CreatedAt:   module.CreatedAt,
 			Type:        module.Type,
 			Description: module.Description,
 		})
 	}
-
-	return moduleOuts, nil
+	return modulesDto, nil
 }
 
 func (r *GORMModuleRepository) GetModulesByHouseID(houseID uuid.UUID) ([]web.ModuleOut, error) {

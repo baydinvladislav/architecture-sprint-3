@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"device-service/schemas/dto"
 	"device-service/schemas/events"
 	web_schemas "device-service/schemas/web"
 	"github.com/google/uuid"
@@ -15,9 +16,9 @@ type MockModuleRepository struct {
 	mock.Mock
 }
 
-func (m *MockModuleRepository) GetAllModules() ([]web_schemas.ModuleOut, error) {
+func (m *MockModuleRepository) GetAllModules() ([]dto.ModuleDto, error) {
 	args := m.Called()
-	return args.Get(0).([]web_schemas.ModuleOut), args.Error(1)
+	return args.Get(0).([]dto.ModuleDto), args.Error(1)
 }
 
 func (m *MockModuleRepository) GetModulesByHouseID(houseID uuid.UUID) ([]web_schemas.ModuleOut, error) {

@@ -2,6 +2,7 @@ package service
 
 import (
 	"device-service/repository"
+	"device-service/schemas/dto"
 	web_schemas "device-service/schemas/web"
 	"github.com/google/uuid"
 )
@@ -16,7 +17,7 @@ func NewModulePersistenceService(repo repository.ModuleRepository) *ModulePersis
 	}
 }
 
-func (s *ModulePersistenceService) GetAllModules() ([]web_schemas.ModuleOut, error) {
+func (s *ModulePersistenceService) GetAllModules() ([]dto.ModuleDto, error) {
 	return s.repository.GetAllModules()
 }
 
