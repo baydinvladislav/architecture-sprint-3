@@ -40,16 +40,16 @@ func NewKafkaSupplier(
 		GroupID: groupID,
 	})
 
-	kc := &KafkaSupplier{
+	ks := &KafkaSupplier{
 		moduleAdditionProducer:       moduleAdditionProducer,
 		moduleVerificationConsumer:   moduleVerificationConsumer,
 		equipmentChangeStateProducer: equipmentChangeStateProducer,
 	}
 
-	return kc, nil
+	return ks, nil
 }
 
-func (kc *KafkaSupplier) SendMessageToAdditionTopic(
+func (ks *KafkaSupplier) SendMessageToAdditionTopic(
 	ctx context.Context,
 	key []byte,
 	event events.HomeVerificationEvent,
@@ -64,14 +64,14 @@ func (kc *KafkaSupplier) SendMessageToAdditionTopic(
 		Value: value,
 	}
 
-	err = kc.moduleAdditionProducer.WriteMessages(ctx, msg)
+	err = ks.moduleAdditionProducer.WriteMessages(ctx, msg)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (kc *KafkaSupplier) SendMessageToEquipmentChangeStateTopic(
+func (ks *KafkaSupplier) SendMessageToEquipmentChangeStateTopic(
 	ctx context.Context,
 	key []byte,
 	event events.ChangeEquipmentStateEvent,
@@ -86,17 +86,17 @@ func (kc *KafkaSupplier) SendMessageToEquipmentChangeStateTopic(
 		Value: value,
 	}
 
-	if err := kc.equipmentChangeStateProducer.WriteMessages(ctx, msg); err != nil {
+	if err := ks.equipmentChangeStateProducer.WriteMessages(ctx, msg); err != nil {
 		return fmt.Errorf("failed to send message to Kafka: %w", err)
 	}
 
 	return nil
 }
 
-func (kc *KafkaSupplier) ReadModuleVerificationTopic(ctx context.Context) (kafka.Message, error) {
+func (ks *KafkaSupplier) ReadModuleVerificationTopic(ctx context.Context) (kafka.Message, error) {
 	log.Printf("Read topicModuleVerificationTopic ...")
 
-	msg, err := kc.moduleVerificationConsumer.ReadMessage(ctx)
+	msg, err := ks.moduleVerificationConsumer.ReadMessage(ctx)
 	if err != nil {
 		return kafka.Message{}, err
 	}
@@ -106,16 +106,16 @@ func (kc *KafkaSupplier) ReadModuleVerificationTopic(ctx context.Context) (kafka
 	return msg, nil
 }
 
-func (kc *KafkaSupplier) Close() {
-	if err := kc.moduleAdditionProducer.Close(); err != nil {
+func (ks *KafkaSupplier) Close() {
+	if err := ks.moduleAdditionProducer.Close(); err != nil {
 		log.Fatalf("Failed to close Kafka moduleVerificationProducer: %v", err)
 	}
 
-	if err := kc.equipmentChangeStateProducer.Close(); err != nil {
+	if err := ks.equipmentChangeStateProducer.Close(); err != nil {
 		log.Fatalf("Failed to close Kafka equipmentChangeStateProducer: %v", err)
 	}
 
-	if err := kc.moduleVerificationConsumer.Close(); err != nil {
+	if err := ks.moduleVerificationConsumer.Close(); err != nil {
 		log.Fatalf("Failed to close Kafka moduleVerificationConsumer: %v", err)
 	}
 }
