@@ -2,7 +2,7 @@ package suppliers
 
 import (
 	"context"
-	"device-service/schemas"
+	"device-service/schemas/events"
 	"encoding/json"
 	"fmt"
 	"github.com/segmentio/kafka-go"
@@ -12,8 +12,8 @@ import (
 var ErrKafkaSupplier = fmt.Errorf("error during send message in Kafka")
 
 type KafkaSupplierInterface interface {
-	SendMessageToAdditionTopic(ctx context.Context, key []byte, event schemas.HomeVerificationEvent) error
-	SendMessageToEquipmentChangeStateTopic(ctx context.Context, key []byte, event schemas.ChangeEquipmentStateEvent) error
+	SendMessageToAdditionTopic(ctx context.Context, key []byte, event events.HomeVerificationEvent) error
+	SendMessageToEquipmentChangeStateTopic(ctx context.Context, key []byte, event events.ChangeEquipmentStateEvent) error
 	ReadModuleVerificationTopic(ctx context.Context) (kafka.Message, error)
 	Close()
 }
@@ -61,7 +61,7 @@ func NewKafkaSupplier(
 func (kc *KafkaSupplier) SendMessageToAdditionTopic(
 	ctx context.Context,
 	key []byte,
-	event schemas.HomeVerificationEvent,
+	event events.HomeVerificationEvent,
 ) error {
 	value, err := json.Marshal(event)
 	if err != nil {
@@ -83,7 +83,7 @@ func (kc *KafkaSupplier) SendMessageToAdditionTopic(
 func (kc *KafkaSupplier) SendMessageToEquipmentChangeStateTopic(
 	ctx context.Context,
 	key []byte,
-	event schemas.ChangeEquipmentStateEvent,
+	event events.ChangeEquipmentStateEvent,
 ) error {
 	value, err := json.Marshal(event)
 	if err != nil {

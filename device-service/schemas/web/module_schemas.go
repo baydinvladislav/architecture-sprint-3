@@ -1,4 +1,4 @@
-package web_schemas
+package web
 
 import (
 	"github.com/google/uuid"

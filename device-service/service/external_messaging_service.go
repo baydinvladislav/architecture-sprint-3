@@ -2,7 +2,7 @@ package service
 
 import (
 	"context"
-	"device-service/schemas"
+	"device-service/schemas/events"
 	"device-service/suppliers"
 	"encoding/json"
 	"fmt"
@@ -21,7 +21,7 @@ func NewExternalMessagingService(supplier suppliers.KafkaSupplierInterface) *Ext
 func (s *ExternalMessagingService) SendModuleAdditionEvent(
 	ctx context.Context,
 	key []byte,
-	event schemas.HomeVerificationEvent,
+	event events.HomeVerificationEvent,
 ) error {
 	return s.supplier.SendMessageToAdditionTopic(ctx, key, event)
 }
@@ -29,23 +29,23 @@ func (s *ExternalMessagingService) SendModuleAdditionEvent(
 func (s *ExternalMessagingService) SendEquipmentStateChangeEvent(
 	ctx context.Context,
 	key []byte,
-	event schemas.ChangeEquipmentStateEvent,
+	event events.ChangeEquipmentStateEvent,
 ) error {
 	return s.supplier.SendMessageToEquipmentChangeStateTopic(ctx, key, event)
 }
 
 func (s *ExternalMessagingService) ReadModuleVerificationEvent(
 	ctx context.Context,
-) (schemas.BaseEvent, error) {
+) (events.BaseEvent, error) {
 	msg, err := s.supplier.ReadModuleVerificationTopic(ctx)
 	if err != nil {
-		return schemas.BaseEvent{}, fmt.Errorf("failed to read message: %w", err)
+		return events.BaseEvent{}, fmt.Errorf("failed to read message: %w", err)
 	}
 
-	var event schemas.BaseEvent
+	var event events.BaseEvent
 	err = json.Unmarshal(msg.Value, &event)
 	if err != nil {
-		return schemas.BaseEvent{}, fmt.Errorf("failed to unmarshal message: %w", err)
+		return events.BaseEvent{}, fmt.Errorf("failed to unmarshal message: %w", err)
 	}
 
 	return event, nil

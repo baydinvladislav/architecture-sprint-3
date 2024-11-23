@@ -2,7 +2,7 @@ package repository
 
 import (
 	"device-service/persistance"
-	"device-service/presentation/web-schemas"
+	"device-service/schemas/web"
 	"errors"
 	"fmt"
 	"github.com/google/uuid"
@@ -18,14 +18,14 @@ var (
 )
 
 type ModuleRepository interface {
-	GetAllModules() ([]web_schemas.ModuleOut, error)
-	GetModulesByHouseID(houseID uuid.UUID) ([]web_schemas.ModuleOut, error)
+	GetAllModules() ([]web.ModuleOut, error)
+	GetModulesByHouseID(houseID uuid.UUID) ([]web.ModuleOut, error)
 	TurnOnModule(houseID uuid.UUID, moduleID uuid.UUID) error
 	TurnOffModule(houseID uuid.UUID, moduleID uuid.UUID) error
-	RequestAddingModuleToHouse(houseID uuid.UUID, moduleID uuid.UUID) ([]web_schemas.ModuleOut, error)
+	RequestAddingModuleToHouse(houseID uuid.UUID, moduleID uuid.UUID) ([]web.ModuleOut, error)
 	AcceptAdditionModuleToHouse(houseID uuid.UUID, moduleID uuid.UUID) error
 	FailAdditionModuleToHouse(houseID uuid.UUID, moduleID uuid.UUID) error
-	GetModuleState(houseID uuid.UUID, moduleID uuid.UUID) (*web_schemas.HouseModuleState, error)
+	GetModuleState(houseID uuid.UUID, moduleID uuid.UUID) (*web.HouseModuleState, error)
 	InsertNewHouseModuleState(houseModuleId uuid.UUID, state map[string]interface{}) error
 }
 
@@ -39,15 +39,15 @@ func NewGORMModuleRepository(db *gorm.DB) *GORMModuleRepository {
 	}
 }
 
-func (r *GORMModuleRepository) GetAllModules() ([]web_schemas.ModuleOut, error) {
+func (r *GORMModuleRepository) GetAllModules() ([]web.ModuleOut, error) {
 	var modules []persistance.ModuleModel
 	if err := r.db.Find(&modules).Error; err != nil {
 		return nil, err
 	}
 
-	var moduleOuts []web_schemas.ModuleOut
+	var moduleOuts []web.ModuleOut
 	for _, module := range modules {
-		moduleOuts = append(moduleOuts, web_schemas.ModuleOut{
+		moduleOuts = append(moduleOuts, web.ModuleOut{
 			ID:          module.ID,
 			CreatedAt:   module.CreatedAt,
 			Type:        module.Type,
@@ -58,13 +58,13 @@ func (r *GORMModuleRepository) GetAllModules() ([]web_schemas.ModuleOut, error) 
 	return moduleOuts, nil
 }
 
-func (r *GORMModuleRepository) GetModulesByHouseID(houseID uuid.UUID) ([]web_schemas.ModuleOut, error) {
+func (r *GORMModuleRepository) GetModulesByHouseID(houseID uuid.UUID) ([]web.ModuleOut, error) {
 	var houseModules []persistance.HouseModuleModel
 	if err := r.db.Where("house_id = ?", houseID).Find(&houseModules).Error; err != nil {
 		return nil, err
 	}
 
-	var moduleOuts []web_schemas.ModuleOut
+	var moduleOuts []web.ModuleOut
 	for _, houseModule := range houseModules {
 		var module persistance.ModuleModel
 		if err := r.db.First(&module, "id = ?", houseModule.ModuleID).Error; err == nil {
@@ -73,7 +73,7 @@ func (r *GORMModuleRepository) GetModulesByHouseID(houseID uuid.UUID) ([]web_sch
 				state = "disabled"
 			}
 
-			moduleOuts = append(moduleOuts, web_schemas.ModuleOut{
+			moduleOuts = append(moduleOuts, web.ModuleOut{
 				ID:          module.ID,
 				CreatedAt:   module.CreatedAt,
 				Type:        module.Type,
@@ -89,7 +89,7 @@ func (r *GORMModuleRepository) GetModulesByHouseID(houseID uuid.UUID) ([]web_sch
 func (r *GORMModuleRepository) RequestAddingModuleToHouse(
 	houseID uuid.UUID,
 	moduleID uuid.UUID,
-) ([]web_schemas.ModuleOut, error) {
+) ([]web.ModuleOut, error) {
 	var existingModule persistance.HouseModuleModel
 	if err := r.db.Where("house_id = ? AND module_id = ?", houseID, moduleID).First(&existingModule).Error; err == nil {
 		return nil, fmt.Errorf("module with houseID %s and moduleID %s already exists", houseID, moduleID)
@@ -178,7 +178,7 @@ func (r *GORMModuleRepository) TurnOffModule(houseID uuid.UUID, moduleID uuid.UU
 	return r.db.Save(&houseModule).Error
 }
 
-func (r *GORMModuleRepository) GetModuleState(houseID uuid.UUID, moduleID uuid.UUID) (*web_schemas.HouseModuleState, error) {
+func (r *GORMModuleRepository) GetModuleState(houseID uuid.UUID, moduleID uuid.UUID) (*web.HouseModuleState, error) {
 	var houseModule persistance.HouseModuleModel
 
 	if err := r.db.Where("house_id = ? AND module_id = ?", houseID, moduleID).First(&houseModule).Error; err != nil {
@@ -193,7 +193,7 @@ func (r *GORMModuleRepository) GetModuleState(houseID uuid.UUID, moduleID uuid.U
 		state = "activated"
 	}
 
-	response := &web_schemas.HouseModuleState{
+	response := &web.HouseModuleState{
 		ID:       houseModule.ID,
 		HouseID:  houseModule.HouseID,
 		ModuleID: houseModule.ModuleID,

@@ -1,8 +1,8 @@
 package service
 
 import (
-	web_schemas "device-service/presentation/web-schemas"
 	"device-service/repository"
+	web_schemas "device-service/schemas/web"
 	"github.com/google/uuid"
 )
 

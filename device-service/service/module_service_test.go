@@ -2,8 +2,8 @@ package service
 
 import (
 	"context"
-	web_schemas "device-service/presentation/web-schemas"
-	"device-service/schemas"
+	"device-service/schemas/events"
+	web_schemas "device-service/schemas/web"
 	"github.com/google/uuid"
 	"github.com/segmentio/kafka-go"
 	"github.com/stretchr/testify/mock"
@@ -72,7 +72,7 @@ func (k *MockKafkaSupplier) ReadModuleVerificationTopic(ctx context.Context) (ka
 func (k *MockKafkaSupplier) SendMessageToEquipmentChangeStateTopic(
 	ctx context.Context,
 	key []byte,
-	event schemas.ChangeEquipmentStateEvent,
+	event events.ChangeEquipmentStateEvent,
 ) error {
 	args := k.Called(ctx, key, event)
 	return args.Error(0)
@@ -81,7 +81,7 @@ func (k *MockKafkaSupplier) SendMessageToEquipmentChangeStateTopic(
 func (k *MockKafkaSupplier) SendMessageToAdditionTopic(
 	ctx context.Context,
 	key []byte,
-	event schemas.HomeVerificationEvent,
+	event events.HomeVerificationEvent,
 ) error {
 	args := k.Called(ctx, key, event)
 	return args.Error(0)
@@ -103,9 +103,9 @@ func TestProcessMessage_Accepted(t *testing.T) {
 	houseID := uuid.New()
 	moduleID := uuid.New()
 
-	event := schemas.BaseEvent{
+	event := events.BaseEvent{
 		EventType: "ModuleVerificationEvent",
-		Payload: schemas.ModuleVerificationEvent{
+		Payload: events.ModuleVerificationEvent{
 			HouseID:  houseID.String(),
 			ModuleID: moduleID.String(),
 			Decision: "ACCEPTED",

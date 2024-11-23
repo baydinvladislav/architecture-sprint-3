@@ -2,8 +2,8 @@ package service
 
 import (
 	"context"
-	web_schemas "device-service/presentation/web-schemas"
-	"device-service/schemas"
+	"device-service/schemas/events"
+	web_schemas "device-service/schemas/web"
 	"errors"
 	"fmt"
 	"github.com/google/uuid"
@@ -25,10 +25,10 @@ func NewModuleService(
 	}
 }
 
-func (s *ModuleService) ProcessMessage(event schemas.BaseEvent) (bool, error) {
+func (s *ModuleService) ProcessMessage(event events.BaseEvent) (bool, error) {
 	switch event.EventType {
 	case "ModuleVerificationEvent":
-		payload, ok := event.Payload.(schemas.ModuleVerificationEvent)
+		payload, ok := event.Payload.(events.ModuleVerificationEvent)
 		if !ok {
 			return false, errors.New("invalid payload type")
 		}
@@ -54,7 +54,7 @@ func (s *ModuleService) ProcessMessage(event schemas.BaseEvent) (bool, error) {
 	return false, errors.New("unsupported event type")
 }
 
-func (s *ModuleService) GetModuleVerificationEvent(ctx context.Context) (schemas.BaseEvent, error) {
+func (s *ModuleService) GetModuleVerificationEvent(ctx context.Context) (events.BaseEvent, error) {
 	return s.messagingService.ReadModuleVerificationEvent(ctx)
 }
 
@@ -73,7 +73,7 @@ func (s *ModuleService) TurnOnModule(houseID uuid.UUID, moduleID uuid.UUID) erro
 	}
 
 	state := map[string]interface{}{"running": "on"}
-	event := schemas.ChangeEquipmentStateEvent{
+	event := events.ChangeEquipmentStateEvent{
 		HouseID:  houseID.String(),
 		ModuleID: moduleID.String(),
 		Time:     time.Now().Unix(),
@@ -90,7 +90,7 @@ func (s *ModuleService) TurnOffModule(houseID uuid.UUID, moduleID uuid.UUID) err
 	}
 
 	state := map[string]interface{}{"running": "off"}
-	event := schemas.ChangeEquipmentStateEvent{
+	event := events.ChangeEquipmentStateEvent{
 		HouseID:  houseID.String(),
 		ModuleID: moduleID.String(),
 		Time:     time.Now().Unix(),
@@ -113,7 +113,7 @@ func (s *ModuleService) RequestAdditionModuleToHouse(
 		return nil, err
 	}
 
-	event := schemas.HomeVerificationEvent{
+	event := events.HomeVerificationEvent{
 		HouseID:  houseID.String(),
 		ModuleID: moduleID.String(),
 		Time:     time.Now().Unix(),
@@ -138,7 +138,7 @@ func (s *ModuleService) ChangeEquipmentState(
 		return nil, err
 	}
 
-	event := schemas.ChangeEquipmentStateEvent{
+	event := events.ChangeEquipmentStateEvent{
 		HouseID:  houseID.String(),
 		ModuleID: moduleID.String(),
 		Time:     time.Now().Unix(),
