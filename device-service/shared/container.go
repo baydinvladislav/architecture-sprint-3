@@ -17,6 +17,8 @@ type Container struct {
 }
 
 func NewAppContainer(ctx context.Context) *Container {
+	log.Printf("Starting initializing application container")
+
 	appSettings := NewAppSettings()
 	dsn := appSettings.DSN()
 
@@ -47,8 +49,12 @@ func NewAppContainer(ctx context.Context) *Container {
 		messagingService,
 	)
 
-	return &Container{
+	appContainer := &Container{
 		ModuleService: moduleService,
 		AppSettings:   appSettings,
 	}
+
+	log.Printf("Application container successfully initialized")
+
+	return appContainer
 }

@@ -47,10 +47,8 @@ func (s *ModuleService) ProcessMessage(event events.BaseEvent) (bool, error) {
 		} else if payload.Decision == "FAILED" {
 			return true, s.persistenceService.FailAdditionModuleToHouse(houseID, moduleID)
 		}
-
 		return false, errors.New("unsupported decision type")
 	}
-
 	return false, errors.New("unsupported event type")
 }
 
@@ -121,7 +119,6 @@ func (s *ModuleService) TurnOnModule(houseID uuid.UUID, moduleID uuid.UUID) erro
 		Time:     time.Now().Unix(),
 		State:    newState,
 	}
-
 	return s.messagingService.SendEquipmentStateChangeEvent(context.Background(), []byte(moduleID.String()), event)
 }
 
@@ -149,7 +146,6 @@ func (s *ModuleService) TurnOffModule(houseID uuid.UUID, moduleID uuid.UUID) err
 		Time:     time.Now().Unix(),
 		State:    newState,
 	}
-
 	return s.messagingService.SendEquipmentStateChangeEvent(context.Background(), []byte(moduleID.String()), event)
 }
 
@@ -183,7 +179,6 @@ func (s *ModuleService) RequestAdditionModuleToHouse(
 		ModuleID: moduleID.String(),
 		Time:     time.Now().Unix(),
 	}
-
 	err = s.messagingService.SendModuleAdditionEvent(
 		context.Background(),
 		[]byte(moduleID.String()),
@@ -224,7 +219,6 @@ func (s *ModuleService) ChangeEquipmentState(
 		Time:     time.Now().Unix(),
 		State:    state,
 	}
-
 	houseModuleOut := &web_schemas.HouseModuleState{
 		ID:        houseModuleStateDto.ID,
 		CreatedAt: houseModuleStateDto.CreatedAt,
