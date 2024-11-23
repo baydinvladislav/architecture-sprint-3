@@ -72,12 +72,23 @@ func (s *ModuleService) TurnOnModule(houseID uuid.UUID, moduleID uuid.UUID) erro
 		return err
 	}
 
-	state := map[string]interface{}{"running": "on"}
+	moduleState, err := s.persistenceService.GetModuleState(houseID, moduleID)
+	if err != nil {
+		return err
+	}
+
+	newState := map[string]interface{}{"running": "on"}
+
+	err = s.persistenceService.InsertNewHouseModuleState(moduleState.ID, newState)
+	if err != nil {
+		return err
+	}
+
 	event := events.ChangeEquipmentStateEvent{
 		HouseID:  houseID.String(),
 		ModuleID: moduleID.String(),
 		Time:     time.Now().Unix(),
-		State:    state,
+		State:    newState,
 	}
 
 	return s.messagingService.SendEquipmentStateChangeEvent(context.Background(), []byte(moduleID.String()), event)
@@ -89,12 +100,23 @@ func (s *ModuleService) TurnOffModule(houseID uuid.UUID, moduleID uuid.UUID) err
 		return err
 	}
 
-	state := map[string]interface{}{"running": "off"}
+	moduleState, err := s.persistenceService.GetModuleState(houseID, moduleID)
+	if err != nil {
+		return err
+	}
+
+	newState := map[string]interface{}{"running": "off"}
+
+	err = s.persistenceService.InsertNewHouseModuleState(moduleState.ID, newState)
+	if err != nil {
+		return err
+	}
+
 	event := events.ChangeEquipmentStateEvent{
 		HouseID:  houseID.String(),
 		ModuleID: moduleID.String(),
 		Time:     time.Now().Unix(),
-		State:    state,
+		State:    newState,
 	}
 
 	return s.messagingService.SendEquipmentStateChangeEvent(context.Background(), []byte(moduleID.String()), event)
