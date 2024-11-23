@@ -4,7 +4,6 @@ import (
 	"context"
 	"device-service/schemas/dto"
 	"device-service/schemas/events"
-	web_schemas "device-service/schemas/web"
 	"github.com/google/uuid"
 	"github.com/segmentio/kafka-go"
 	"github.com/stretchr/testify/mock"
@@ -21,9 +20,9 @@ func (m *MockModuleRepository) GetAllModules() ([]dto.ModuleDto, error) {
 	return args.Get(0).([]dto.ModuleDto), args.Error(1)
 }
 
-func (m *MockModuleRepository) GetModulesByHouseID(houseID uuid.UUID) ([]web_schemas.ModuleOut, error) {
+func (m *MockModuleRepository) GetModulesByHouseID(houseID uuid.UUID) ([]dto.ModuleDto, error) {
 	args := m.Called(houseID)
-	return args.Get(0).([]web_schemas.ModuleOut), args.Error(1)
+	return args.Get(0).([]dto.ModuleDto), args.Error(1)
 }
 
 func (m *MockModuleRepository) TurnOnModule(houseID, moduleID uuid.UUID) error {
@@ -36,9 +35,9 @@ func (m *MockModuleRepository) TurnOffModule(houseID, moduleID uuid.UUID) error 
 	return args.Error(0)
 }
 
-func (m *MockModuleRepository) GetModuleState(houseID, moduleID uuid.UUID) (*web_schemas.HouseModuleState, error) {
+func (m *MockModuleRepository) GetModuleState(houseID, moduleID uuid.UUID) (*dto.HouseModuleStateDto, error) {
 	args := m.Called(houseID, moduleID)
-	return args.Get(0).(*web_schemas.HouseModuleState), args.Error(1)
+	return args.Get(0).(*dto.HouseModuleStateDto), args.Error(1)
 }
 
 func (m *MockModuleRepository) AcceptAdditionModuleToHouse(houseID, moduleID uuid.UUID) error {
@@ -51,9 +50,12 @@ func (m *MockModuleRepository) FailAdditionModuleToHouse(houseID, moduleID uuid.
 	return args.Error(0)
 }
 
-func (m *MockModuleRepository) RequestAddingModuleToHouse(houseID uuid.UUID, moduleID uuid.UUID) ([]web_schemas.ModuleOut, error) {
+func (m *MockModuleRepository) RequestAddingModuleToHouse(
+	houseID uuid.UUID,
+	moduleID uuid.UUID,
+) ([]dto.ModuleDto, error) {
 	args := m.Called(houseID, moduleID)
-	return args.Get(0).([]web_schemas.ModuleOut), args.Error(1)
+	return args.Get(0).([]dto.ModuleDto), args.Error(1)
 }
 
 func (m *MockModuleRepository) InsertNewHouseModuleState(houseModuleId uuid.UUID, state map[string]interface{}) error {

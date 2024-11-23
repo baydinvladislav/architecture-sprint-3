@@ -2,7 +2,6 @@ package repository
 
 import (
 	"device-service/schemas/dto"
-	"device-service/schemas/web"
 	"fmt"
 	"github.com/google/uuid"
 )
@@ -16,12 +15,12 @@ var (
 
 type ModuleRepository interface {
 	GetAllModules() ([]dto.ModuleDto, error)
-	GetModulesByHouseID(houseID uuid.UUID) ([]web.ModuleOut, error)
+	GetModulesByHouseID(houseID uuid.UUID) ([]dto.ModuleDto, error)
 	TurnOnModule(houseID uuid.UUID, moduleID uuid.UUID) error
 	TurnOffModule(houseID uuid.UUID, moduleID uuid.UUID) error
-	RequestAddingModuleToHouse(houseID uuid.UUID, moduleID uuid.UUID) ([]web.ModuleOut, error)
+	RequestAddingModuleToHouse(houseID uuid.UUID, moduleID uuid.UUID) ([]dto.ModuleDto, error)
 	AcceptAdditionModuleToHouse(houseID uuid.UUID, moduleID uuid.UUID) error
 	FailAdditionModuleToHouse(houseID uuid.UUID, moduleID uuid.UUID) error
-	GetModuleState(houseID uuid.UUID, moduleID uuid.UUID) (*web.HouseModuleState, error)
+	GetModuleState(houseID uuid.UUID, moduleID uuid.UUID) (*dto.HouseModuleStateDto, error)
 	InsertNewHouseModuleState(houseModuleId uuid.UUID, state map[string]interface{}) error
 }

@@ -3,7 +3,6 @@ package service
 import (
 	"device-service/repository"
 	"device-service/schemas/dto"
-	web_schemas "device-service/schemas/web"
 	"github.com/google/uuid"
 )
 
@@ -21,11 +20,14 @@ func (s *ModulePersistenceService) GetAllModules() ([]dto.ModuleDto, error) {
 	return s.repository.GetAllModules()
 }
 
-func (s *ModulePersistenceService) GetModulesByHouseID(houseID uuid.UUID) ([]web_schemas.ModuleOut, error) {
+func (s *ModulePersistenceService) GetModulesByHouseID(houseID uuid.UUID) ([]dto.ModuleDto, error) {
 	return s.repository.GetModulesByHouseID(houseID)
 }
 
-func (s *ModulePersistenceService) GetModuleState(houseID uuid.UUID, moduleID uuid.UUID) (*web_schemas.HouseModuleState, error) {
+func (s *ModulePersistenceService) GetModuleState(
+	houseID uuid.UUID,
+	moduleID uuid.UUID,
+) (*dto.HouseModuleStateDto, error) {
 	return s.repository.GetModuleState(houseID, moduleID)
 }
 
@@ -48,10 +50,13 @@ func (s *ModulePersistenceService) FailAdditionModuleToHouse(houseID uuid.UUID, 
 func (s *ModulePersistenceService) RequestAddingModuleToHouse(
 	houseID uuid.UUID,
 	moduleID uuid.UUID,
-) ([]web_schemas.ModuleOut, error) {
+) ([]dto.ModuleDto, error) {
 	return s.repository.RequestAddingModuleToHouse(houseID, moduleID)
 }
 
-func (s *ModulePersistenceService) InsertNewHouseModuleState(houseModuleID uuid.UUID, state map[string]interface{}) error {
+func (s *ModulePersistenceService) InsertNewHouseModuleState(
+	houseModuleID uuid.UUID,
+	state map[string]interface{},
+) error {
 	return s.repository.InsertNewHouseModuleState(houseModuleID, state)
 }

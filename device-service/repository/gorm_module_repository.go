@@ -3,7 +3,6 @@ package repository
 import (
 	"device-service/persistance"
 	"device-service/schemas/dto"
-	"device-service/schemas/web"
 	"errors"
 	"fmt"
 	"github.com/google/uuid"
@@ -39,13 +38,13 @@ func (r *GORMModuleRepository) GetAllModules() ([]dto.ModuleDto, error) {
 	return modulesDto, nil
 }
 
-func (r *GORMModuleRepository) GetModulesByHouseID(houseID uuid.UUID) ([]web.ModuleOut, error) {
+func (r *GORMModuleRepository) GetModulesByHouseID(houseID uuid.UUID) ([]dto.ModuleDto, error) {
 	var houseModules []persistance.HouseModuleModel
 	if err := r.db.Where("house_id = ?", houseID).Find(&houseModules).Error; err != nil {
 		return nil, err
 	}
 
-	var moduleOuts []web.ModuleOut
+	var modulesDto []dto.ModuleDto
 	for _, houseModule := range houseModules {
 		var module persistance.ModuleModel
 		if err := r.db.First(&module, "id = ?", houseModule.ModuleID).Error; err == nil {
@@ -54,7 +53,7 @@ func (r *GORMModuleRepository) GetModulesByHouseID(houseID uuid.UUID) ([]web.Mod
 				state = "disabled"
 			}
 
-			moduleOuts = append(moduleOuts, web.ModuleOut{
+			modulesDto = append(modulesDto, dto.ModuleDto{
 				ID:          module.ID,
 				CreatedAt:   module.CreatedAt,
 				Type:        module.Type,
@@ -63,14 +62,13 @@ func (r *GORMModuleRepository) GetModulesByHouseID(houseID uuid.UUID) ([]web.Mod
 			})
 		}
 	}
-
-	return moduleOuts, nil
+	return modulesDto, nil
 }
 
 func (r *GORMModuleRepository) RequestAddingModuleToHouse(
 	houseID uuid.UUID,
 	moduleID uuid.UUID,
-) ([]web.ModuleOut, error) {
+) ([]dto.ModuleDto, error) {
 	var existingModule persistance.HouseModuleModel
 	if err := r.db.Where("house_id = ? AND module_id = ?", houseID, moduleID).First(&existingModule).Error; err == nil {
 		return nil, fmt.Errorf("module with houseID %s and moduleID %s already exists", houseID, moduleID)
@@ -91,7 +89,6 @@ func (r *GORMModuleRepository) RequestAddingModuleToHouse(
 	if err != nil {
 		return nil, err
 	}
-
 	return modules, nil
 }
 
@@ -109,7 +106,6 @@ func (r *GORMModuleRepository) AcceptAdditionModuleToHouse(
 	if err := r.db.Save(&existingModule).Error; err != nil {
 		return err
 	}
-
 	return nil
 }
 
@@ -127,7 +123,6 @@ func (r *GORMModuleRepository) FailAdditionModuleToHouse(
 	if err := r.db.Save(&existingModule).Error; err != nil {
 		return err
 	}
-
 	return nil
 }
 
@@ -136,11 +131,9 @@ func (r *GORMModuleRepository) TurnOnModule(houseID uuid.UUID, moduleID uuid.UUI
 	if err := r.db.Where("house_id = ? AND module_id = ?", houseID, moduleID).First(&houseModule).Error; err != nil {
 		return err
 	}
-
 	if houseModule.TurnOn {
 		return ErrModuleAlreadyOn
 	}
-
 	houseModule.TurnOn = true
 	return r.db.Save(&houseModule).Error
 }
@@ -159,7 +152,7 @@ func (r *GORMModuleRepository) TurnOffModule(houseID uuid.UUID, moduleID uuid.UU
 	return r.db.Save(&houseModule).Error
 }
 
-func (r *GORMModuleRepository) GetModuleState(houseID uuid.UUID, moduleID uuid.UUID) (*web.HouseModuleState, error) {
+func (r *GORMModuleRepository) GetModuleState(houseID uuid.UUID, moduleID uuid.UUID) (*dto.HouseModuleStateDto, error) {
 	var houseModule persistance.HouseModuleModel
 
 	if err := r.db.Where("house_id = ? AND module_id = ?", houseID, moduleID).First(&houseModule).Error; err != nil {
@@ -169,12 +162,12 @@ func (r *GORMModuleRepository) GetModuleState(houseID uuid.UUID, moduleID uuid.U
 		return nil, err
 	}
 
-	state := "disabled"
+	state := map[string]interface{}{"state": "disabled"}
 	if houseModule.TurnOn {
-		state = "activated"
+		state = map[string]interface{}{"state": "activated"}
 	}
 
-	response := &web.HouseModuleState{
+	response := &dto.HouseModuleStateDto{
 		ID:       houseModule.ID,
 		HouseID:  houseModule.HouseID,
 		ModuleID: houseModule.ModuleID,

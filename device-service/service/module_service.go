@@ -79,7 +79,22 @@ func (s *ModuleService) GetAllModules() ([]web_schemas.ModuleOut, error) {
 }
 
 func (s *ModuleService) GetModulesByHouseID(houseID uuid.UUID) ([]web_schemas.ModuleOut, error) {
-	return s.persistenceService.GetModulesByHouseID(houseID)
+	modulesDto, err := s.persistenceService.GetModulesByHouseID(houseID)
+	if err != nil {
+		return nil, err
+	}
+
+	var modulesOut []web_schemas.ModuleOut
+	for _, m := range modulesDto {
+		modulesOut = append(modulesOut, web_schemas.ModuleOut{
+			ID:          m.ID,
+			CreatedAt:   m.CreatedAt,
+			Type:        m.Type,
+			Description: m.Description,
+			State:       m.State,
+		})
+	}
+	return modulesOut, nil
 }
 
 func (s *ModuleService) TurnOnModule(houseID uuid.UUID, moduleID uuid.UUID) error {
@@ -139,14 +154,26 @@ func (s *ModuleService) TurnOffModule(houseID uuid.UUID, moduleID uuid.UUID) err
 }
 
 func (s *ModuleService) GetModuleState(houseID uuid.UUID, moduleID uuid.UUID) (*web_schemas.HouseModuleState, error) {
-	return s.persistenceService.GetModuleState(houseID, moduleID)
+	moduleStateDto, err := s.persistenceService.GetModuleState(houseID, moduleID)
+	if err != nil {
+		return nil, err
+	}
+
+	moduleState := &web_schemas.HouseModuleState{
+		ID:       moduleStateDto.ID,
+		HouseID:  moduleStateDto.HouseID,
+		ModuleID: moduleStateDto.ModuleID,
+		State:    moduleStateDto.State,
+	}
+
+	return moduleState, nil
 }
 
 func (s *ModuleService) RequestAdditionModuleToHouse(
 	houseID uuid.UUID,
 	moduleID uuid.UUID,
 ) ([]web_schemas.ModuleOut, error) {
-	response, err := s.persistenceService.RequestAddingModuleToHouse(houseID, moduleID)
+	modulesDto, err := s.persistenceService.RequestAddingModuleToHouse(houseID, moduleID)
 	if err != nil {
 		return nil, err
 	}
@@ -157,8 +184,23 @@ func (s *ModuleService) RequestAdditionModuleToHouse(
 		Time:     time.Now().Unix(),
 	}
 
-	err = s.messagingService.SendModuleAdditionEvent(context.Background(), []byte(moduleID.String()), event)
-	return response, err
+	err = s.messagingService.SendModuleAdditionEvent(
+		context.Background(),
+		[]byte(moduleID.String()),
+		event,
+	)
+
+	var modulesOut []web_schemas.ModuleOut
+	for _, m := range modulesDto {
+		modulesOut = append(modulesOut, web_schemas.ModuleOut{
+			ID:          m.ID,
+			CreatedAt:   m.CreatedAt,
+			Type:        m.Type,
+			Description: m.Description,
+			State:       m.State,
+		})
+	}
+	return modulesOut, err
 }
 
 func (s *ModuleService) ChangeEquipmentState(
@@ -166,12 +208,12 @@ func (s *ModuleService) ChangeEquipmentState(
 	moduleID uuid.UUID,
 	state map[string]interface{},
 ) (*web_schemas.HouseModuleState, error) {
-	houseModule, err := s.persistenceService.GetModuleState(houseID, moduleID)
+	houseModuleStateDto, err := s.persistenceService.GetModuleState(houseID, moduleID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get module state: %w", err)
 	}
 
-	err = s.persistenceService.InsertNewHouseModuleState(houseModule.ID, state)
+	err = s.persistenceService.InsertNewHouseModuleState(houseModuleStateDto.ID, state)
 	if err != nil {
 		return nil, err
 	}
@@ -183,6 +225,14 @@ func (s *ModuleService) ChangeEquipmentState(
 		State:    state,
 	}
 
+	houseModuleOut := &web_schemas.HouseModuleState{
+		ID:        houseModuleStateDto.ID,
+		CreatedAt: houseModuleStateDto.CreatedAt,
+		HouseID:   houseModuleStateDto.HouseID,
+		ModuleID:  houseModuleStateDto.ModuleID,
+		State:     houseModuleStateDto.State,
+	}
+
 	err = s.messagingService.SendEquipmentStateChangeEvent(context.Background(), []byte(moduleID.String()), event)
-	return houseModule, err
+	return houseModuleOut, err
 }
