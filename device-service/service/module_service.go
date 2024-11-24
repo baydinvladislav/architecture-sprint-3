@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/google/uuid"
+	"log"
 	"time"
 )
 
@@ -31,6 +32,8 @@ func (s *ModuleService) GetAllModules() ([]web_schemas.ModuleOut, error) {
 		return nil, err
 	}
 
+	log.Printf("Got smart home modules: %d", len(modulesDto))
+
 	var modulesOut []web_schemas.ModuleOut
 	for _, m := range modulesDto {
 		moduleOut := web_schemas.ModuleOut{
@@ -50,6 +53,8 @@ func (s *ModuleService) GetModulesByHouseID(houseID uuid.UUID) ([]web_schemas.Mo
 	if err != nil {
 		return nil, err
 	}
+
+	log.Printf("Got %d installed modules for %v house", houseID, len(modulesDto))
 
 	var modulesOut []web_schemas.ModuleOut
 	for _, m := range modulesDto {
@@ -106,6 +111,8 @@ func (s *ModuleService) GetModuleState(
 		return nil, err
 	}
 
+	log.Printf("Got %v installed module state in %v user house", houseID, moduleID)
+
 	moduleState := &web_schemas.HouseModuleState{
 		ID:       moduleStateDto.ID,
 		HouseID:  moduleStateDto.HouseID,
@@ -121,6 +128,11 @@ func (s *ModuleService) ChangeModuleState(
 	moduleID uuid.UUID,
 	state map[string]interface{},
 ) (*web_schemas.HouseModuleState, error) {
+	fmt.Printf(
+		"Starting change installed module state %v in house %v with state: %v",
+		houseID, moduleID, state,
+	)
+
 	houseModuleStateDto, err := s.persistenceService.GetModuleState(houseID, moduleID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get module state: %w", err)
@@ -145,11 +157,25 @@ func (s *ModuleService) ChangeModuleState(
 		State:     houseModuleStateDto.State,
 	}
 
-	err = s.messagingService.SendEquipmentStateChangeEvent(context.Background(), []byte(moduleID.String()), event)
-	return houseModuleOut, err
+	err = s.messagingService.SendEquipmentStateChangeEvent(
+		context.Background(),
+		[]byte(moduleID.String()),
+		event,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	fmt.Printf(
+		"Change module %v state in house %v completed successfully, the current state is %v",
+		houseID, moduleID, state,
+	)
+	return houseModuleOut, nil
 }
 
 func (s *ModuleService) TurnOnModule(houseID uuid.UUID, moduleID uuid.UUID) error {
+	fmt.Printf("Starting activating installed module %v in house %v", houseID, moduleID)
+
 	err := s.persistenceService.TurnOnModule(houseID, moduleID)
 	if err != nil {
 		return err
@@ -173,10 +199,19 @@ func (s *ModuleService) TurnOnModule(houseID uuid.UUID, moduleID uuid.UUID) erro
 		Time:     time.Now().Unix(),
 		State:    newState,
 	}
-	return s.messagingService.SendEquipmentStateChangeEvent(context.Background(), []byte(moduleID.String()), event)
+
+	err = s.messagingService.SendEquipmentStateChangeEvent(context.Background(), []byte(moduleID.String()), event)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("Installed module %v in house %v successfully activated", houseID, moduleID)
+	return nil
 }
 
 func (s *ModuleService) TurnOffModule(houseID uuid.UUID, moduleID uuid.UUID) error {
+	fmt.Printf("Starting disabling installed module %v in house %v", houseID, moduleID)
+
 	err := s.persistenceService.TurnOffModule(houseID, moduleID)
 	if err != nil {
 		return err
@@ -200,7 +235,14 @@ func (s *ModuleService) TurnOffModule(houseID uuid.UUID, moduleID uuid.UUID) err
 		Time:     time.Now().Unix(),
 		State:    newState,
 	}
-	return s.messagingService.SendEquipmentStateChangeEvent(context.Background(), []byte(moduleID.String()), event)
+
+	err = s.messagingService.SendEquipmentStateChangeEvent(context.Background(), []byte(moduleID.String()), event)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("Instaled module %v in house %v successfully disabled", houseID, moduleID)
+	return nil
 }
 
 func (s *ModuleService) GetModuleVerificationEvent(ctx context.Context) (events.BaseEvent, error) {
