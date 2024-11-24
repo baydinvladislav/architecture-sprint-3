@@ -25,37 +25,6 @@ func NewModuleService(
 	}
 }
 
-func (s *ModuleService) ProcessMessage(event events.BaseEvent) (bool, error) {
-	switch event.EventType {
-	case "ModuleVerificationEvent":
-		payload, ok := event.Payload.(events.ModuleVerificationEvent)
-		if !ok {
-			return false, errors.New("invalid payload type")
-		}
-
-		houseID, err := uuid.Parse(payload.HouseID)
-		if err != nil {
-			return false, errors.New("invalid houseID UUID")
-		}
-		moduleID, err := uuid.Parse(payload.ModuleID)
-		if err != nil {
-			return false, errors.New("invalid moduleID UUID")
-		}
-
-		if payload.Decision == "ACCEPTED" {
-			return true, s.persistenceService.AcceptAdditionModuleToHouse(houseID, moduleID)
-		} else if payload.Decision == "FAILED" {
-			return true, s.persistenceService.FailAdditionModuleToHouse(houseID, moduleID)
-		}
-		return false, errors.New("unsupported decision type")
-	}
-	return false, errors.New("unsupported event type")
-}
-
-func (s *ModuleService) GetModuleVerificationEvent(ctx context.Context) (events.BaseEvent, error) {
-	return s.messagingService.ReadModuleVerificationEvent(ctx)
-}
-
 func (s *ModuleService) GetAllModules() ([]web_schemas.ModuleOut, error) {
 	modulesDto, err := s.persistenceService.GetAllModules()
 	if err != nil {
@@ -93,6 +62,91 @@ func (s *ModuleService) GetModulesByHouseID(houseID uuid.UUID) ([]web_schemas.Mo
 		})
 	}
 	return modulesOut, nil
+}
+
+func (s *ModuleService) RequestAdditionModuleToHouse(
+	houseID uuid.UUID,
+	moduleID uuid.UUID,
+) ([]web_schemas.ModuleOut, error) {
+	modulesDto, err := s.persistenceService.RequestAddingModuleToHouse(houseID, moduleID)
+	if err != nil {
+		return nil, err
+	}
+
+	event := events.HomeVerificationEvent{
+		HouseID:  houseID.String(),
+		ModuleID: moduleID.String(),
+		Time:     time.Now().Unix(),
+	}
+	err = s.messagingService.SendModuleAdditionEvent(
+		context.Background(),
+		[]byte(moduleID.String()),
+		event,
+	)
+
+	var modulesOut []web_schemas.ModuleOut
+	for _, m := range modulesDto {
+		modulesOut = append(modulesOut, web_schemas.ModuleOut{
+			ID:          m.ID,
+			CreatedAt:   m.CreatedAt,
+			Type:        m.Type,
+			Description: m.Description,
+			State:       m.State,
+		})
+	}
+	return modulesOut, err
+}
+
+func (s *ModuleService) GetModuleState(
+	houseID uuid.UUID,
+	moduleID uuid.UUID,
+) (*web_schemas.HouseModuleState, error) {
+	moduleStateDto, err := s.persistenceService.GetModuleState(houseID, moduleID)
+	if err != nil {
+		return nil, err
+	}
+
+	moduleState := &web_schemas.HouseModuleState{
+		ID:       moduleStateDto.ID,
+		HouseID:  moduleStateDto.HouseID,
+		ModuleID: moduleStateDto.ModuleID,
+		State:    moduleStateDto.State,
+	}
+
+	return moduleState, nil
+}
+
+func (s *ModuleService) ChangeEquipmentState(
+	houseID uuid.UUID,
+	moduleID uuid.UUID,
+	state map[string]interface{},
+) (*web_schemas.HouseModuleState, error) {
+	houseModuleStateDto, err := s.persistenceService.GetModuleState(houseID, moduleID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get module state: %w", err)
+	}
+
+	err = s.persistenceService.InsertNewHouseModuleState(houseModuleStateDto.ID, state)
+	if err != nil {
+		return nil, err
+	}
+
+	event := events.ChangeEquipmentStateEvent{
+		HouseID:  houseID.String(),
+		ModuleID: moduleID.String(),
+		Time:     time.Now().Unix(),
+		State:    state,
+	}
+	houseModuleOut := &web_schemas.HouseModuleState{
+		ID:        houseModuleStateDto.ID,
+		CreatedAt: houseModuleStateDto.CreatedAt,
+		HouseID:   houseModuleStateDto.HouseID,
+		ModuleID:  houseModuleStateDto.ModuleID,
+		State:     houseModuleStateDto.State,
+	}
+
+	err = s.messagingService.SendEquipmentStateChangeEvent(context.Background(), []byte(moduleID.String()), event)
+	return houseModuleOut, err
 }
 
 func (s *ModuleService) TurnOnModule(houseID uuid.UUID, moduleID uuid.UUID) error {
@@ -149,84 +203,33 @@ func (s *ModuleService) TurnOffModule(houseID uuid.UUID, moduleID uuid.UUID) err
 	return s.messagingService.SendEquipmentStateChangeEvent(context.Background(), []byte(moduleID.String()), event)
 }
 
-func (s *ModuleService) GetModuleState(houseID uuid.UUID, moduleID uuid.UUID) (*web_schemas.HouseModuleState, error) {
-	moduleStateDto, err := s.persistenceService.GetModuleState(houseID, moduleID)
-	if err != nil {
-		return nil, err
-	}
-
-	moduleState := &web_schemas.HouseModuleState{
-		ID:       moduleStateDto.ID,
-		HouseID:  moduleStateDto.HouseID,
-		ModuleID: moduleStateDto.ModuleID,
-		State:    moduleStateDto.State,
-	}
-
-	return moduleState, nil
+func (s *ModuleService) GetModuleVerificationEvent(ctx context.Context) (events.BaseEvent, error) {
+	return s.messagingService.ReadModuleVerificationEvent(ctx)
 }
 
-func (s *ModuleService) RequestAdditionModuleToHouse(
-	houseID uuid.UUID,
-	moduleID uuid.UUID,
-) ([]web_schemas.ModuleOut, error) {
-	modulesDto, err := s.persistenceService.RequestAddingModuleToHouse(houseID, moduleID)
-	if err != nil {
-		return nil, err
-	}
+func (s *ModuleService) ProcessMessage(event events.BaseEvent) (bool, error) {
+	switch event.EventType {
+	case "ModuleVerificationEvent":
+		payload, ok := event.Payload.(events.ModuleVerificationEvent)
+		if !ok {
+			return false, errors.New("invalid payload type")
+		}
 
-	event := events.HomeVerificationEvent{
-		HouseID:  houseID.String(),
-		ModuleID: moduleID.String(),
-		Time:     time.Now().Unix(),
-	}
-	err = s.messagingService.SendModuleAdditionEvent(
-		context.Background(),
-		[]byte(moduleID.String()),
-		event,
-	)
+		houseID, err := uuid.Parse(payload.HouseID)
+		if err != nil {
+			return false, errors.New("invalid houseID UUID")
+		}
+		moduleID, err := uuid.Parse(payload.ModuleID)
+		if err != nil {
+			return false, errors.New("invalid moduleID UUID")
+		}
 
-	var modulesOut []web_schemas.ModuleOut
-	for _, m := range modulesDto {
-		modulesOut = append(modulesOut, web_schemas.ModuleOut{
-			ID:          m.ID,
-			CreatedAt:   m.CreatedAt,
-			Type:        m.Type,
-			Description: m.Description,
-			State:       m.State,
-		})
+		if payload.Decision == "ACCEPTED" {
+			return true, s.persistenceService.AcceptAdditionModuleToHouse(houseID, moduleID)
+		} else if payload.Decision == "FAILED" {
+			return true, s.persistenceService.FailAdditionModuleToHouse(houseID, moduleID)
+		}
+		return false, errors.New("unsupported decision type")
 	}
-	return modulesOut, err
-}
-
-func (s *ModuleService) ChangeEquipmentState(
-	houseID uuid.UUID,
-	moduleID uuid.UUID,
-	state map[string]interface{},
-) (*web_schemas.HouseModuleState, error) {
-	houseModuleStateDto, err := s.persistenceService.GetModuleState(houseID, moduleID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get module state: %w", err)
-	}
-
-	err = s.persistenceService.InsertNewHouseModuleState(houseModuleStateDto.ID, state)
-	if err != nil {
-		return nil, err
-	}
-
-	event := events.ChangeEquipmentStateEvent{
-		HouseID:  houseID.String(),
-		ModuleID: moduleID.String(),
-		Time:     time.Now().Unix(),
-		State:    state,
-	}
-	houseModuleOut := &web_schemas.HouseModuleState{
-		ID:        houseModuleStateDto.ID,
-		CreatedAt: houseModuleStateDto.CreatedAt,
-		HouseID:   houseModuleStateDto.HouseID,
-		ModuleID:  houseModuleStateDto.ModuleID,
-		State:     houseModuleStateDto.State,
-	}
-
-	err = s.messagingService.SendEquipmentStateChangeEvent(context.Background(), []byte(moduleID.String()), event)
-	return houseModuleOut, err
+	return false, errors.New("unsupported event type")
 }
