@@ -111,7 +111,7 @@ func (s *ModuleService) GetModuleState(
 		return nil, err
 	}
 
-	log.Printf("Got %v installed module state in %v user house", houseID, moduleID)
+	log.Printf("Got installed module %v state in user house %v", houseID, moduleID)
 
 	moduleState := &web_schemas.HouseModuleState{
 		ID:       moduleStateDto.ID,
@@ -266,10 +266,6 @@ func (s *ModuleService) ProcessModuleVerificationEvent(event events.BaseEvent) e
 			return errors.New("invalid moduleID UUID")
 		}
 
-		if payload.Decision == "ACCEPTED" {
-			return true, s.persistenceService.AcceptAdditionModuleToHouse(houseID, moduleID)
-		} else if payload.Decision == "FAILED" {
-			return true, s.persistenceService.FailAdditionModuleToHouse(houseID, moduleID)
 		decisionHandlers := map[string]func(uuid.UUID, uuid.UUID) error{
 			"ACCEPTED": s.persistenceService.AcceptAdditionModuleToHouse,
 			"FAILED":   s.persistenceService.FailAdditionModuleToHouse,
