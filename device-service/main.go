@@ -58,6 +58,10 @@ func CreateApp(ctx context.Context) *gin.Engine {
 				continue
 			}
 
+			err = appContainer.ModuleService.ProcessModuleVerificationEvent(event)
+			if err != nil {
+				return
+			}
 			log.Printf("Event successfully processed: %v", event)
 		}
 	}()

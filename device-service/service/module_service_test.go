@@ -117,9 +117,8 @@ func TestProcessMessage_Accepted(t *testing.T) {
 
 	moduleRepository.On("AcceptAdditionModuleToHouse", houseID, moduleID).Return(nil)
 
-	success, err := moduleService.ProcessMessage(event)
+	err := moduleService.ProcessModuleVerificationEvent(event)
 
 	require.NoError(t, err)
-	require.True(t, success)
 	moduleRepository.AssertCalled(t, "AcceptAdditionModuleToHouse", houseID, moduleID)
 }

@@ -249,29 +249,38 @@ func (s *ModuleService) GetModuleVerificationEvent(ctx context.Context) (events.
 	return s.messagingService.ReadModuleVerificationEvent(ctx)
 }
 
-func (s *ModuleService) ProcessMessage(event events.BaseEvent) (bool, error) {
+func (s *ModuleService) ProcessModuleVerificationEvent(event events.BaseEvent) error {
 	switch event.EventType {
 	case "ModuleVerificationEvent":
 		payload, ok := event.Payload.(events.ModuleVerificationEvent)
 		if !ok {
-			return false, errors.New("invalid payload type")
+			return errors.New("invalid payload type")
 		}
 
 		houseID, err := uuid.Parse(payload.HouseID)
 		if err != nil {
-			return false, errors.New("invalid houseID UUID")
+			return errors.New("invalid houseID UUID")
 		}
 		moduleID, err := uuid.Parse(payload.ModuleID)
 		if err != nil {
-			return false, errors.New("invalid moduleID UUID")
+			return errors.New("invalid moduleID UUID")
 		}
 
 		if payload.Decision == "ACCEPTED" {
 			return true, s.persistenceService.AcceptAdditionModuleToHouse(houseID, moduleID)
 		} else if payload.Decision == "FAILED" {
 			return true, s.persistenceService.FailAdditionModuleToHouse(houseID, moduleID)
+		decisionHandlers := map[string]func(uuid.UUID, uuid.UUID) error{
+			"ACCEPTED": s.persistenceService.AcceptAdditionModuleToHouse,
+			"FAILED":   s.persistenceService.FailAdditionModuleToHouse,
 		}
-		return false, errors.New("unsupported decision type")
+
+		handler, exists := decisionHandlers[payload.Decision]
+		if !exists {
+			return errors.New("unsupported decision type")
+		}
+
+		return handler(houseID, moduleID)
 	}
-	return false, errors.New("unsupported event type")
+	return errors.New("unsupported event type")
 }
