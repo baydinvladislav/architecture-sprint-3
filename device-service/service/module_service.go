@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"device-service/repository"
 	"device-service/schemas/events"
 	web_schemas "device-service/schemas/web"
 	"errors"
@@ -214,6 +215,9 @@ func (s *ModuleService) TurnOffModule(houseID uuid.UUID, moduleID uuid.UUID) err
 
 	err := s.persistenceService.TurnOffModule(houseID, moduleID)
 	if err != nil {
+		if errors.Is(err, repository.ErrModuleAlreadyOff) {
+			fmt.Printf("Installed module %v in house %v already disabled", houseID, moduleID)
+		}
 		return err
 	}
 
@@ -275,7 +279,6 @@ func (s *ModuleService) ProcessModuleVerificationEvent(event events.BaseEvent) e
 		if !exists {
 			return errors.New("unsupported decision type")
 		}
-
 		return handler(houseID, moduleID)
 	}
 	return errors.New("unsupported event type")
