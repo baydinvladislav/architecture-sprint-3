@@ -27,7 +27,11 @@ func NewAppContainer(ctx context.Context) *Container {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
 
-	persistance.Migrate(db)
+	err = persistance.Migrate(db)
+	if err != nil {
+		log.Fatalf("Error during data migrations: %v", err)
+		return nil
+	}
 
 	moduleRepository := repository.NewGORMModuleRepository(db)
 	persistenceService := service.NewModulePersistenceService(moduleRepository)

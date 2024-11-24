@@ -116,7 +116,7 @@ func (s *ModuleService) GetModuleState(
 	return moduleState, nil
 }
 
-func (s *ModuleService) ChangeEquipmentState(
+func (s *ModuleService) ChangeModuleState(
 	houseID uuid.UUID,
 	moduleID uuid.UUID,
 	state map[string]interface{},
