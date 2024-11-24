@@ -24,7 +24,7 @@ func NewAppContainer(ctx context.Context) *Container {
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
-		log.Fatalf("failed to connect to database: %v", err)
+		log.Fatalf("Failed to connect to database: %v", err)
 	}
 
 	persistance.Migrate(db)
@@ -41,7 +41,7 @@ func NewAppContainer(ctx context.Context) *Container {
 	)
 	messagingService := service.NewExternalMessagingService(kafkaSupplier)
 	if err != nil {
-		log.Fatalf("Error initializing KafkaSupplier: %v", err)
+		log.Fatalf("Error during initializing external message system: %v", err)
 	}
 
 	moduleService := service.NewModuleService(

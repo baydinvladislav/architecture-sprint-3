@@ -5,9 +5,12 @@ import (
 	"log"
 )
 
-func Migrate(db *gorm.DB) {
+func Migrate(db *gorm.DB) error {
+	log.Printf("Starting migrate init application data")
+
 	if err := db.Exec(`CREATE EXTENSION IF NOT EXISTS "uuid-ossp";`).Error; err != nil {
-		log.Fatalf("failed to create uuid-ossp extension: %v", err)
+		log.Fatalf("Failed to create uuid-ossp extension: %v", err)
+		return err
 	}
 
 	if err := db.Exec(`
@@ -18,21 +21,30 @@ func Migrate(db *gorm.DB) {
 			END IF;
 		END$$;
 	`).Error; err != nil {
-		log.Fatalf("failed to create status_enum type: %v", err)
+		log.Fatalf("Failed to create status_enum type: %v", err)
+		return err
 	}
 
+	log.Printf("Starting database migration for models")
 	if err := db.AutoMigrate(
 		ModuleModel{},
 		HouseModuleModel{},
 		HouseModuleHistoryStateModel{},
 		Device{},
 	); err != nil {
-		log.Fatalf("failed to migrate database: %v", err)
+		log.Fatalf("Failed to migrate models database: %v", err)
+		return err
+	}
+	log.Printf("Database models migration run successfully")
+
+	log.Printf("Adding initial rows to the database")
+	if err := addInitialModules(db); err != nil {
+		log.Fatalf("Failed to add initial modules: %v", err)
+		return err
 	}
 
-	if err := addInitialModules(db); err != nil {
-		log.Fatalf("failed to add initial modules: %v", err)
-	}
+	log.Printf("Initial modules added successfully")
+	return nil
 }
 
 func addInitialModules(db *gorm.DB) error {
@@ -64,6 +76,8 @@ func addInitialModules(db *gorm.DB) error {
 			Description: "Управление освещением для экономии энергии и создания атмосферы.",
 		},
 	}
+
+	log.Printf("Rows in `modules` table created successfully: %d", len(modules))
 
 	for _, module := range modules {
 		var existingModule ModuleModel
@@ -150,6 +164,8 @@ func addInitialModules(db *gorm.DB) error {
 				return err
 			}
 		}
+
+		log.Printf("Created module '%s' with count devices: %d", module.Type, len(devices))
 	}
 
 	return nil

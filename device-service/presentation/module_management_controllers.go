@@ -7,6 +7,7 @@ import (
 	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"log"
 	"net/http"
 	"strings"
 )
@@ -71,23 +72,26 @@ func ChangeModuleState(c *gin.Context, container *shared.Container) {
 
 	houseID, err := uuid.Parse(houseIDStr)
 	if err != nil {
+		log.Printf("Invalid house ID provided: %s, error: %v", houseIDStr, err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid house ID"})
 		return
 	}
 
 	moduleID, err := uuid.Parse(moduleIDStr)
 	if err != nil {
+		log.Printf("Invalid module ID provided: %s, error: %v", moduleIDStr, err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid module ID"})
 		return
 	}
 
 	var state map[string]interface{}
 	if err := c.BindJSON(&state); err != nil {
+		log.Printf("Invalid state format should be map: %s, error: %v", state, err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON payload"})
 		return
 	}
 
-	houseModule, err := container.ModuleService.ChangeEquipmentState(houseID, moduleID, state)
+	houseModule, err := container.ModuleService.ChangeModuleState(houseID, moduleID, state)
 	if err != nil {
 		if errors.Is(err, repository.ErrConnectedModuleNotFound) {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Requested module not found"})

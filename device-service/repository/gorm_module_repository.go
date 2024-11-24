@@ -143,11 +143,9 @@ func (r *GORMModuleRepository) TurnOffModule(houseID uuid.UUID, moduleID uuid.UU
 	if err := r.db.Where("house_id = ? AND module_id = ?", houseID, moduleID).First(&houseModule).Error; err != nil {
 		return err
 	}
-
 	if !houseModule.TurnOn {
 		return ErrModuleAlreadyOff
 	}
-
 	houseModule.TurnOn = false
 	return r.db.Save(&houseModule).Error
 }
