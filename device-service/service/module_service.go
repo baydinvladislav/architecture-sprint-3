@@ -55,7 +55,7 @@ func (s *ModuleService) GetModulesByHouseID(houseID uuid.UUID) ([]web_schemas.Mo
 		return nil, err
 	}
 
-	log.Printf("Got %d installed modules for %v house", houseID, len(modulesDto))
+	log.Printf("Retrieved %d installed modules for house %s", len(modulesDto), houseID.String())
 
 	var modulesOut []web_schemas.ModuleOut
 	for _, m := range modulesDto {

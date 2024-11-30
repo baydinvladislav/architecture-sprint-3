@@ -64,10 +64,25 @@ func (ks *KafkaSupplier) SendMessageToAdditionTopic(
 		Value: value,
 	}
 
+	log.Printf(
+		"Sending message to topic '%s': key=%s, value=%s",
+		ks.moduleAdditionProducer.Topic,
+		string(key),
+		string(value),
+	)
+
 	err = ks.moduleAdditionProducer.WriteMessages(ctx, msg)
 	if err != nil {
 		return err
 	}
+
+	log.Printf(
+		"Message successfully sent to topic '%s': key=%s, value=%s",
+		ks.moduleAdditionProducer.Topic,
+		string(key),
+		string(value),
+	)
+
 	return nil
 }
 
@@ -86,9 +101,23 @@ func (ks *KafkaSupplier) SendMessageToEquipmentChangeStateTopic(
 		Value: value,
 	}
 
+	log.Printf(
+		"Sending message to topic '%s': key=%s, value=%s",
+		ks.equipmentChangeStateProducer.Topic,
+		string(key),
+		string(value),
+	)
+
 	if err := ks.equipmentChangeStateProducer.WriteMessages(ctx, msg); err != nil {
 		return fmt.Errorf("failed to send message to Kafka: %w", err)
 	}
+
+	log.Printf(
+		"Message successfully sent to topic '%s': key=%s, value=%s",
+		ks.equipmentChangeStateProducer.Topic,
+		string(key),
+		string(value),
+	)
 
 	return nil
 }
