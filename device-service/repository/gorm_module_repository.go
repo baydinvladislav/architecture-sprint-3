@@ -65,7 +65,7 @@ func (r *GORMModuleRepository) GetModulesByHouseID(houseID uuid.UUID) ([]dto.Mod
 	return modulesDto, nil
 }
 
-func (r *GORMModuleRepository) RequestAddingModuleToHouse(
+func (r *GORMModuleRepository) SetPendingNewModule(
 	houseID uuid.UUID,
 	moduleID uuid.UUID,
 ) ([]dto.ModuleDto, error) {
@@ -77,7 +77,7 @@ func (r *GORMModuleRepository) RequestAddingModuleToHouse(
 	module := persistance.HouseModuleModel{
 		HouseID:  houseID,
 		ModuleID: moduleID,
-		Status:   persistance.InstallRequested,
+		Status:   persistance.InstallPending,
 		TurnOn:   true,
 	}
 

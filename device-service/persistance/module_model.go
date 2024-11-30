@@ -21,7 +21,7 @@ func (ModuleModel) TableName() string {
 type StatusEnum string
 
 const (
-	InstallRequested StatusEnum = "INSTALL_REQUESTED"
+	InstallPending   StatusEnum = "INSTALL_PENDING"
 	InstallCompleted StatusEnum = "INSTALL_COMPLETED"
 	InstallFailed    StatusEnum = "INSTALL_FAILED"
 	Uninstall        StatusEnum = "UNINSTALL"

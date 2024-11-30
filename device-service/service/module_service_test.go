@@ -50,7 +50,7 @@ func (m *MockModuleRepository) FailAdditionModuleToHouse(houseID, moduleID uuid.
 	return args.Error(0)
 }
 
-func (m *MockModuleRepository) RequestAddingModuleToHouse(
+func (m *MockModuleRepository) SetPendingNewModule(
 	houseID uuid.UUID,
 	moduleID uuid.UUID,
 ) ([]dto.ModuleDto, error) {

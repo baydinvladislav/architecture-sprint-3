@@ -47,11 +47,11 @@ func (s *ModulePersistenceService) FailAdditionModuleToHouse(houseID uuid.UUID, 
 	return s.repository.FailAdditionModuleToHouse(houseID, moduleID)
 }
 
-func (s *ModulePersistenceService) RequestAddingModuleToHouse(
+func (s *ModulePersistenceService) SetPendingNewModule(
 	houseID uuid.UUID,
 	moduleID uuid.UUID,
 ) ([]dto.ModuleDto, error) {
-	return s.repository.RequestAddingModuleToHouse(houseID, moduleID)
+	return s.repository.SetPendingNewModule(houseID, moduleID)
 }
 
 func (s *ModulePersistenceService) InsertNewHouseModuleState(

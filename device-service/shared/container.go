@@ -27,7 +27,7 @@ func NewAppContainer(ctx context.Context) *Container {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
 
-	err = persistance.Migrate(db)
+	err = persistance.ApplyMigrations(db)
 	if err != nil {
 		log.Fatalf("Error during data migrations: %v", err)
 		return nil

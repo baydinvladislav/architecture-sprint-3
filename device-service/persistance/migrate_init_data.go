@@ -5,7 +5,7 @@ import (
 	"log"
 )
 
-func Migrate(db *gorm.DB) error {
+func ApplyMigrations(db *gorm.DB) error {
 	log.Printf("Starting migrate init application data")
 
 	if err := db.Exec(`CREATE EXTENSION IF NOT EXISTS "uuid-ossp";`).Error; err != nil {
@@ -17,7 +17,7 @@ func Migrate(db *gorm.DB) error {
 		DO $$
 		BEGIN
 			IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'status_enum') THEN
-				CREATE TYPE status_enum AS ENUM ('INSTALL_REQUESTED', 'INSTALL_COMPLETED', 'INSTALL_FAILED', 'UNINSTALL');
+				CREATE TYPE status_enum AS ENUM ('INSTALL_PENDING', 'INSTALL_COMPLETED', 'INSTALL_FAILED', 'UNINSTALL');
 			END IF;
 		END$$;
 	`).Error; err != nil {

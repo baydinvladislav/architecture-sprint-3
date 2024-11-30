@@ -40,7 +40,7 @@ func AddModuleToHouse(c *gin.Context, container *shared.Container) {
 		return
 	}
 
-	newModuleResponse, err := container.ModuleService.RequestAdditionModuleToHouse(houseID, moduleID)
+	updatedModuleList, err := container.ModuleService.RequestModuleInstallation(houseID, moduleID)
 	if err != nil {
 		if strings.Contains(err.Error(), "already exists") {
 			c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
@@ -51,7 +51,7 @@ func AddModuleToHouse(c *gin.Context, container *shared.Container) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, newModuleResponse)
+	c.JSON(http.StatusCreated, updatedModuleList)
 }
 
 // ChangeModuleState godoc

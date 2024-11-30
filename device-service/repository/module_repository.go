@@ -18,7 +18,7 @@ type ModuleRepository interface {
 	GetModulesByHouseID(houseID uuid.UUID) ([]dto.ModuleDto, error)
 	TurnOnModule(houseID uuid.UUID, moduleID uuid.UUID) error
 	TurnOffModule(houseID uuid.UUID, moduleID uuid.UUID) error
-	RequestAddingModuleToHouse(houseID uuid.UUID, moduleID uuid.UUID) ([]dto.ModuleDto, error)
+	SetPendingNewModule(houseID uuid.UUID, moduleID uuid.UUID) ([]dto.ModuleDto, error)
 	AcceptAdditionModuleToHouse(houseID uuid.UUID, moduleID uuid.UUID) error
 	FailAdditionModuleToHouse(houseID uuid.UUID, moduleID uuid.UUID) error
 	GetModuleState(houseID uuid.UUID, moduleID uuid.UUID) (*dto.HouseModuleStateDto, error)

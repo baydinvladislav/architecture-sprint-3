@@ -70,11 +70,11 @@ func (s *ModuleService) GetModulesByHouseID(houseID uuid.UUID) ([]web_schemas.Mo
 	return modulesOut, nil
 }
 
-func (s *ModuleService) RequestAdditionModuleToHouse(
+func (s *ModuleService) RequestModuleInstallation(
 	houseID uuid.UUID,
 	moduleID uuid.UUID,
 ) ([]web_schemas.ModuleOut, error) {
-	modulesDto, err := s.persistenceService.RequestAddingModuleToHouse(houseID, moduleID)
+	modulesDto, err := s.persistenceService.SetPendingNewModule(houseID, moduleID)
 	if err != nil {
 		return nil, err
 	}
