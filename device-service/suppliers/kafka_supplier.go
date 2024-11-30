@@ -94,14 +94,14 @@ func (ks *KafkaSupplier) SendMessageToEquipmentChangeStateTopic(
 }
 
 func (ks *KafkaSupplier) ReadModuleVerificationTopic(ctx context.Context) (kafka.Message, error) {
-	log.Printf("Read topicModuleVerificationTopic ...")
+	log.Printf("Listen ModuleVerificationTopic ...")
 
 	msg, err := ks.moduleVerificationConsumer.ReadMessage(ctx)
 	if err != nil {
 		return kafka.Message{}, err
 	}
 
-	log.Printf("Received message: %v", msg)
+	log.Printf("Received message in ModuleVerificationTopic: %v", msg)
 
 	return msg, nil
 }
