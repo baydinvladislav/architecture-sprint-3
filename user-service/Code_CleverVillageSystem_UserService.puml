@@ -1,0 +1,67 @@
+@startuml
+skinparam classAttributeIconSize 0
+
+class AuthService {
+  - accessSecret: string
+  - refreshSecret: string
+  + GenerateAccessToken(username: string): string
+  + GenerateRefreshToken(username: string): string
+  + ValidateAccessToken(tokenString: string): bool
+  + ValidateRefreshToken(tokenString: string): bool
+}
+
+class HouseService {
+  - repo: HouseRepository
+  - kafkaSupplier: KafkaSupplier
+  - userService: UserService
+  + CreateUserHouse(userId: uint, house: NewHouseIn): void
+  + GetUserHouses(userID: uint): List<HouseOut>
+  + UpdateUserHouse(house: UpdateHouseIn): void
+  - verifyUserAndHouse(userId: uint, houseId: uint): bool
+  + ApproveModuleInstallation(userId: uint, houseId: uint): void
+}
+
+class UserService {
+  - repo: UserRepository
+  + SignUp(user: NewUserIn): void
+  + Login(username: string, password: string): void
+  + Update(user: NewUserIn): void
+  + GetCurrent(username: string): UserDtoSchema
+  + GetByUsername(username: string): UserDtoSchema
+  + GetRequiredById(id: uint): UserDtoSchema
+}
+
+class KafkaSupplier {
+  - moduleAdditionProducer: string
+  - moduleVerificationConsumer: string
+  + SendMessage(topic: string, message: string): void
+  + ReadMessage(topic: string): string
+  + Close(): void
+}
+
+class GormRepository {
+  <<abstract>>
+}
+
+class HouseRepository {
+  + CreateUserHouse(house: NewHouseIn): void
+  + GetUserHouse(userId: uint): HouseOut
+  + UpdateUserHouse(house: UpdateHouseIn): void
+}
+
+class UserRepository {
+  + Create(user: NewUserIn): void
+  + GetByUsername(username: string): UserDtoSchema
+  + Update(user: NewUserIn): void
+  + GetRequiredById(id: uint): UserDtoSchema
+}
+
+AuthService --> UserService : Validates tokens
+HouseService *--> HouseRepository : Uses
+HouseService *--> UserService : Uses
+HouseService *--> KafkaSupplier : Sends events
+UserService *--> UserRepository : Uses
+
+HouseRepository --|> GormRepository
+UserRepository --|> GormRepository
+@enduml
