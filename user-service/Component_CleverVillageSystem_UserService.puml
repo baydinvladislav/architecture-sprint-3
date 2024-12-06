@@ -4,7 +4,7 @@
 LAYOUT_WITH_LEGEND()
 
 Person(client, "Customer", "'Smart Home' system user")
-Container(mobile_app, "Mobile App", "iOS/Android", "Uses the system")
+Container(mobile_app, "Mobile Application", "iOS/Android", "Uses API controllers to interact with Smart Home modules")
 Container(nginx, "NGINX", "Reverse Proxy", "Routes requests to controllers")
 
 System_Boundary(user_service_boundary, "User Service") {
@@ -19,8 +19,8 @@ System_Boundary(user_service_boundary, "User Service") {
 ContainerQueue(kafka_broker, "Kafka", "Message Broker", "Processes system events")
 Container(device_service, "DeviceService", "Microservice", "Processes device data") #1368bd
 
-Rel(client, mobile_app, "Uses the app")
-Rel(mobile_app, nginx, "API requests", "HTTP/HTTPS")
+Rel(client, mobile_app, "Uses the mobile application to manage the system")
+Rel(mobile_app, nginx, "Routes API requests", "HTTP/HTTPS")
 Rel(nginx, auth_controllers, "Routes authentication requests")
 Rel(nginx, user_controllers, "Routes user requests")
 Rel(nginx, house_controllers, "Routes house requests")
