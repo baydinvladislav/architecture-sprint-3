@@ -6,6 +6,7 @@ LAYOUT_WITH_LEGEND()
 Person(user, "Customer", "'Smart Home' system user")
 
 Container(app_client, "Mobile Application", "iOS/Android", "Uses API controllers to interact with Smart Home modules")
+Container(nginx, "NGINX", "Reverse Proxy", "Routes requests to controllers")
 Container(internal_system, "User Microservice", "Microservice", "Manages user data and performs verification before connecting a module to a home") #1368bd
 
 System_Ext(system, "Physical Equipment", "Some Physical Equipment, e.g. Heating Equipment, Gate Equipment, Moving Sensor")
@@ -22,10 +23,11 @@ System_Boundary(b_system, "Device Microservice") {
     ContainerQueue(kafka_broker, "Apache Kafka", "Message Broker", "Receives and stores system events")
 }
 
-Rel(app_client, controller_modules_view, "Requests list of available modules", "HTTP")
-Rel(app_client, controller_module_management, "Manages connected modules in the home", "HTTP")
+Rel(nginx, controller_modules_view, "Requests list of available modules", "HTTP")
+Rel(nginx, controller_module_management, "Manages connected modules in the home", "HTTP")
 
 Rel(user, app_client, "Uses the mobile application to manage the system")
+Rel(app_client, nginx, "Routes API requests", "HTTP/HTTPS")
 Rel(controller_modules_view, modules_db, "Reads data on company’s available modules", "Golang GORM")
 
 Rel(controller_module_management, modules_db, "Changes equipment status", "Golang GORM")
