@@ -1,0 +1,38 @@
+@startuml
+!include <C4/C4_Container>
+
+LAYOUT_WITH_LEGEND()
+
+Person(client, "Customer", "'Smart Home' system user")
+Container(mobile_app, "Mobile App", "iOS/Android", "Uses the system")
+Container(nginx, "NGINX", "Reverse Proxy", "Routes requests to controllers")
+
+System_Boundary(user_service_boundary, "User Service") {
+    Container(auth_controllers, "AuthControllers", "Golang Gin", "Manages user authentication")
+    Container(user_controllers, "UserControllers", "Golang Gin", "Manages user information")
+    Container(house_controllers, "HouseControllers", "Golang Gin", "Manages houses")
+    ContainerDb(user_db, "User Database", "PostgreSQL", "Stores user data")
+    Container(verify_consumer, "VerifyConsumer", "Golang", "Reads messages from Kafka for verification")
+    Container(verify_producer, "VerifyProducer", "Golang", "Publishes verification results to Kafka")
+}
+
+ContainerQueue(kafka_broker, "Kafka", "Message Broker", "Processes system events")
+Container(device_service, "DeviceService", "Microservice", "Processes device data") #1368bd
+
+Rel(client, mobile_app, "Uses the app")
+Rel(mobile_app, nginx, "API requests", "HTTP/HTTPS")
+Rel(nginx, auth_controllers, "Routes authentication requests")
+Rel(nginx, user_controllers, "Routes user requests")
+Rel(nginx, house_controllers, "Routes house requests")
+
+Rel(auth_controllers, user_db, "Reads and writes user data", "Golang GORM")
+Rel(user_controllers, user_db, "Reads and writes user data", "Golang GORM")
+Rel(house_controllers, user_db, "Reads and writes house data", "Golang GORM")
+
+Rel(verify_consumer, user_db, "Accesses user data", "Golang GORM")
+Rel(kafka_broker, verify_consumer, "Reads messages", "verification.result")
+Rel(verify_producer, kafka_broker, "Publishes verification results", "client.verification")
+
+Rel(device_service, kafka_broker, "Writes events", "verification.request")
+
+@enduml
