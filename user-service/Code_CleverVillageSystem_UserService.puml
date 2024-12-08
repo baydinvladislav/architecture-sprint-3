@@ -1,10 +1,12 @@
 @startuml
 
-class KafkaSupplier {
-    - verifyHouseConsumer: kafka.Reader
-    - verifyHouseProducer: kafka.Writer
-    + ReadModuleAdditionTopic(ctx: context.Context): kafka.Message
-    + SendMessageToModuleVerificationTopic(ctx: context.Context, key: []byte, event: events.ModuleVerificationEvent): error
+package "suppliers" {
+    class KafkaSupplier {
+        - verifyHouseConsumer: kafka.Reader
+        - verifyHouseProducer: kafka.Writer
+        + ReadModuleAdditionTopic(ctx: context.Context): kafka.Message
+        + SendMessageToModuleVerificationTopic(ctx: context.Context, key: []byte, event: events.ModuleVerificationEvent): error
+    }
 }
 
 package "shared" {
@@ -28,7 +30,7 @@ package "service" {
 
     class HouseService {
         - houseRepository: repository.HouseRepository
-        - kafkaSupplier: KafkaSupplier
+        - kafkaSupplier: suppliers.KafkaSupplier
         - userService: UserService
         + CreateUserHouse(userId: UUID, house: web_schemas.NewHouseIn): web_schemas.HouseOut
         + GetUserHouses(userId: UUID): []web_schemas.HouseOut
@@ -101,7 +103,7 @@ Container --> HouseService
 Container --> AppSettings
 
 HouseService --> HouseRepository
-HouseService --> KafkaSupplier
+HouseService --> suppliers.KafkaSupplier
 HouseService --> UserService
 
 UserService --> UserRepository
