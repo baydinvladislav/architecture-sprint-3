@@ -16,13 +16,18 @@ import (
 type HouseService struct {
 	houseRepository repository.HouseRepository
 	kafkaSupplier   *suppliers.KafkaSupplier
-	userService     UserService
+	userService     *UserService
 }
 
-func NewHouseService(repository repository.HouseRepository, supplier *suppliers.KafkaSupplier) *HouseService {
+func NewHouseService(
+	houseRepository repository.HouseRepository,
+	supplier *suppliers.KafkaSupplier,
+	userService *UserService,
+) *HouseService {
 	return &HouseService{
-		houseRepository: repository,
+		houseRepository: houseRepository,
 		kafkaSupplier:   supplier,
+		userService:     userService,
 	}
 }
 

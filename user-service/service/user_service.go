@@ -9,26 +9,26 @@ import (
 )
 
 type UserService struct {
-	repository repository.UserRepository
+	userRepository repository.UserRepository
 }
 
 func NewUserService(repo repository.UserRepository) *UserService {
 	return &UserService{
-		repository: repo,
+		userRepository: repo,
 	}
 }
 
 func (s *UserService) SignUp(user web.NewUserIn) error {
-	existingUser, _ := s.repository.GetByUsername(user.Username)
+	existingUser, _ := s.userRepository.GetByUsername(user.Username)
 	if existingUser.Username != "" {
 		return errors.New("user already exists")
 	}
 
-	return s.repository.Create(user)
+	return s.userRepository.Create(user)
 }
 
 func (s *UserService) Login(username, password string) error {
-	user, err := s.repository.GetByUsername(username)
+	user, err := s.userRepository.GetByUsername(username)
 	if err != nil || user.Password != password {
 		return errors.New("invalid username or password")
 	}
@@ -37,17 +37,17 @@ func (s *UserService) Login(username, password string) error {
 }
 
 func (s *UserService) Update(user web.NewUserIn) error {
-	return s.repository.Update(user)
+	return s.userRepository.Update(user)
 }
 
 func (s *UserService) GetCurrent(username string) (dto.UserDtoSchema, error) {
-	return s.repository.GetByUsername(username)
+	return s.userRepository.GetByUsername(username)
 }
 
 func (s *UserService) GetByUsername(username string) (dto.UserDtoSchema, error) {
-	return s.repository.GetByUsername(username)
+	return s.userRepository.GetByUsername(username)
 }
 
 func (s *UserService) GetRequiredById(id uuid.UUID) (dto.UserDtoSchema, error) {
-	return s.repository.GetRequiredById(id)
+	return s.userRepository.GetRequiredById(id)
 }

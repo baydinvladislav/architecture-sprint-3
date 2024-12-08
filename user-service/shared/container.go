@@ -47,7 +47,7 @@ func NewAppContainer(ctx context.Context) *Container {
 	)
 
 	houseRepository := repository.NewGORMHouseRepository(db)
-	houseService := service.NewHouseService(houseRepository, kafkaSupplier)
+	houseService := service.NewHouseService(houseRepository, kafkaSupplier, userService)
 
 	return &Container{
 		UserService:  userService,
