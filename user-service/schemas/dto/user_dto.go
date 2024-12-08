@@ -1,7 +1,9 @@
-package dto_schemas
+package dto
+
+import "github.com/google/uuid"
 
 type UserDtoSchema struct {
-	ID       uint
+	ID       uuid.UUID
 	Username string
 	Password string
 	Email    string

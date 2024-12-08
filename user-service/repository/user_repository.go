@@ -2,18 +2,19 @@ package repository
 
 import (
 	"errors"
+	"github.com/google/uuid"
 	"user-service/persistance"
-	"user-service/presentation/web-schemas"
-	"user-service/repository/dto-schemas"
+	"user-service/schemas/dto"
+	"user-service/schemas/web"
 
 	"gorm.io/gorm"
 )
 
 type UserRepository interface {
-	Create(user web_schemas.NewUserIn) error
-	GetByUsername(username string) (dto_schemas.UserDtoSchema, error)
-	Update(user web_schemas.NewUserIn) error
-	GetRequiredById(id uint) (dto_schemas.UserDtoSchema, error)
+	Create(user web.NewUserIn) error
+	GetByUsername(username string) (dto.UserDtoSchema, error)
+	Update(user web.NewUserIn) error
+	GetRequiredById(id uuid.UUID) (dto.UserDtoSchema, error)
 }
 
 type GORMUserRepository struct {
@@ -26,7 +27,7 @@ func NewGORMUserRepository(db *gorm.DB) *GORMUserRepository {
 	}
 }
 
-func (r *GORMUserRepository) Create(user web_schemas.NewUserIn) error {
+func (r *GORMUserRepository) Create(user web.NewUserIn) error {
 	var existingUser persistance.UserModel
 	if err := r.db.Where("username = ?", user.Username).First(&existingUser).Error; err == nil {
 		return errors.New("user already exists")
@@ -40,14 +41,14 @@ func (r *GORMUserRepository) Create(user web_schemas.NewUserIn) error {
 	return r.db.Create(&newUser).Error
 }
 
-func (r *GORMUserRepository) GetByUsername(username string) (dto_schemas.UserDtoSchema, error) {
+func (r *GORMUserRepository) GetByUsername(username string) (dto.UserDtoSchema, error) {
 	var user persistance.UserModel
 	err := r.db.Where("username = ?", username).First(&user).Error
 	if err != nil {
-		return dto_schemas.UserDtoSchema{}, errors.New("user not found")
+		return dto.UserDtoSchema{}, errors.New("user not found")
 	}
 
-	userDto := dto_schemas.UserDtoSchema{
+	userDto := dto.UserDtoSchema{
 		ID:       user.ID,
 		Username: user.Username,
 		Password: user.Password,
@@ -56,14 +57,14 @@ func (r *GORMUserRepository) GetByUsername(username string) (dto_schemas.UserDto
 	return userDto, nil
 }
 
-func (r *GORMUserRepository) GetRequiredById(id uint) (dto_schemas.UserDtoSchema, error) {
+func (r *GORMUserRepository) GetRequiredById(id uuid.UUID) (dto.UserDtoSchema, error) {
 	var user persistance.UserModel
 	err := r.db.Where("id = ?", id).First(&user).Error
 	if err != nil {
-		return dto_schemas.UserDtoSchema{}, errors.New("user not found")
+		return dto.UserDtoSchema{}, errors.New("user not found")
 	}
 
-	userDto := dto_schemas.UserDtoSchema{
+	userDto := dto.UserDtoSchema{
 		ID:       user.ID,
 		Username: user.Username,
 		Password: user.Password,
@@ -72,8 +73,8 @@ func (r *GORMUserRepository) GetRequiredById(id uint) (dto_schemas.UserDtoSchema
 	return userDto, nil
 }
 
-func (r *GORMUserRepository) Update(user web_schemas.NewUserIn) error {
-	var existingUser dto_schemas.UserDtoSchema
+func (r *GORMUserRepository) Update(user web.NewUserIn) error {
+	var existingUser dto.UserDtoSchema
 	if err := r.db.Where("username = ?", user.Username).First(&existingUser).Error; err != nil {
 		return errors.New("user not found")
 	}

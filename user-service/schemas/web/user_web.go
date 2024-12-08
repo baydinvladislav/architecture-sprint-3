@@ -1,4 +1,4 @@
-package web_schemas
+package web
 
 type NewUserIn struct {
 	Username string

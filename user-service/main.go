@@ -35,25 +35,23 @@ func CreateApp(ctx context.Context) *gin.Engine {
 		authGroup.PUT("/houses/:houseId", func(c *gin.Context) { presentation.UpdateUserHouse(c, appContainer) })
 	}
 
-	initKafkaHandlers(ctx, appContainer)
+	go func() {
+		for {
+			event, err := appContainer.HouseService.GetModuleAdditionEvent(ctx)
+			if err != nil {
+				log.Printf("Error while reading message: %v", err)
+				continue
+			}
+
+			err = appContainer.HouseService.ProcessModuleAdditionEvent(event)
+			if err != nil {
+				return
+			}
+			log.Printf("Event successfully processed: %v", event)
+		}
+	}()
 
 	return r
-}
-
-func initKafkaHandlers(ctx context.Context, container *shared.Container) {
-	go handleKafkaTopic(ctx, container, "module.verification.topic")
-}
-
-func handleKafkaTopic(ctx context.Context, container *shared.Container, topic string) {
-	log.Printf("Starting Kafka consumer for topic: %s", topic)
-
-	for {
-		err := container.KafkaDispatcher.ReadMessage(ctx, topic)
-		if err != nil {
-			log.Printf("Error while reading message from topic %s: %v", topic, err)
-			continue
-		}
-	}
 }
 
 func main() {

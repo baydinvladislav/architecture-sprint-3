@@ -1,15 +1,16 @@
 package repository
 
 import (
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 	"user-service/persistance"
-	"user-service/presentation/web-schemas"
+	"user-service/schemas/web"
 )
 
 type HouseRepository interface {
-	CreateUserHouse(userId uint, house web_schemas.NewHouseIn) (*persistance.HouseModel, error)
-	GetUserHouses(userID uint) ([]web_schemas.HouseOut, error)
-	UpdateUserHouse(house web_schemas.UpdateHouseIn) (*persistance.HouseModel, error)
+	CreateUserHouse(userId uuid.UUID, house web.NewHouseIn) (*persistance.HouseModel, error)
+	GetUserHouses(userID uuid.UUID) ([]web.HouseOut, error)
+	UpdateUserHouse(house web.UpdateHouseIn) (*persistance.HouseModel, error)
 }
 
 type GORMHouseRepository struct {
@@ -23,8 +24,8 @@ func NewGORMHouseRepository(db *gorm.DB) *GORMHouseRepository {
 }
 
 func (r *GORMHouseRepository) CreateUserHouse(
-	userId uint,
-	house web_schemas.NewHouseIn,
+	userId uuid.UUID,
+	house web.NewHouseIn,
 ) (*persistance.HouseModel, error) {
 	newHouse := persistance.HouseModel{
 		Address: house.Address,
@@ -39,16 +40,16 @@ func (r *GORMHouseRepository) CreateUserHouse(
 	return &newHouse, nil
 }
 
-func (r *GORMHouseRepository) GetUserHouses(userID uint) ([]web_schemas.HouseOut, error) {
+func (r *GORMHouseRepository) GetUserHouses(userID uuid.UUID) ([]web.HouseOut, error) {
 	var houses []persistance.HouseModel
 	err := r.db.Where("user_id = ?", userID).Find(&houses).Error
 	if err != nil {
 		return nil, err
 	}
 
-	var houseOuts []web_schemas.HouseOut
+	var houseOuts []web.HouseOut
 	for _, house := range houses {
-		houseOuts = append(houseOuts, web_schemas.HouseOut{
+		houseOuts = append(houseOuts, web.HouseOut{
 			ID:      house.ID,
 			Address: house.Address,
 			Square:  house.Square,
@@ -59,7 +60,7 @@ func (r *GORMHouseRepository) GetUserHouses(userID uint) ([]web_schemas.HouseOut
 	return houseOuts, nil
 }
 
-func (r *GORMHouseRepository) UpdateUserHouse(house web_schemas.UpdateHouseIn) (*persistance.HouseModel, error) {
+func (r *GORMHouseRepository) UpdateUserHouse(house web.UpdateHouseIn) (*persistance.HouseModel, error) {
 	updatedHouse := persistance.HouseModel{
 		Address: house.Address,
 		Square:  house.Square,

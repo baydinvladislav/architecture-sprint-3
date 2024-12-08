@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-type Device struct {
+type DeviceModel struct {
 	ID          uuid.UUID  `gorm:"type:uuid;default:uuid_generate_v4();primary_key"`
 	CreatedAt   time.Time  `gorm:"column:created_at"`
 	UpdatedAt   time.Time  `gorm:"column:updated_at"`
@@ -16,6 +16,6 @@ type Device struct {
 	ModuleID    uuid.UUID  `gorm:"type:uuid;not null"`
 }
 
-func (Device) TableName() string {
+func (DeviceModel) TableName() string {
 	return "devices"
 }

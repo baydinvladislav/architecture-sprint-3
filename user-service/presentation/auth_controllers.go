@@ -3,7 +3,7 @@ package presentation
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"user-service/presentation/web-schemas"
+	"user-service/schemas/web"
 	"user-service/shared"
 )
 
@@ -23,7 +23,7 @@ type ErrorResponse struct {
 // @Failure 409 {object} ErrorResponse
 // @Router /register [post]
 func RegisterUser(c *gin.Context, container *shared.Container) {
-	var user web_schemas.NewUserIn
+	var user web.NewUserIn
 
 	if err := c.ShouldBindJSON(&user); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
@@ -48,7 +48,7 @@ func RegisterUser(c *gin.Context, container *shared.Container) {
 		return
 	}
 
-	newUserResponse := web_schemas.NewUserOut{
+	newUserResponse := web.NewUserOut{
 		// TODO: сходить в БД и получить ID, а лучше научиться в Go писать в таблицу и получать результат записи
 		//ID:           user.ID,
 		Username:     user.Username,
@@ -71,7 +71,7 @@ func RegisterUser(c *gin.Context, container *shared.Container) {
 // @Failure 401 {object} ErrorResponse
 // @Router /login [post]
 func LoginUser(c *gin.Context, container *shared.Container) {
-	var credentials web_schemas.LoginRequest
+	var credentials web.LoginRequest
 
 	if err := c.ShouldBindJSON(&credentials); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
@@ -96,7 +96,7 @@ func LoginUser(c *gin.Context, container *shared.Container) {
 		return
 	}
 
-	response := web_schemas.LoginResponse{
+	response := web.LoginResponse{
 		ID:           user.ID,
 		Username:     user.Username,
 		AccessToken:  accessToken,

@@ -2,9 +2,10 @@ package service
 
 import (
 	"errors"
-	"user-service/presentation/web-schemas"
+	"github.com/google/uuid"
 	"user-service/repository"
-	"user-service/repository/dto-schemas"
+	"user-service/schemas/dto"
+	"user-service/schemas/web"
 )
 
 type UserService struct {
@@ -17,7 +18,7 @@ func NewUserService(repo repository.UserRepository) *UserService {
 	}
 }
 
-func (s *UserService) SignUp(user web_schemas.NewUserIn) error {
+func (s *UserService) SignUp(user web.NewUserIn) error {
 	existingUser, _ := s.repo.GetByUsername(user.Username)
 	if existingUser.Username != "" {
 		return errors.New("user already exists")
@@ -35,18 +36,18 @@ func (s *UserService) Login(username, password string) error {
 	return nil
 }
 
-func (s *UserService) Update(user web_schemas.NewUserIn) error {
+func (s *UserService) Update(user web.NewUserIn) error {
 	return s.repo.Update(user)
 }
 
-func (s *UserService) GetCurrent(username string) (dto_schemas.UserDtoSchema, error) {
+func (s *UserService) GetCurrent(username string) (dto.UserDtoSchema, error) {
 	return s.repo.GetByUsername(username)
 }
 
-func (s *UserService) GetByUsername(username string) (dto_schemas.UserDtoSchema, error) {
+func (s *UserService) GetByUsername(username string) (dto.UserDtoSchema, error) {
 	return s.repo.GetByUsername(username)
 }
 
-func (s *UserService) GetRequiredById(id uint) (dto_schemas.UserDtoSchema, error) {
+func (s *UserService) GetRequiredById(id uuid.UUID) (dto.UserDtoSchema, error) {
 	return s.repo.GetRequiredById(id)
 }

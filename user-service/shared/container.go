@@ -6,18 +6,16 @@ import (
 	"gorm.io/gorm"
 	"log"
 	"user-service/persistance"
-	"user-service/presentation/kafka-presentation"
 	"user-service/repository"
 	"user-service/service"
 	"user-service/suppliers"
 )
 
 type Container struct {
-	KafkaDispatcher *kafka_presentation.KafkaDispatcher
-	AuthService     *service.AuthService
-	UserService     *service.UserService
-	HouseService    *service.HouseService
-	AppSettings     *AppSettings
+	AuthService  *service.AuthService
+	UserService  *service.UserService
+	HouseService *service.HouseService
+	AppSettings  *AppSettings
 }
 
 func NewAppContainer(ctx context.Context) *Container {
@@ -41,23 +39,20 @@ func NewAppContainer(ctx context.Context) *Container {
 	var refreshSecret = []byte("2hXKd7hDB/28TBKPyR262qVfDi1aX2t00IG99q6wxEc=")
 	authService := service.NewAuthService(accessSecret, refreshSecret)
 
-	houseRepo := repository.NewGORMHouseRepository(db)
-	houseService := service.NewHouseService(houseRepo)
-
-	kafkaSupplier := suppliers.NewKafkaSupplier(
-		[]string{appSettings.KafkaBroker},
+	kafkaSupplier, err := suppliers.NewKafkaSupplier(
+		appSettings.KafkaBroker,
+		appSettings.ModuleVerificationTopic,
+		appSettings.ModuleAdditionTopic,
 		appSettings.KafkaGroupID,
 	)
 
-	kafkaDispatcher := kafka_presentation.NewKafkaDispatcher(
-		kafkaSupplier,
-		houseService,
-	)
+	houseRepository := repository.NewGORMHouseRepository(db)
+	houseService := service.NewHouseService(houseRepository, kafkaSupplier)
+
 	return &Container{
-		UserService:     userService,
-		AuthService:     authService,
-		HouseService:    houseService,
-		KafkaDispatcher: kafkaDispatcher,
-		AppSettings:     appSettings,
+		UserService:  userService,
+		AuthService:  authService,
+		HouseService: houseService,
+		AppSettings:  appSettings,
 	}
 }

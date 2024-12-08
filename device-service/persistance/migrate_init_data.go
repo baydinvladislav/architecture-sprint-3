@@ -30,7 +30,7 @@ func ApplyMigrations(db *gorm.DB) error {
 		ModuleModel{},
 		HouseModuleModel{},
 		HouseModuleHistoryStateModel{},
-		Device{},
+		DeviceModel{},
 	); err != nil {
 		log.Fatalf("Failed to migrate models database: %v", err)
 		return err
@@ -89,10 +89,10 @@ func addInitialModules(db *gorm.DB) error {
 			return err
 		}
 
-		var devices []Device
+		var devices []DeviceModel
 		switch module.Type {
 		case heatingModule:
-			devices = []Device{
+			devices = []DeviceModel{
 				{
 					Name:        "Электронный термостат",
 					VendorName:  "ТеплоКом",
@@ -105,7 +105,7 @@ func addInitialModules(db *gorm.DB) error {
 				},
 			}
 		case movingModule:
-			devices = []Device{
+			devices = []DeviceModel{
 				{
 					Name:        "Инфракрасный датчик движения",
 					VendorName:  "Безопасность+",
@@ -118,7 +118,7 @@ func addInitialModules(db *gorm.DB) error {
 				},
 			}
 		case gatesModule:
-			devices = []Device{
+			devices = []DeviceModel{
 				{
 					Name:        "Электрический привод ворот",
 					VendorName:  "АвтоДвери",
@@ -131,7 +131,7 @@ func addInitialModules(db *gorm.DB) error {
 				},
 			}
 		case watchingModule:
-			devices = []Device{
+			devices = []DeviceModel{
 				{
 					Name:        "IP-камера",
 					VendorName:  "Безопасный дом",
@@ -144,7 +144,7 @@ func addInitialModules(db *gorm.DB) error {
 				},
 			}
 		case lightingModule:
-			devices = []Device{
+			devices = []DeviceModel{
 				{
 					Name:        "Умная лампочка",
 					VendorName:  "Светлый дом",

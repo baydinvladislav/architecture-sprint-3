@@ -1,33 +1,36 @@
 package service
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
-	"log"
+	"github.com/google/uuid"
 	"user-service/persistance"
-	web_schemas "user-service/presentation/web-schemas"
 	"user-service/repository"
-	"user-service/schemas"
+	"user-service/schemas/events"
+	web_schemas "user-service/schemas/web"
 	"user-service/suppliers"
 )
 
 type HouseService struct {
-	repo          repository.HouseRepository
-	kafkaSupplier suppliers.KafkaSupplier
-	userService   UserService
+	houseRepository repository.HouseRepository
+	kafkaSupplier   *suppliers.KafkaSupplier
+	userService     UserService
 }
 
-func NewHouseService(repo repository.HouseRepository) *HouseService {
+func NewHouseService(repository repository.HouseRepository, supplier *suppliers.KafkaSupplier) *HouseService {
 	return &HouseService{
-		repo: repo,
+		houseRepository: repository,
+		kafkaSupplier:   supplier,
 	}
 }
 
 func (s *HouseService) CreateUserHouse(
-	userId uint,
+	userId uuid.UUID,
 	house web_schemas.NewHouseIn,
 ) (*web_schemas.HouseOut, error) {
-	newHouse, err := s.repo.CreateUserHouse(userId, house)
+	newHouse, err := s.houseRepository.CreateUserHouse(userId, house)
 	if err != nil {
 		return nil, err
 	}
@@ -42,35 +45,15 @@ func (s *HouseService) CreateUserHouse(
 	return houseOut, nil
 }
 
-func (s *HouseService) GetUserHouses(userID uint) ([]web_schemas.HouseOut, error) {
-	return s.repo.GetUserHouses(userID)
+func (s *HouseService) GetUserHouses(userID uuid.UUID) ([]web_schemas.HouseOut, error) {
+	return s.houseRepository.GetUserHouses(userID)
 }
 
 func (s *HouseService) UpdateUserHouse(house web_schemas.UpdateHouseIn) (*persistance.HouseModel, error) {
-	return s.repo.UpdateUserHouse(house)
+	return s.houseRepository.UpdateUserHouse(house)
 }
 
-func (s *HouseService) ProcessEvent(event schemas.Event) error {
-	var data schemas.ModuleVerifyPayload
-
-	payloadBytes, err := json.Marshal(event.Payload)
-	if err != nil {
-		return fmt.Errorf("failed to marshal payload: %v", err)
-	}
-
-	if err := json.Unmarshal(payloadBytes, &data); err != nil {
-		return fmt.Errorf("failed to unmarshal payload to TelemetryPayload: %v", err)
-	}
-
-	log.Println("msg data: ", data)
-
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (s *HouseService) verifyUserAndHouse(userId uint, houseId uint) (bool, error) {
+func (s *HouseService) verifyUserAndHouse(userId uuid.UUID, houseId uuid.UUID) (bool, error) {
 	user, err := s.userService.GetRequiredById(userId)
 	if err != nil {
 		return false, err
@@ -101,6 +84,52 @@ func (s *HouseService) verifyUserAndHouse(userId uint, houseId uint) (bool, erro
 	return true, nil
 }
 
-func (s *HouseService) ApproveModuleInstallation(userId uint, houseId uint) (bool, error) {
+func (s *HouseService) ApproveModuleInstallation(userId uuid.UUID, houseId uuid.UUID) (bool, error) {
 	return s.verifyUserAndHouse(userId, houseId)
+}
+
+func (s *HouseService) GetModuleAdditionEvent(ctx context.Context) (events.BaseEvent, error) {
+	msg, err := s.kafkaSupplier.ReadModuleAdditionTopic(ctx)
+	if err != nil {
+		return events.BaseEvent{}, fmt.Errorf("failed to read message: %w", err)
+	}
+
+	var event events.BaseEvent
+	err = json.Unmarshal(msg.Value, &event)
+	if err != nil {
+		return events.BaseEvent{}, fmt.Errorf("failed to unmarshal message: %w", err)
+	}
+
+	return event, nil
+}
+
+func (s *HouseService) ProcessModuleAdditionEvent(event events.BaseEvent) error {
+	switch event.EventType {
+	case "ModuleAdditionEvent":
+		payload, ok := event.Payload.(events.ModuleAdditionEvent)
+		if !ok {
+			return errors.New("invalid payload type")
+		}
+
+		houseID, err := uuid.Parse(payload.HouseID)
+		if err != nil {
+			return errors.New("invalid houseID UUID")
+		}
+		moduleID, err := uuid.Parse(payload.ModuleID)
+		if err != nil {
+			return errors.New("invalid moduleID UUID")
+		}
+
+		decision, err := s.verifyUserAndHouse(houseID, moduleID)
+		if err != nil {
+			return err
+		}
+
+		fmt.Printf(
+			"Verification of the house %v for module %v is complete, solution: %v\n", houseID, moduleID, decision,
+		)
+
+		return nil
+	}
+	return errors.New("unsupported event type")
 }

@@ -3,7 +3,7 @@ package presentation
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
-	web_schemas "user-service/presentation/web-schemas"
+	web_schemas "user-service/schemas/web"
 	"user-service/shared"
 )
 

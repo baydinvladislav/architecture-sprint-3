@@ -1,7 +1,6 @@
 package shared
 
 type AppSettings struct {
-	// db
 	DBHost     string
 	DBUser     string
 	DBPassword string
@@ -9,11 +8,10 @@ type AppSettings struct {
 	DBPort     string
 	DBSSLMode  string
 
-	// broker
-	KafkaBroker                  string
-	ModuleAddedKafkaTopic        string
-	ModuleVerificationKafkaTopic string
-	KafkaGroupID                 string
+	KafkaBroker             string
+	ModuleAdditionTopic     string
+	ModuleVerificationTopic string
+	KafkaGroupID            string
 }
 
 func (s *AppSettings) DSN() string {
@@ -34,9 +32,9 @@ func NewAppSettings() *AppSettings {
 		DBPort:     "5432",
 		DBSSLMode:  "disable",
 
-		KafkaBroker:                  "kafka:9092",
-		ModuleAddedKafkaTopic:        "module.addition.topic",
-		ModuleVerificationKafkaTopic: "module.verification.topic",
-		KafkaGroupID:                 "user_service_group",
+		KafkaBroker:             "kafka:9092",
+		ModuleAdditionTopic:     "module.addition.topic",
+		ModuleVerificationTopic: "module.verification.topic",
+		KafkaGroupID:            "user_service_group",
 	}
 }
