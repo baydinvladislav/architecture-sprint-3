@@ -1,4 +1,5 @@
 @startuml
+title User Service Code Architecture
 
 package "suppliers" {
     class KafkaSupplier {
