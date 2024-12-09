@@ -4,13 +4,14 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 	"user-service/persistance"
+	"user-service/schemas/dto"
 	"user-service/schemas/web"
 )
 
 type HouseRepository interface {
-	CreateUserHouse(userId uuid.UUID, house web.NewHouseIn) (*persistance.HouseModel, error)
-	GetUserHouses(userID uuid.UUID) ([]web.HouseOut, error)
-	UpdateUserHouse(house web.UpdateHouseIn) (*persistance.HouseModel, error)
+	CreateUserHouse(userId uuid.UUID, house web.NewHouseIn) (*dto.HouseDtoSchema, error)
+	GetUserHouses(userID uuid.UUID) ([]dto.HouseDtoSchema, error)
+	UpdateUserHouse(house web.UpdateHouseIn) (*dto.HouseDtoSchema, error)
 }
 
 type GORMHouseRepository struct {
@@ -26,7 +27,7 @@ func NewGORMHouseRepository(db *gorm.DB) *GORMHouseRepository {
 func (r *GORMHouseRepository) CreateUserHouse(
 	userId uuid.UUID,
 	house web.NewHouseIn,
-) (*persistance.HouseModel, error) {
+) (*dto.HouseDtoSchema, error) {
 	newHouse := persistance.HouseModel{
 		Address: house.Address,
 		Square:  house.Square,
@@ -37,30 +38,36 @@ func (r *GORMHouseRepository) CreateUserHouse(
 		return nil, err
 	}
 
-	return &newHouse, nil
+	houseDTO := &dto.HouseDtoSchema{
+		ID:      newHouse.ID,
+		Address: newHouse.Address,
+		Square:  newHouse.Square,
+		UserID:  newHouse.UserID,
+	}
+
+	return houseDTO, nil
 }
 
-func (r *GORMHouseRepository) GetUserHouses(userID uuid.UUID) ([]web.HouseOut, error) {
+func (r *GORMHouseRepository) GetUserHouses(userID uuid.UUID) ([]dto.HouseDtoSchema, error) {
 	var houses []persistance.HouseModel
 	err := r.db.Where("user_id = ?", userID).Find(&houses).Error
 	if err != nil {
 		return nil, err
 	}
 
-	var houseOuts []web.HouseOut
+	var houseDTOs []dto.HouseDtoSchema
 	for _, house := range houses {
-		houseOuts = append(houseOuts, web.HouseOut{
+		houseDTOs = append(houseDTOs, dto.HouseDtoSchema{
 			ID:      house.ID,
 			Address: house.Address,
 			Square:  house.Square,
 			UserID:  house.UserID,
 		})
 	}
-
-	return houseOuts, nil
+	return houseDTOs, nil
 }
 
-func (r *GORMHouseRepository) UpdateUserHouse(house web.UpdateHouseIn) (*persistance.HouseModel, error) {
+func (r *GORMHouseRepository) UpdateUserHouse(house web.UpdateHouseIn) (*dto.HouseDtoSchema, error) {
 	updatedHouse := persistance.HouseModel{
 		Address: house.Address,
 		Square:  house.Square,
@@ -78,5 +85,12 @@ func (r *GORMHouseRepository) UpdateUserHouse(house web.UpdateHouseIn) (*persist
 		return nil, err
 	}
 
-	return &existingHouse, nil
+	houseDto := &dto.HouseDtoSchema{
+		ID:      existingHouse.ID,
+		Address: updatedHouse.Address,
+		Square:  updatedHouse.Square,
+		UserID:  existingHouse.UserID,
+	}
+
+	return houseDto, nil
 }

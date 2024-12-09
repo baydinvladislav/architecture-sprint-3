@@ -27,12 +27,11 @@ func CreateApp(ctx context.Context) *gin.Engine {
 	r.POST("/refresh-token", func(c *gin.Context) { presentation.RefreshToken(c, appContainer) })
 
 	authGroup := r.Group("/")
-	authGroup.Use(middleware.AuthMiddleware(appContainer.AuthService))
+	authGroup.Use(middleware.AuthMiddleware(appContainer.UserService.AuthService))
 	{
 		authGroup.GET("/users/:userId", func(c *gin.Context) { presentation.GetUserById(c, appContainer) })
 		authGroup.POST("/houses", func(c *gin.Context) { presentation.CreateUserHouse(c, appContainer) })
 		authGroup.GET("/houses", func(c *gin.Context) { presentation.GetUserHouses(c, appContainer) })
-		authGroup.PUT("/houses/:houseId", func(c *gin.Context) { presentation.UpdateUserHouse(c, appContainer) })
 	}
 
 	go func() {

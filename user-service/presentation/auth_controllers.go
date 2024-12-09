@@ -17,46 +17,27 @@ type ErrorResponse struct {
 // @Tags users
 // @Accept json
 // @Produce json
-// @Param user body web_schemas.NewUserIn true "New User"
-// @Success 201 {object} web_schemas.NewUserOut
+// @Param user body web_schemas.UserIn true "New User"
+// @Success 201 {object} web_schemas.UserClaimsOut
 // @Failure 400 {object} ErrorResponse
 // @Failure 409 {object} ErrorResponse
 // @Router /register [post]
 func RegisterUser(c *gin.Context, container *shared.Container) {
-	var user web.NewUserIn
+	var userData web.UserIn
 
-	if err := c.ShouldBindJSON(&user); err != nil {
+	if err := c.ShouldBindJSON(&userData); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
 		return
 	}
 
-	err := container.UserService.SignUp(user)
+	newUser, err := container.UserService.SignUp(&userData)
+	//здесь должен быть свитч на разные возможные ошибки
 	if err != nil {
 		c.JSON(http.StatusConflict, gin.H{"error": "User already exists"})
 		return
 	}
 
-	accessToken, err := container.AuthService.GenerateAccessToken(user.Username)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate access token"})
-		return
-	}
-
-	refreshToken, err := container.AuthService.GenerateRefreshToken(user.Username)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate refresh token"})
-		return
-	}
-
-	newUserResponse := web.NewUserOut{
-		// TODO: сходить в БД и получить ID, а лучше научиться в Go писать в таблицу и получать результат записи
-		//ID:           user.ID,
-		Username:     user.Username,
-		AccessToken:  accessToken,
-		RefreshToken: refreshToken,
-	}
-
-	c.JSON(http.StatusCreated, newUserResponse)
+	c.JSON(http.StatusCreated, newUser)
 }
 
 // LoginUser godoc
@@ -78,32 +59,13 @@ func LoginUser(c *gin.Context, container *shared.Container) {
 		return
 	}
 
-	user, err := container.UserService.GetByUsername(credentials.Username)
-	if err != nil || user.Password != credentials.Password {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
-		return
-	}
-
-	accessToken, err := container.AuthService.GenerateAccessToken(user.Username)
+	authUser, err := container.UserService.Login(credentials.Username, credentials.Password)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate access token"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Error during user login"})
 		return
 	}
 
-	refreshToken, err := container.AuthService.GenerateRefreshToken(user.Username)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate refresh token"})
-		return
-	}
-
-	response := web.LoginResponse{
-		ID:           user.ID,
-		Username:     user.Username,
-		AccessToken:  accessToken,
-		RefreshToken: refreshToken,
-	}
-
-	c.JSON(http.StatusOK, response)
+	c.JSON(http.StatusOK, authUser)
 }
 
 // RefreshToken godoc
@@ -127,26 +89,14 @@ func RefreshToken(c *gin.Context, container *shared.Container) {
 		return
 	}
 
-	claims, err := container.AuthService.ValidateRefreshToken(request.RefreshToken)
+	newAccessToken, newRefreshToken, err := container.UserService.UpdateUserRefreshToken(request.RefreshToken)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired refresh token"})
-		return
-	}
-
-	accessToken, err := container.AuthService.GenerateAccessToken(claims.Username)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate access token"})
-		return
-	}
-
-	newRefreshToken, err := container.AuthService.GenerateRefreshToken(claims.Username)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate refresh token"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Error during tokens refreshing"})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"access_token":  accessToken,
+		"access_token":  newAccessToken,
 		"refresh_token": newRefreshToken,
 	})
 }

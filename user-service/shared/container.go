@@ -12,7 +12,6 @@ import (
 )
 
 type Container struct {
-	AuthService  *service.AuthService
 	UserService  *service.UserService
 	HouseService *service.HouseService
 	AppSettings  *AppSettings
@@ -32,12 +31,12 @@ func NewAppContainer(ctx context.Context) *Container {
 		return nil
 	}
 
-	userRepo := repository.NewGORMUserRepository(db)
-	userService := service.NewUserService(userRepo)
-
 	var accessSecret = []byte("+AAlQmR/sSml0D0QgZ9suJZwtLxHbJAzjvWLYsiER+0=")
 	var refreshSecret = []byte("2hXKd7hDB/28TBKPyR262qVfDi1aX2t00IG99q6wxEc=")
 	authService := service.NewAuthService(accessSecret, refreshSecret)
+
+	userRepository := repository.NewGORMUserRepository(db)
+	userService := service.NewUserService(authService, userRepository)
 
 	kafkaSupplier, err := suppliers.NewKafkaSupplier(
 		appSettings.KafkaBroker,
@@ -46,12 +45,19 @@ func NewAppContainer(ctx context.Context) *Container {
 		appSettings.KafkaGroupID,
 	)
 
+	var minSquare, maxSquare float64 = 10, 100
+	verifyService := service.NewVerifyConnectionService(minSquare, maxSquare)
+
 	houseRepository := repository.NewGORMHouseRepository(db)
-	houseService := service.NewHouseService(houseRepository, kafkaSupplier, userService)
+	houseService := service.NewHouseService(
+		houseRepository,
+		userService,
+		verifyService,
+		kafkaSupplier,
+	)
 
 	return &Container{
 		UserService:  userService,
-		AuthService:  authService,
 		HouseService: houseService,
 		AppSettings:  appSettings,
 	}

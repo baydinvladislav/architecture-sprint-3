@@ -1,13 +1,13 @@
 package web
 
-type NewUserIn struct {
+import "github.com/google/uuid"
+
+type UserIn struct {
 	Username string
 	Password string
 }
 
-type NewUserOut struct {
-	//ID           uint `json:"id"`
-	Username     string `json:"username"`
-	AccessToken  string `json:"access_token"`
-	RefreshToken string `json:"refresh_token"`
+type UserOut struct {
+	ID       uuid.UUID `json:"id"`
+	Username string    `json:"username"`
 }

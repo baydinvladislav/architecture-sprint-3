@@ -6,91 +6,106 @@ import (
 	"errors"
 	"fmt"
 	"github.com/google/uuid"
-	"user-service/persistance"
 	"user-service/repository"
 	"user-service/schemas/events"
-	web_schemas "user-service/schemas/web"
+	"user-service/schemas/web"
 	"user-service/suppliers"
 )
 
 type HouseService struct {
 	houseRepository repository.HouseRepository
-	kafkaSupplier   *suppliers.KafkaSupplier
 	userService     *UserService
+	verifyService   *VerifyConnectionService
+	kafkaSupplier   *suppliers.KafkaSupplier
 }
 
 func NewHouseService(
 	houseRepository repository.HouseRepository,
-	supplier *suppliers.KafkaSupplier,
 	userService *UserService,
+	verifyService *VerifyConnectionService,
+	supplier *suppliers.KafkaSupplier,
 ) *HouseService {
 	return &HouseService{
 		houseRepository: houseRepository,
-		kafkaSupplier:   supplier,
+		verifyService:   verifyService,
 		userService:     userService,
+		kafkaSupplier:   supplier,
 	}
 }
 
 func (s *HouseService) CreateUserHouse(
 	userId uuid.UUID,
-	house web_schemas.NewHouseIn,
-) (*web_schemas.HouseOut, error) {
+	house web.NewHouseIn,
+) (*web.HouseOut, error) {
 	newHouse, err := s.houseRepository.CreateUserHouse(userId, house)
 	if err != nil {
 		return nil, err
 	}
 
-	houseOut := &web_schemas.HouseOut{
+	return &web.HouseOut{
 		ID:      newHouse.ID,
 		Address: newHouse.Address,
 		Square:  newHouse.Square,
 		UserID:  newHouse.UserID,
+	}, nil
+}
+
+func (s *HouseService) GetUserHouses(userID uuid.UUID) ([]web.HouseOut, error) {
+	housesDto, err := s.houseRepository.GetUserHouses(userID)
+	if err != nil {
+		return nil, err
 	}
 
-	return houseOut, nil
+	var houses []web.HouseOut
+	for _, house := range housesDto {
+		houses = append(houses, web.HouseOut{
+			ID:      house.ID,
+			Address: house.Address,
+			Square:  house.Square,
+			UserID:  house.UserID,
+		})
+	}
+	return houses, nil
 }
 
-func (s *HouseService) GetUserHouses(userID uuid.UUID) ([]web_schemas.HouseOut, error) {
-	return s.houseRepository.GetUserHouses(userID)
+func (s *HouseService) UpdateUserHouse(house web.UpdateHouseIn) (*web.HouseOut, error) {
+	updatedHouse, err := s.houseRepository.UpdateUserHouse(house)
+	if err != nil {
+		return &web.HouseOut{}, err
+	}
+
+	return &web.HouseOut{
+		ID:      updatedHouse.ID,
+		Address: updatedHouse.Address,
+		Square:  updatedHouse.Square,
+		UserID:  updatedHouse.UserID,
+	}, nil
 }
 
-func (s *HouseService) UpdateUserHouse(house web_schemas.UpdateHouseIn) (*persistance.HouseModel, error) {
-	return s.houseRepository.UpdateUserHouse(house)
-}
-
-func (s *HouseService) verifyUserAndHouse(userId uuid.UUID, houseId uuid.UUID) (bool, error) {
-	user, err := s.userService.GetRequiredById(userId)
+func (s *HouseService) ApproveModuleInstallation(userId uuid.UUID, houseId uuid.UUID) (bool, error) {
+	verifyingUser, err := s.userService.GetRequiredById(userId)
 	if err != nil {
 		return false, err
 	}
 
-	if user.Username == "" {
-		return false, fmt.Errorf("user with ID %d does not have a username", userId)
-	}
-
-	houses, err := s.GetUserHouses(userId)
+	userHouses, err := s.GetUserHouses(userId)
 	if err != nil {
 		return false, err
 	}
 
-	var foundHouse *web_schemas.HouseOut
-
-	for _, house := range houses {
+	var verifyingHouse *web.HouseOut
+	for _, house := range userHouses {
 		if house.ID == houseId {
-			foundHouse = &house
+			verifyingHouse = &house
 			break
 		}
 	}
 
-	if foundHouse.Square < 100 {
-		return false, nil
+	if verifyingHouse.ID.String() == "" {
+		return false, errors.New("verifying house not found")
 	}
 
-	return true, nil
-}
-
-func (s *HouseService) ApproveModuleInstallation(userId uuid.UUID, houseId uuid.UUID) (bool, error) {
-	return s.verifyUserAndHouse(userId, houseId)
+	return s.verifyService.VerifyModuleConnection(verifyingUser, verifyingHouse)
 }
 
 func (s *HouseService) GetModuleAdditionEvent(ctx context.Context) (events.BaseEvent, error) {
@@ -125,16 +140,20 @@ func (s *HouseService) ProcessModuleAdditionEvent(event events.BaseEvent) error 
 			return errors.New("invalid moduleID UUID")
 		}
 
-		decision, err := s.verifyUserAndHouse(houseID, moduleID)
+		decision, err := s.ApproveModuleInstallation(houseID, moduleID)
 		if err != nil {
 			return err
 		}
 
-		fmt.Printf(
-			"Verification of the house %v for module %v is complete, solution: %v\n", houseID, moduleID, decision,
-		)
-
-		return nil
+		if decision == true {
+			fmt.Printf(
+				"Verification of the house %v for module %v is success\n", houseID, moduleID,
+			)
+		} else {
+			fmt.Printf(
+				"Verification of the house %v for module %v is failed\n", houseID, moduleID,
+			)
+		}
 	}
 	return errors.New("unsupported event type")
 }

@@ -45,14 +45,7 @@ func CreateUserHouse(c *gin.Context, container *shared.Container) {
 		return
 	}
 
-	newHouseResponse := web_schemas.HouseOut{
-		ID:      newHouse.ID,
-		Address: newHouse.Address,
-		Square:  newHouse.Square,
-		UserID:  newHouse.UserID,
-	}
-
-	c.JSON(http.StatusCreated, newHouseResponse)
+	c.JSON(http.StatusCreated, newHouse)
 }
 
 // GetUserHouses godoc
@@ -90,21 +83,4 @@ func GetUserHouses(c *gin.Context, container *shared.Container) {
 	}
 
 	c.JSON(http.StatusOK, houses)
-}
-
-// UpdateUserHouse godoc
-// @Summary Обновление информации о доме пользователя
-// @Description Обновить информацию о существующем доме пользователя
-// @Tags houses
-// @Accept json
-// @Produce json
-// @Param house body web_schemas.UpdateHouseIn true "Updated House"
-// @Success 200 {object} web_schemas.HouseOut
-// @Failure 400 {object} ErrorResponse
-// @Failure 401 {object} ErrorResponse
-// @Failure 404 {object} ErrorResponse
-// @Failure 500 {object} ErrorResponse
-// @Router /houses/{id} [put]
-func UpdateUserHouse(c *gin.Context, container *shared.Container) {
-	// пока не пригодился, пока заглушка
 }
