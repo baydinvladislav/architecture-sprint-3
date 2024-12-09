@@ -12,7 +12,6 @@ package "suppliers" {
 
 package "shared" {
     class Container {
-        + AuthService: service.AuthService
         + UserService: service.UserService
         + HouseService: service.HouseService
         + AppSettings: AppSettings
@@ -33,6 +32,7 @@ package "service" {
         - houseRepository: repository.HouseRepository
         - kafkaSupplier: suppliers.KafkaSupplier
         - userService: UserService
+        - verifyService: VerifyConnectionService
         + CreateUserHouse(userId: UUID, house: web_schemas.NewHouseIn): web_schemas.HouseOut
         + GetUserHouses(userId: UUID): []web_schemas.HouseOut
         + UpdateUserHouse(house: web_schemas.UpdateHouseIn): persistance.HouseModel
@@ -43,12 +43,21 @@ package "service" {
 
     class UserService {
         - userRepository: repository.UserRepository
+        - authService: AuthService
         + SignUp(user: web.NewUserIn): error
         + Login(username: string, password: string): error
         + Update(user: web.NewUserIn): error
         + GetCurrent(username: string): dto.UserDtoSchema
         + GetByUsername(username: string): dto.UserDtoSchema
         + GetRequiredById(id: UUID): dto.UserDtoSchema
+    }
+
+    class VerifyConnectionService {
+        - minSquare: float64
+        - maxSquare: float64
+        + VerifyModuleConnection(verifyingUser: web.UserOut, verifyingHouse: web.HouseOut): (bool, error)
+        + verifyUser(verifyingUser: web.UserOut): bool
+        + verifyHouse(verifyingHouse: web.HouseOut): bool
     }
 }
 
@@ -98,7 +107,6 @@ package "shared" {
     }
 }
 
-Container --> AuthService
 Container --> UserService
 Container --> HouseService
 Container --> AppSettings
@@ -106,7 +114,9 @@ Container --> AppSettings
 HouseService --> HouseRepository
 HouseService --> suppliers.KafkaSupplier
 HouseService --> UserService
+HouseService --> VerifyConnectionService
 
 UserService --> UserRepository
+UserService --> AuthService
 
 @enduml
