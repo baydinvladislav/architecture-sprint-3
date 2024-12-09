@@ -1,3 +1,9 @@
+# Содержание
+- [Base requests](#base-requests)
+- [C4 context diagram](#c4-context-diagram)
+- [C4 container diagram](#c4-container-diagram)
+
+### Base requests:
 #### Поднять проект:
 ```
 docker compose up --build
@@ -111,3 +117,9 @@ plantuml -tsvg Component_CleverVillageSystem_DeviceService.puml
 ```
 docker-compose down
 ```
+
+### C4 context diagram
+![System Architecture](./Context_CleverVillageSystem.svg)
+
+### C4 container diagram
+![System Architecture](./Container_CleverVillageSystem.svg)
