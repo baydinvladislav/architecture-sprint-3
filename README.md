@@ -1,9 +1,9 @@
 # Содержание
-- [Base requests](#base-requests)
+- [Base HTTP requests](#base-http-requests)
 - [C4 context diagram](#c4-context-diagram)
 - [C4 container diagram](#c4-container-diagram)
 
-### Base requests:
+### Base HTTP requests:
 #### Поднять проект:
 ```
 docker compose up --build
