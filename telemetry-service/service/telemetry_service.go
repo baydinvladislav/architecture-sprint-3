@@ -1,23 +1,47 @@
 package service
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
 	"telemetry-service/repository"
-	"telemetry-service/schemas"
+	"telemetry-service/schemas/events"
+	"telemetry-service/suppliers"
 )
 
 type TelemetryService struct {
 	telemetryRepository *repository.TelemetryRepository
+	kafkaSupplier       *suppliers.KafkaSupplier
 }
 
-func NewTelemetryService(telemetryRepository *repository.TelemetryRepository) *TelemetryService {
-	return &TelemetryService{telemetryRepository: telemetryRepository}
+func NewTelemetryService(
+	telemetryRepository *repository.TelemetryRepository,
+	kafkaSupplier *suppliers.KafkaSupplier,
+) *TelemetryService {
+	return &TelemetryService{
+		telemetryRepository: telemetryRepository,
+		kafkaSupplier:       kafkaSupplier,
+	}
 }
 
-func (s *TelemetryService) ProcessEvent(event schemas.Event) error {
-	var data schemas.TelemetryPayload
+func (r *TelemetryService) GetTelemetryEvent(ctx context.Context) (events.BaseEvent, error) {
+	msg, err := r.kafkaSupplier.ReadTelemetryTopic(ctx)
+	if err != nil {
+		return events.BaseEvent{}, fmt.Errorf("failed to read message: %w", err)
+	}
+
+	var event events.BaseEvent
+	err = json.Unmarshal(msg.Value, &event)
+	if err != nil {
+		return events.BaseEvent{}, fmt.Errorf("failed to unmarshal message: %w", err)
+	}
+
+	return event, nil
+}
+
+func (r *TelemetryService) ProcessEvent(event events.BaseEvent) error {
+	var data events.TelemetryPayload
 
 	payloadBytes, err := json.Marshal(event.Payload)
 	if err != nil {
@@ -30,21 +54,21 @@ func (s *TelemetryService) ProcessEvent(event schemas.Event) error {
 
 	log.Println("msg data: ", data)
 
-	err = s.SaveEvent(event)
+	err = r.SaveEvent(event)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (s *TelemetryService) SaveEvent(event schemas.Event) error {
+func (r *TelemetryService) SaveEvent(event events.BaseEvent) error {
 	log.Println("Saving event...")
 
-	err := s.telemetryRepository.InsertEvent(event)
+	err := r.telemetryRepository.InsertEvent(event)
 	if err != nil {
 		return fmt.Errorf("failed to save event: %v", err)
 	}
 
-	log.Println("Event saved successfully")
+	log.Println("BaseEvent saved successfully")
 	return nil
 }

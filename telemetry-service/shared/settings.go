@@ -6,11 +6,11 @@ import (
 
 type AppSettings struct {
 	// broker
-	KafkaBroker    string
-	EmergencyTopic string
-	NewHouseTopic  string
-	TelemetryTopic string
-	GroupID        string
+	KafkaBroker            string
+	EmergencyStopTopic     string
+	NewHouseConnectedTopic string
+	TelemetryTopic         string
+	GroupID                string
 
 	// db
 	MongoURI            string
@@ -24,11 +24,11 @@ type AppSettings struct {
 
 func NewAppSettings() *AppSettings {
 	return &AppSettings{
-		KafkaBroker:    getEnv("KAFKA_BROKER", "kafka:9092"),
-		TelemetryTopic: getEnv("TELEMETRY_TOPIC", "telemetry.data"),
-		EmergencyTopic: getEnv("EMERGENCY_TOPIC", "forced.module.shutdown"),
-		NewHouseTopic:  getEnv("NEW_HOUSE_TOPIC", "house.initialization"),
-		GroupID:        getEnv("KAFKA_GROUP_ID", "telemetry_group"),
+		KafkaBroker:            getEnv("KAFKA_BROKER", "kafka:9092"),
+		TelemetryTopic:         getEnv("TELEMETRY_TOPIC", "telemetry.data"),
+		EmergencyStopTopic:     getEnv("EMERGENCY_TOPIC", "forced.module.shutdown"),
+		NewHouseConnectedTopic: getEnv("NEW_HOUSE_TOPIC", "house.initialization"),
+		GroupID:                getEnv("KAFKA_GROUP_ID", "telemetry_group"),
 
 		MongoURI:            getEnv("MONGO_URI", "mongodb://root:mongodb@mongo:27017/telemetry_database?authSource=admin"),
 		DatabaseName:        getEnv("MONGO_DATABASE_NAME", "telemetry_database"),

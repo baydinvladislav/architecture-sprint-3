@@ -7,39 +7,78 @@ import (
 )
 
 type KafkaSupplier struct {
-	brokers []string
-	groupID string
+	emergencyStopConsumer     *kafka.Reader
+	newHouseConnectedConsumer *kafka.Reader
+	telemetryConsumer         *kafka.Reader
 }
 
-func NewKafkaSupplier(brokers []string, groupID string) *KafkaSupplier {
-	return &KafkaSupplier{
-		brokers: brokers,
-		groupID: groupID,
-	}
-}
-
-func (kc *KafkaSupplier) createReader(topic string) *kafka.Reader {
-	return kafka.NewReader(kafka.ReaderConfig{
-		Brokers: kc.brokers,
-		Topic:   topic,
-		GroupID: kc.groupID,
+func NewKafkaSupplier(
+	kafkaBroker string,
+	groupID string,
+	emergencyStopTopic string,
+	newHouseConnectedTopic string,
+	telemetryTopic string,
+) (*KafkaSupplier, error) {
+	emergencyStopConsumer := kafka.NewReader(kafka.ReaderConfig{
+		Brokers: []string{kafkaBroker},
+		Topic:   emergencyStopTopic,
+		GroupID: groupID,
 	})
+
+	newHouseConnectedConsumer := kafka.NewReader(kafka.ReaderConfig{
+		Brokers: []string{kafkaBroker},
+		Topic:   newHouseConnectedTopic,
+		GroupID: groupID,
+	})
+
+	telemetryConsumer := kafka.NewReader(kafka.ReaderConfig{
+		Brokers: []string{kafkaBroker},
+		Topic:   telemetryTopic,
+		GroupID: groupID,
+	})
+
+	return &KafkaSupplier{
+		emergencyStopConsumer:     emergencyStopConsumer,
+		newHouseConnectedConsumer: newHouseConnectedConsumer,
+		telemetryConsumer:         telemetryConsumer,
+	}, nil
 }
 
-func (kc *KafkaSupplier) ReadMessage(ctx context.Context, topic string) (kafka.Message, error) {
-	reader := kc.createReader(topic)
-	defer reader.Close()
+func (ks *KafkaSupplier) ReadEmergencyStopTopic(ctx context.Context) (kafka.Message, error) {
+	log.Printf("Listen topic EmergencyStopTopic...")
 
-	msg, err := reader.ReadMessage(ctx)
+	msg, err := ks.emergencyStopConsumer.ReadMessage(ctx)
 	if err != nil {
 		return kafka.Message{}, err
 	}
 
-	log.Printf("Received message from topic %s: %s", topic, string(msg.Value))
+	log.Printf("Received message in EmergencyStopTopic: %v", msg)
+
 	return msg, nil
 }
 
-func (kc *KafkaSupplier) SendMessage(msg kafka.Message) error {
-	log.Printf("Sent message: %s", string(msg.Value))
-	return nil
+func (ks *KafkaSupplier) ReadNewHouseConnectedTopic(ctx context.Context) (kafka.Message, error) {
+	log.Printf("Listen topic NewHouseConnectedTopic...")
+
+	msg, err := ks.newHouseConnectedConsumer.ReadMessage(ctx)
+	if err != nil {
+		return kafka.Message{}, err
+	}
+
+	log.Printf("Received message in NewHouseConnectedTopic: %v", msg)
+
+	return msg, nil
+}
+
+func (ks *KafkaSupplier) ReadTelemetryTopic(ctx context.Context) (kafka.Message, error) {
+	log.Printf("Listen topic TelemetryTopic...")
+
+	msg, err := ks.telemetryConsumer.ReadMessage(ctx)
+	if err != nil {
+		return kafka.Message{}, err
+	}
+
+	log.Printf("Received message in TelemetryTopic: %v", msg)
+
+	return msg, nil
 }

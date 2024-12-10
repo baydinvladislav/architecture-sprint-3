@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/gin-gonic/gin"
 	"log"
+	"telemetry-service/presentation"
 	"telemetry-service/shared"
 )
 
@@ -16,26 +17,11 @@ func CreateApp(ctx context.Context, container *shared.AppContainer) *gin.Engine 
 		})
 	})
 
-	initKafkaHandlers(ctx, container)
+	presentation.StartEmergencyConsumer(ctx, container.EmergencyService)
+	presentation.StartHouseConsumer(ctx, container.InitHouseService)
+	presentation.StartTelemetryConsumer(ctx, container.TelemetryService)
 
 	return r
-}
-
-func initKafkaHandlers(ctx context.Context, container *shared.AppContainer) {
-	go handleKafkaTopic(ctx, container, "telemetry.data")
-	go handleKafkaTopic(ctx, container, "forced.module.shutdown")
-}
-
-func handleKafkaTopic(ctx context.Context, container *shared.AppContainer, topic string) {
-	log.Printf("Starting Kafka consumer for topic: %s", topic)
-
-	for {
-		err := container.KafkaDispatcher.ReadMessage(ctx, topic)
-		if err != nil {
-			log.Printf("Error while reading message from topic %s: %v", topic, err)
-			continue
-		}
-	}
 }
 
 func main() {

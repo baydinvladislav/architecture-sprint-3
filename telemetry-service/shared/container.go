@@ -2,14 +2,13 @@ package shared
 
 import (
 	"context"
-	"telemetry-service/presentation"
+	"log"
 	"telemetry-service/repository"
 	"telemetry-service/service"
 	"telemetry-service/suppliers"
 )
 
 type AppContainer struct {
-	KafkaDispatcher  *presentation.KafkaDispatcher
 	AppSettings      *AppSettings
 	TelemetryService *service.TelemetryService
 	EmergencyService *service.EmergencyService
@@ -19,45 +18,54 @@ type AppContainer struct {
 func NewAppContainer(ctx context.Context) *AppContainer {
 	appSettings := NewAppSettings()
 
+	kafkaSupplier, err := suppliers.NewKafkaSupplier(
+		appSettings.KafkaBroker,
+		appSettings.GroupID,
+		appSettings.EmergencyStopTopic,
+		appSettings.NewHouseConnectedTopic,
+		appSettings.TelemetryTopic,
+	)
+	if err != nil {
+		log.Fatalf("failed to initialize Kafka supplier: %v", err)
+	}
+
+	deviceServiceSupplier := suppliers.NewDeviceServiceSupplier(appSettings.DeviceServiceUrl)
+
 	telemetryRepository := repository.NewTelemetryRepository(
 		appSettings.MongoURI,
 		appSettings.DatabaseName,
 		appSettings.TelemetryCollection,
 	)
-	telemetryService := service.NewTelemetryService(telemetryRepository)
-
-	deviceServiceSupplier := suppliers.NewDeviceServiceSupplier(appSettings.DeviceServiceUrl)
+	telemetryService := service.NewTelemetryService(
+		telemetryRepository,
+		kafkaSupplier,
+	)
 
 	emergencyRepository := repository.NewEmergencyRepository(
 		appSettings.MongoURI,
 		appSettings.DatabaseName,
 		appSettings.TelemetryCollection,
 	)
-	emergencyService := service.NewEmergencyService(deviceServiceSupplier, emergencyRepository)
+	emergencyService := service.NewEmergencyService(
+		deviceServiceSupplier,
+		emergencyRepository,
+		kafkaSupplier,
+	)
 
 	houseRepository := repository.NewHouseRepository(
 		appSettings.MongoURI,
 		appSettings.DatabaseName,
 		appSettings.TelemetryCollection,
 	)
-	initHouseService := service.NewInitHouseService(houseRepository)
-
-	kafkaSupplier := suppliers.NewKafkaSupplier(
-		[]string{appSettings.KafkaBroker},
-		appSettings.GroupID,
-	)
-
-	kafkaDispatcher := presentation.NewKafkaDispatcher(
-		telemetryService,
-		emergencyService,
-		initHouseService,
+	initHouseService := service.NewInitHouseService(
+		houseRepository,
 		kafkaSupplier,
 	)
+
 	return &AppContainer{
 		TelemetryService: telemetryService,
 		EmergencyService: emergencyService,
 		InitHouseService: initHouseService,
-		KafkaDispatcher:  kafkaDispatcher,
 		AppSettings:      appSettings,
 	}
 }
