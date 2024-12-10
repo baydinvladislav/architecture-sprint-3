@@ -28,6 +28,7 @@ func NewAppContainer(ctx context.Context) *Container {
 
 	err = db.AutoMigrate(&persistance.UserModel{}, &persistance.HouseModel{})
 	if err != nil {
+		log.Fatalf("failed to auto-migrate database models: %v", err)
 		return nil
 	}
 
@@ -44,6 +45,9 @@ func NewAppContainer(ctx context.Context) *Container {
 		appSettings.ModuleAdditionTopic,
 		appSettings.KafkaGroupID,
 	)
+	if err != nil {
+		log.Fatalf("failed to initialize Kafka supplier: %v", err)
+	}
 
 	var minSquare, maxSquare float64 = 10, 100
 	verifyService := service.NewVerifyConnectionService(minSquare, maxSquare)
