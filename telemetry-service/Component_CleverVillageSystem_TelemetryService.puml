@@ -1,0 +1,26 @@
+@startuml
+!include <C4/C4_Container>
+
+LAYOUT_WITH_LEGEND()
+
+System_Boundary(telemetry_service_boundary, "Telemetry Service") {
+    Container(emergency_consumer, "EmergencyConsumer", "Golang", "")
+    Container(new_house_consumer, "NewHouseConsumer", "Golang", "")
+    Container(telemetry_consumer, "TelemetryConsumer", "Golang", "")
+
+    ContainerDb(mongo_db, "Telemetry Database", "MongoDB", "")
+}
+
+ContainerQueue(kafka_broker, "Kafka", "Message Broker", "")
+Container(device_service, "DeviceService", "Microservice", "Processes device data") #1368bd
+
+Rel(emergency_consumer, mongo_db, "Write events", "Golang GORM")
+Rel(emergency_consumer, device_service, "Turn off module", "HTTP")
+Rel(new_house_consumer, mongo_db, "Write events", "Golang GORM")
+Rel(telemetry_consumer, mongo_db, "Write events", "Golang GORM")
+
+Rel(kafka_broker, emergency_consumer, "Reads messages", "verification.result")
+Rel(kafka_broker, new_house_consumer, "Reads messages", "verification.result")
+Rel(kafka_broker, telemetry_consumer, "Reads messages", "verification.result")
+
+@enduml
