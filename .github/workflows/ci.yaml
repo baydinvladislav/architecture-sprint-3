@@ -4,38 +4,6 @@ on:
   push:
 
 jobs:
-  # Существующая работа по сборке Docker-образа монолита,
-  # закомментировал, так как 403 forbidden при пуше образа
-#  docker:
-#    runs-on: ubuntu-latest
-#    steps:
-#      -
-#        name: Checkout
-#        uses: actions/checkout@v4
-#      -
-#        name: Set up QEMU
-#        uses: docker/setup-qemu-action@v3
-#      -
-#        name: Set up Docker Buildx
-#        uses: docker/setup-buildx-action@v3
-#      -
-#        name: Login to Docker Hub
-#        uses: docker/login-action@v3
-#        with:
-#          registry: ghcr.io
-#          username: ${{ github.actor }}
-#          password: ${{ secrets.GITHUB_TOKEN }}
-#      -
-#        name: Build and push
-#        uses: docker/build-push-action@v6
-#        with:
-#          platforms: linux/amd64,linux/arm64
-#          context: smart-home-monolith
-#          push: true
-#          tags: ghcr.io/yandex-practicum/architecture-sprint-3:latest
-#          cache-from: type=gha
-#          cache-to: type=gha,mode=max
-
   device-microservice:
     runs-on: ubuntu-latest
     steps:
@@ -47,7 +15,23 @@ jobs:
         with:
           go-version: '1.22'
 
-      - name: Run tests
+      - name: Run tests for device-service
         run: |
           cd device-service
+          go test ./... -v -cover
+
+  user-microservice:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.22'
+
+      - name: Run tests for user-service
+        run: |
+          cd user-service
           go test ./... -v -cover
