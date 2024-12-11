@@ -1,102 +1,17 @@
 package service
 
 import (
-	"context"
-	"device-service/schemas/dto"
+	"device-service/repository"
 	"device-service/schemas/events"
+	"device-service/suppliers"
 	"github.com/google/uuid"
-	"github.com/segmentio/kafka-go"
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"testing"
 )
 
-type MockModuleRepository struct {
-	mock.Mock
-}
-
-func (m *MockModuleRepository) GetAllModules() ([]dto.ModuleDto, error) {
-	args := m.Called()
-	return args.Get(0).([]dto.ModuleDto), args.Error(1)
-}
-
-func (m *MockModuleRepository) GetModulesByHouseID(houseID uuid.UUID) ([]dto.ModuleDto, error) {
-	args := m.Called(houseID)
-	return args.Get(0).([]dto.ModuleDto), args.Error(1)
-}
-
-func (m *MockModuleRepository) TurnOnModule(houseID, moduleID uuid.UUID) error {
-	args := m.Called(houseID, moduleID)
-	return args.Error(0)
-}
-
-func (m *MockModuleRepository) TurnOffModule(houseID, moduleID uuid.UUID) error {
-	args := m.Called(houseID, moduleID)
-	return args.Error(0)
-}
-
-func (m *MockModuleRepository) GetModuleState(houseID, moduleID uuid.UUID) (*dto.HouseModuleStateDto, error) {
-	args := m.Called(houseID, moduleID)
-	return args.Get(0).(*dto.HouseModuleStateDto), args.Error(1)
-}
-
-func (m *MockModuleRepository) AcceptAdditionModuleToHouse(houseID, moduleID uuid.UUID) error {
-	args := m.Called(houseID, moduleID)
-	return args.Error(0)
-}
-
-func (m *MockModuleRepository) FailAdditionModuleToHouse(houseID, moduleID uuid.UUID) error {
-	args := m.Called(houseID, moduleID)
-	return args.Error(0)
-}
-
-func (m *MockModuleRepository) SetPendingNewModule(
-	houseID uuid.UUID,
-	moduleID uuid.UUID,
-) ([]dto.ModuleDto, error) {
-	args := m.Called(houseID, moduleID)
-	return args.Get(0).([]dto.ModuleDto), args.Error(1)
-}
-
-func (m *MockModuleRepository) InsertNewHouseModuleState(houseModuleId uuid.UUID, state map[string]interface{}) error {
-	args := m.Called(houseModuleId, state)
-	return args.Error(0)
-}
-
-type MockKafkaSupplier struct {
-	mock.Mock
-}
-
-func (k *MockKafkaSupplier) ReadModuleVerificationTopic(ctx context.Context) (kafka.Message, error) {
-	args := k.Called(ctx)
-	return args.Get(0).(kafka.Message), args.Error(1)
-}
-
-func (k *MockKafkaSupplier) SendMessageToEquipmentChangeStateTopic(
-	ctx context.Context,
-	key []byte,
-	event events.ChangeEquipmentStateEvent,
-) error {
-	args := k.Called(ctx, key, event)
-	return args.Error(0)
-}
-
-func (k *MockKafkaSupplier) SendMessageToAdditionTopic(
-	ctx context.Context,
-	key []byte,
-	event events.HomeVerificationEvent,
-) error {
-	args := k.Called(ctx, key, event)
-	return args.Error(0)
-}
-
-func (k *MockKafkaSupplier) Close() {
-	k.Called()
-}
-
 func TestProcessMessage_Accepted(t *testing.T) {
-	moduleRepository := new(MockModuleRepository)
-	kafkaSupplier := new(MockKafkaSupplier)
+	moduleRepository := new(repository.MockModuleRepository)
+	kafkaSupplier := new(suppliers.MockKafkaSupplier)
 
 	persistenceService := NewModulePersistenceService(moduleRepository)
 	messagingService := NewExternalMessagingService(kafkaSupplier)
