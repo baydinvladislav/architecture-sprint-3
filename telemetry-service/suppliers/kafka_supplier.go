@@ -13,26 +13,26 @@ type KafkaSupplier struct {
 }
 
 func NewKafkaSupplier(
-	kafkaBroker string,
+	kafkaBrokers []string,
 	groupID string,
 	emergencyStopTopic string,
 	newHouseConnectedTopic string,
 	telemetryTopic string,
 ) (*KafkaSupplier, error) {
 	emergencyStopConsumer := kafka.NewReader(kafka.ReaderConfig{
-		Brokers: []string{kafkaBroker},
+		Brokers: kafkaBrokers,
 		Topic:   emergencyStopTopic,
 		GroupID: groupID,
 	})
 
 	newHouseConnectedConsumer := kafka.NewReader(kafka.ReaderConfig{
-		Brokers: []string{kafkaBroker},
+		Brokers: kafkaBrokers,
 		Topic:   newHouseConnectedTopic,
 		GroupID: groupID,
 	})
 
 	telemetryConsumer := kafka.NewReader(kafka.ReaderConfig{
-		Brokers: []string{kafkaBroker},
+		Brokers: kafkaBrokers,
 		Topic:   telemetryTopic,
 		GroupID: groupID,
 	})

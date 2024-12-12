@@ -2,11 +2,12 @@ package shared
 
 import (
 	"os"
+	"strings"
 )
 
 type AppSettings struct {
 	// broker
-	KafkaBroker            string
+	KafkaBrokers           []string
 	EmergencyStopTopic     string
 	NewHouseConnectedTopic string
 	TelemetryTopic         string
@@ -24,7 +25,7 @@ type AppSettings struct {
 
 func NewAppSettings() *AppSettings {
 	return &AppSettings{
-		KafkaBroker:            getEnv("KAFKA_BROKER", "kafka:9092"),
+		KafkaBrokers:           strings.Split(os.Getenv("KAFKA_BROKERS"), ","),
 		TelemetryTopic:         getEnv("TELEMETRY_TOPIC", "telemetry.data"),
 		EmergencyStopTopic:     getEnv("EMERGENCY_TOPIC", "forced.module.shutdown"),
 		NewHouseConnectedTopic: getEnv("NEW_HOUSE_TOPIC", "house.initialization"),

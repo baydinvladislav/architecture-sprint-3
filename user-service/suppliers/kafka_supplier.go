@@ -15,19 +15,19 @@ type KafkaSupplier struct {
 }
 
 func NewKafkaSupplier(
-	kafkaBroker string,
+	kafkaBrokers []string,
 	moduleVerificationTopic string,
 	moduleAdditionTopic string,
 	groupID string,
 ) (*KafkaSupplier, error) {
 	verifyHouseConsumer := kafka.NewReader(kafka.ReaderConfig{
-		Brokers: []string{kafkaBroker},
+		Brokers: kafkaBrokers,
 		Topic:   moduleAdditionTopic,
 		GroupID: groupID,
 	})
 
 	verifyHouseProducer := &kafka.Writer{
-		Addr:     kafka.TCP("kafka:9092"),
+		Addr:     kafka.TCP(kafkaBrokers...),
 		Topic:    moduleVerificationTopic,
 		Balancer: &kafka.LeastBytes{},
 	}

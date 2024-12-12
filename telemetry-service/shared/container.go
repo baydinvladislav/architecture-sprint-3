@@ -19,7 +19,7 @@ func NewAppContainer(ctx context.Context) *AppContainer {
 	appSettings := NewAppSettings()
 
 	kafkaSupplier, err := suppliers.NewKafkaSupplier(
-		appSettings.KafkaBroker,
+		appSettings.KafkaBrokers,
 		appSettings.GroupID,
 		appSettings.EmergencyStopTopic,
 		appSettings.NewHouseConnectedTopic,

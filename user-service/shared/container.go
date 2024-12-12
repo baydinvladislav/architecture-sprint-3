@@ -48,7 +48,7 @@ func NewAppContainer(ctx context.Context) *Container {
 	userService := service.NewUserService(authService, userRepository)
 
 	kafkaSupplier, err := suppliers.NewKafkaSupplier(
-		appSettings.KafkaBroker,
+		appSettings.KafkaBrokers,
 		appSettings.ModuleVerificationTopic,
 		appSettings.ModuleAdditionTopic,
 		appSettings.KafkaGroupID,

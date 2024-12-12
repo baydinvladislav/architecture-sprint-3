@@ -8,7 +8,7 @@ type AppSettings struct {
 	DBPort     string
 	DBSSLMode  string
 
-	KafkaBroker                  string
+	KafkaBrokers                 []string
 	ModuleAddedKafkaTopic        string
 	ModuleVerificationKafkaTopic string
 	EquipmentChangeStateTopic    string
@@ -33,7 +33,7 @@ func NewAppSettings() *AppSettings {
 		DBPort:     "5432",
 		DBSSLMode:  "disable",
 
-		KafkaBroker:                  "kafka:9092",
+		KafkaBrokers:                 []string{"kafka1:9092", "kafka2:9093", "kafka3:9094"},
 		ModuleAddedKafkaTopic:        "module.addition.topic",
 		ModuleVerificationKafkaTopic: "module.verification.topic",
 		EquipmentChangeStateTopic:    "equipment.change.state.topic",

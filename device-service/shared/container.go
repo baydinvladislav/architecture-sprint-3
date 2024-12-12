@@ -37,7 +37,7 @@ func NewAppContainer(ctx context.Context) *Container {
 	persistenceService := service.NewModulePersistenceService(moduleRepository)
 
 	kafkaSupplier, err := suppliers.NewKafkaSupplier(
-		appSettings.KafkaBroker,
+		appSettings.KafkaBrokers,
 		appSettings.ModuleAddedKafkaTopic,
 		appSettings.ModuleVerificationKafkaTopic,
 		appSettings.EquipmentChangeStateTopic,
