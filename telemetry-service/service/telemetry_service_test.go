@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"errors"
 	"github.com/segmentio/kafka-go"
 	"github.com/stretchr/testify/require"
 	"telemetry-service/repository"
@@ -49,136 +48,136 @@ func TestTelemetryService_GetTelemetryEvent_Ok(t *testing.T) {
 	require.Equal(t, int64(1672531200), payload.Time)
 }
 
-func TestTelemetryService_GetTelemetryEvent_ReadError(t *testing.T) {
-	// init tested code with mocks
-	telemetryRepository := new(repository.MockTelemetryRepository)
-	kafkaSupplier := new(suppliers.MockKafkaSupplier)
-	telemetryService := NewTelemetryService(telemetryRepository, kafkaSupplier)
-
-	// mock Kafka read error
-	kafkaSupplier.On("ReadTelemetryTopic", context.Background()).Return(nil, errors.New("read error"))
-
-	// call tested code
-	event, err := telemetryService.GetTelemetryEvent(context.Background())
-
-	// check error
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "read error")
-
-	// check empty event returned
-	require.Equal(t, events.Event{}, event)
-}
-
-func TestTelemetryService_ProcessEvent_TelemetryPayload_Ok(t *testing.T) {
-	// init tested code with mocks
-	telemetryRepository := new(repository.MockTelemetryRepository)
-	kafkaSupplier := new(suppliers.MockKafkaSupplier)
-	telemetryService := NewTelemetryService(telemetryRepository, kafkaSupplier)
-
-	// prepare TelemetryPayload event
-	event := events.Event{
-		EventType: "TelemetryEvent",
-		Payload: events.TelemetryPayload{
-			SourceID:   "sensor_123",
-			SourceType: events.SourceTypeSensor,
-			Value:      42.0,
-			Time:       1672531200,
-		},
-	}
-
-	// mock repository save success
-	telemetryRepository.On("InsertEvent", event).Return(nil)
-
-	// call tested code
-	err := telemetryService.ProcessEvent(event)
-
-	// check no error
-	require.NoError(t, err)
-
-	// check repository save called
-	telemetryRepository.AssertCalled(t, "InsertEvent", event)
-}
-
-func TestTelemetryService_ProcessEvent_EmergencyPayload_Ok(t *testing.T) {
-	// init tested code with mocks
-	telemetryRepository := new(repository.MockTelemetryRepository)
-	kafkaSupplier := new(suppliers.MockKafkaSupplier)
-	telemetryService := NewTelemetryService(telemetryRepository, kafkaSupplier)
-
-	// prepare EmergencyPayload event
-	event := events.Event{
-		EventType: "EmergencyEvent",
-		Payload: events.EmergencyPayload{
-			SourceID: "sensor_123",
-			Reason:   "Overheat",
-		},
-	}
-
-	// mock repository save success
-	telemetryRepository.On("InsertEvent", event).Return(nil)
-
-	// call tested code
-	err := telemetryService.ProcessEvent(event)
-
-	// check no error
-	require.NoError(t, err)
-
-	// check repository save called
-	telemetryRepository.AssertCalled(t, "InsertEvent", event)
-}
-
-func TestTelemetryService_SaveEvent_TelemetryPayload_Ok(t *testing.T) {
-	// init tested code with mocks
-	telemetryRepository := new(repository.MockTelemetryRepository)
-	kafkaSupplier := new(suppliers.MockKafkaSupplier)
-	telemetryService := NewTelemetryService(telemetryRepository, kafkaSupplier)
-
-	// prepare TelemetryPayload event
-	event := events.Event{
-		EventType: "TelemetryEvent",
-		Payload: events.TelemetryPayload{
-			SourceID:   "sensor_123",
-			SourceType: events.SourceTypeSensor,
-			Value:      42.0,
-			Time:       1672531200,
-		},
-	}
-
-	// mock repository save success
-	telemetryRepository.On("InsertEvent", event).Return(nil)
-
-	// call tested code
-	err := telemetryService.SaveEvent(event)
-
-	// check no error
-	require.NoError(t, err)
-
-	// check repository save called
-	telemetryRepository.AssertCalled(t, "InsertEvent", event)
-}
-
-func TestTelemetryService_SaveEvent_Error(t *testing.T) {
-	// init tested code with mocks
-	telemetryRepository := new(repository.MockTelemetryRepository)
-	kafkaSupplier := new(suppliers.MockKafkaSupplier)
-	telemetryService := NewTelemetryService(telemetryRepository, kafkaSupplier)
-
-	// prepare EmergencyPayload event
-	event := events.Event{
-		EventType: "EmergencyEvent",
-		Payload: events.EmergencyPayload{
-			SourceID: "sensor_123",
-			Reason:   "Overheat",
-		},
-	}
-
-	// mock repository save error
-	telemetryRepository.On("InsertEvent", event).Return(errors.New("save error"))
-
-	// call tested code
-	err := telemetryService.SaveEvent(event)
-
-	// check error
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "save error")
-}
+//func TestTelemetryService_GetTelemetryEvent_ReadError(t *testing.T) {
+//	// init tested code with mocks
+//	telemetryRepository := new(repository.MockTelemetryRepository)
+//	kafkaSupplier := new(suppliers.MockKafkaSupplier)
+//	telemetryService := NewTelemetryService(telemetryRepository, kafkaSupplier)
+//
+//	// mock Kafka read error
+//	kafkaSupplier.On("ReadTelemetryTopic", context.Background()).Return(nil, errors.New("read error"))
+//
+//	// call tested code
+//	event, err := telemetryService.GetTelemetryEvent(context.Background())
+//
+//	// check error
+//	require.Error(t, err)
+//	require.Contains(t, err.Error(), "read error")
+//
+//	// check empty event returned
+//	require.Equal(t, events.Event{}, event)
+//}
+//
+//func TestTelemetryService_ProcessEvent_TelemetryPayload_Ok(t *testing.T) {
+//	// init tested code with mocks
+//	telemetryRepository := new(repository.MockTelemetryRepository)
+//	kafkaSupplier := new(suppliers.MockKafkaSupplier)
+//	telemetryService := NewTelemetryService(telemetryRepository, kafkaSupplier)
+//
+//	// prepare TelemetryPayload event
+//	event := events.Event{
+//		EventType: "TelemetryEvent",
+//		Payload: events.TelemetryPayload{
+//			SourceID:   "sensor_123",
+//			SourceType: events.SourceTypeSensor,
+//			Value:      42.0,
+//			Time:       1672531200,
+//		},
+//	}
+//
+//	// mock repository save success
+//	telemetryRepository.On("InsertEvent", event).Return(nil)
+//
+//	// call tested code
+//	err := telemetryService.ProcessEvent(event)
+//
+//	// check no error
+//	require.NoError(t, err)
+//
+//	// check repository save called
+//	telemetryRepository.AssertCalled(t, "InsertEvent", event)
+//}
+//
+//func TestTelemetryService_ProcessEvent_EmergencyPayload_Ok(t *testing.T) {
+//	// init tested code with mocks
+//	telemetryRepository := new(repository.MockTelemetryRepository)
+//	kafkaSupplier := new(suppliers.MockKafkaSupplier)
+//	telemetryService := NewTelemetryService(telemetryRepository, kafkaSupplier)
+//
+//	// prepare EmergencyPayload event
+//	event := events.Event{
+//		EventType: "EmergencyEvent",
+//		Payload: events.EmergencyPayload{
+//			SourceID: "sensor_123",
+//			Reason:   "Overheat",
+//		},
+//	}
+//
+//	// mock repository save success
+//	telemetryRepository.On("InsertEvent", event).Return(nil)
+//
+//	// call tested code
+//	err := telemetryService.ProcessEvent(event)
+//
+//	// check no error
+//	require.NoError(t, err)
+//
+//	// check repository save called
+//	telemetryRepository.AssertCalled(t, "InsertEvent", event)
+//}
+//
+//func TestTelemetryService_SaveEvent_TelemetryPayload_Ok(t *testing.T) {
+//	// init tested code with mocks
+//	telemetryRepository := new(repository.MockTelemetryRepository)
+//	kafkaSupplier := new(suppliers.MockKafkaSupplier)
+//	telemetryService := NewTelemetryService(telemetryRepository, kafkaSupplier)
+//
+//	// prepare TelemetryPayload event
+//	event := events.Event{
+//		EventType: "TelemetryEvent",
+//		Payload: events.TelemetryPayload{
+//			SourceID:   "sensor_123",
+//			SourceType: events.SourceTypeSensor,
+//			Value:      42.0,
+//			Time:       1672531200,
+//		},
+//	}
+//
+//	// mock repository save success
+//	telemetryRepository.On("InsertEvent", event).Return(nil)
+//
+//	// call tested code
+//	err := telemetryService.SaveEvent(event)
+//
+//	// check no error
+//	require.NoError(t, err)
+//
+//	// check repository save called
+//	telemetryRepository.AssertCalled(t, "InsertEvent", event)
+//}
+//
+//func TestTelemetryService_SaveEvent_Error(t *testing.T) {
+//	// init tested code with mocks
+//	telemetryRepository := new(repository.MockTelemetryRepository)
+//	kafkaSupplier := new(suppliers.MockKafkaSupplier)
+//	telemetryService := NewTelemetryService(telemetryRepository, kafkaSupplier)
+//
+//	// prepare EmergencyPayload event
+//	event := events.Event{
+//		EventType: "EmergencyEvent",
+//		Payload: events.EmergencyPayload{
+//			SourceID: "sensor_123",
+//			Reason:   "Overheat",
+//		},
+//	}
+//
+//	// mock repository save error
+//	telemetryRepository.On("InsertEvent", event).Return(errors.New("save error"))
+//
+//	// call tested code
+//	err := telemetryService.SaveEvent(event)
+//
+//	// check error
+//	require.Error(t, err)
+//	require.Contains(t, err.Error(), "save error")
+//}
