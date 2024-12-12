@@ -27,6 +27,11 @@ func NewAppContainer(ctx context.Context) *Container {
 		log.Fatalf("failed to connect to database: %v", err)
 	}
 
+	err = db.Exec("CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";").Error
+	if err != nil {
+		log.Fatalf("failed to enable uuid-ossp extension: %v", err)
+	}
+
 	err = db.AutoMigrate(&persistance.UserModel{}, &persistance.HouseModel{})
 	if err != nil {
 		log.Fatalf("failed to auto-migrate database models: %v", err)
