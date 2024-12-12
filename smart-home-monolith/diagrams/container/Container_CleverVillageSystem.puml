@@ -18,10 +18,9 @@ System_Boundary(b_system, "Система Умной Деревни") {
     ContainerDb(user_db, "База Данных Пользователей", "PostgreSQL", "Хранит данные о пользователях")
     ContainerDb(equipment_db, "База Данных Оборудования", "PostgreSQL", "Хранит данные об оборудовании")
     ContainerDb(telemetry_db, "База Данных Телеметрии", "MongoDB", "Хранит данные телеметрии")
-
-    Container(kafka, "Kafka", "Брокер Сообщений", "Обрабатывает события системы")
 }
 
+Container(kafka, "Kafka", "Брокер Сообщений", "Обрабатывает события системы, кластер состоит из трёх инстансов")
 System_Ext(external_system, "Электрооборудование", "Публикует события в Kafka и получает команды управления")
 
 Rel(mobile_user, mobile_app, "HTTP/HTTPS")
@@ -33,9 +32,9 @@ Rel(device_service, equipment_db, "Читает и записывает", "ORM")
 Rel(telemetry_service, telemetry_db, "Читает и записывает", "MongoDB драйвер")
 
 Rel(external_system, kafka, " ")
-Rel(kafka, services, "Обрабатывает события", "Kafka topic")
+Rel(kafka, services, "Микросервисы обрабатывают ивенты", "Kafka topics")
 
 Rel(services, external_system, "Отправляет запросы к", "MQTT/HTTP/CoAP")
 
-Rel(telemetry_service, device_service, "Команда выключить оборудование", "gRPC/HTTP")
+Rel(telemetry_service, device_service, "Команда выключить оборудование", "HTTP")
 @enduml
