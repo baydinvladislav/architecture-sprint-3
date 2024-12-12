@@ -95,6 +95,7 @@ services:
       - device-service
       - telemetry-service
 
+  # TODO: нужен кластер Кафки https://yusufs.medium.com/getting-started-with-kafka-in-golang-14ccab5fa26
   kafka:
     image: wurstmeister/kafka
     ports:
@@ -106,6 +107,7 @@ services:
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_CREATE_TOPICS: "forced.module.shutdown:1:1,telemetry.data:1:1,module.addition.topic:1:1,module.verification.topic:1:1,equipment.change.state.topic:1:1"
+    # TODO: добавить volumes
     depends_on:
       - zookeeper
 
