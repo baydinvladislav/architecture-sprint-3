@@ -49,8 +49,10 @@ func NewAppContainer(ctx context.Context) *Container {
 		log.Fatalf("failed to initialize Kafka supplier: %v", err)
 	}
 
-	var minSquare, maxSquare float64 = 10, 100
-	verifyService := service.NewVerifyConnectionService(minSquare, maxSquare)
+	verifyService := service.NewVerifyConnectionService(
+		appSettings.MinHomeSquare,
+		appSettings.MaxHomeSquare,
+	)
 
 	houseRepository := repository.NewGORMHouseRepository(db)
 	houseService := service.NewHouseService(

@@ -1,6 +1,9 @@
 package shared
 
 type AppSettings struct {
+	MinHomeSquare float64
+	MaxHomeSquare float64
+
 	DBHost     string
 	DBUser     string
 	DBPassword string
@@ -25,6 +28,9 @@ func (s *AppSettings) DSN() string {
 
 func NewAppSettings() *AppSettings {
 	return &AppSettings{
+		MinHomeSquare: 20.0,
+		MaxHomeSquare: 200.0,
+
 		DBHost:     "db",
 		DBUser:     "postgres",
 		DBPassword: "postgres",

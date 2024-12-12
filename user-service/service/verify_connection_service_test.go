@@ -5,13 +5,14 @@ import (
 	"github.com/stretchr/testify/require"
 	"testing"
 	"user-service/schemas/web"
+	"user-service/shared"
 )
 
 func TestVerifyConnectionService(t *testing.T) {
+	appConfig := shared.NewAppSettings()
+
 	// init verify service
-	minSquare := 20.0
-	maxSquare := 200.0
-	verifyService := NewVerifyConnectionService(minSquare, maxSquare)
+	verifyService := NewVerifyConnectionService(appConfig.MinHomeSquare, appConfig.MaxHomeSquare)
 
 	// prepare input data with different test cases
 	validUser := &web.UserOut{
