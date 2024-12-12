@@ -31,8 +31,6 @@ func (r *TelemetryService) GetTelemetryEvent(ctx context.Context) (events.Event,
 		return events.Event{}, fmt.Errorf("failed to read message: %w", err)
 	}
 
-	fmt.Printf("Raw Kafka message value: %s\n", string(msg.Value))
-
 	var event events.Event
 	err = json.Unmarshal(msg.Value, &event)
 	if err != nil {
