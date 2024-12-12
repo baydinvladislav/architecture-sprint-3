@@ -11,7 +11,8 @@ type UserModel struct {
 	UpdatedAt time.Time  `gorm:"column:updated_at"`
 	DeletedAt *time.Time `gorm:"column:deleted_at"`
 	Username  string     `gorm:"uniqueIndex;size:100"`
-	Password  string     `gorm:"size:255"`
+	// TODO: should be hashed
+	Password string `gorm:"size:255"`
 }
 
 func (UserModel) TableName() string {
