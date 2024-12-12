@@ -2,9 +2,11 @@ package service
 
 import (
 	"context"
+	"errors"
 	"github.com/segmentio/kafka-go"
 	"github.com/stretchr/testify/require"
 	"telemetry-service/repository"
+	"telemetry-service/schemas/events"
 	"telemetry-service/suppliers"
 	"testing"
 )
@@ -47,26 +49,26 @@ func TestTelemetryService_GetTelemetryEvent_Ok(t *testing.T) {
 	require.Equal(t, float64(1672531200), payload["time"])
 }
 
-//func TestTelemetryService_GetTelemetryEvent_ReadError(t *testing.T) {
-//	// init tested code with mocks
-//	telemetryRepository := new(repository.MockTelemetryRepository)
-//	kafkaSupplier := new(suppliers.MockKafkaSupplier)
-//	telemetryService := NewTelemetryService(telemetryRepository, kafkaSupplier)
-//
-//	// mock Kafka read error
-//	kafkaSupplier.On("ReadTelemetryTopic", context.Background()).Return(nil, errors.New("read error"))
-//
-//	// call tested code
-//	event, err := telemetryService.GetTelemetryEvent(context.Background())
-//
-//	// check error
-//	require.Error(t, err)
-//	require.Contains(t, err.Error(), "read error")
-//
-//	// check empty event returned
-//	require.Equal(t, events.Event{}, event)
-//}
-//
+func TestTelemetryService_GetTelemetryEvent_ReadError(t *testing.T) {
+	// init tested code with mocks
+	telemetryRepository := new(repository.MockTelemetryRepository)
+	kafkaSupplier := new(suppliers.MockKafkaSupplier)
+	telemetryService := NewTelemetryService(telemetryRepository, kafkaSupplier)
+
+	// mock Kafka read error
+	kafkaSupplier.On("ReadTelemetryTopic", context.Background()).Return(nil, errors.New("read error"))
+
+	// call tested code
+	event, err := telemetryService.GetTelemetryEvent(context.Background())
+
+	// check error
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "read error")
+
+	// check empty event returned
+	require.Equal(t, events.Event{}, event)
+}
+
 //func TestTelemetryService_ProcessEvent_TelemetryPayload_Ok(t *testing.T) {
 //	// init tested code with mocks
 //	telemetryRepository := new(repository.MockTelemetryRepository)
