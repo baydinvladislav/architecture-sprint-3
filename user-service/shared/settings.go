@@ -25,10 +25,10 @@ func (s *AppSettings) DSN() string {
 
 func NewAppSettings() *AppSettings {
 	return &AppSettings{
-		DBHost:     "db",
+		DBHost:     "user-db",
 		DBUser:     "postgres",
 		DBPassword: "postgres",
-		DBName:     "sprint_3",
+		DBName:     "user_db",
 		DBPort:     "5432",
 		DBSSLMode:  "disable",
 

@@ -7,13 +7,13 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - DB_HOST=db
+      - DB_HOST=user-db
       - DB_USER=postgres
       - DB_PASSWORD=postgres
-      - DB_NAME=sprint_3
+      - DB_NAME=user_db
       - DB_PORT=5432
     depends_on:
-      db:
+      user-db:
         condition: service_healthy
 
   device-service:
@@ -22,13 +22,13 @@ services:
     ports:
       - "8081:8081"
     environment:
-      - DB_HOST=db
+      - DB_HOST=device-db
       - DB_USER=postgres
       - DB_PASSWORD=postgres
-      - DB_NAME=sprint_3
+      - DB_NAME=device_db
       - DB_PORT=5432
     depends_on:
-      db:
+      device-db:
         condition: service_healthy
 
   telemetry-service:
@@ -39,26 +39,38 @@ services:
     environment:
       - KAFKA_BROKER=kafka:9092
       - MONGO_URI=mongodb://root:mongodb@mongo:27017/telemetry_database
-    depends_on:
-      db:
-        condition: service_healthy
 
-  # TODO: make separated for user-service and device-service
-  db:
+  user-db:
     image: postgres:latest
     restart: always
     environment:
-      POSTGRES_DB: sprint_3
+      POSTGRES_DB: user_db
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
-      - "5433:5432"
+      - "5434:5432"
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U postgres -d sprint_3 -h localhost || exit 1" ]
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d user_db -h localhost || exit 1" ]
       interval: 10s
       retries: 5
     volumes:
-      - db_data:/var/lib/postgresql/data
+      - user_db_data:/var/lib/postgresql/data
+
+  device-db:
+    image: postgres:latest
+    restart: always
+    environment:
+      POSTGRES_DB: device_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5435:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d device_db -h localhost || exit 1" ]
+      interval: 10s
+      retries: 5
+    volumes:
+      - device_db_data:/var/lib/postgresql/data
 
   mongo:
     image: mongo:latest
@@ -112,5 +124,6 @@ services:
       - zookeeper
 
 volumes:
-  db_data:
+  user_db_data:
+  device_db_data:
   mongo_data:
