@@ -9,6 +9,7 @@ Container(app_client, "Mobile Application", "iOS/Android", "Uses API controllers
 Container(nginx, "NGINX", "Reverse Proxy", "Routes requests to controllers")
 Container(internal_system, "User Microservice", "Microservice", "Manages user data and performs verification before connecting a module to a home") #1368bd
 
+ContainerQueue(kafka_broker, "Apache Kafka", "Message Broker", "Receives and stores system events")
 System_Ext(system, "Physical Equipment", "Some Physical Equipment, e.g. Heating Equipment, Gate Equipment, Moving Sensor")
 
 System_Boundary(b_system, "Device Microservice") {
@@ -20,7 +21,6 @@ System_Boundary(b_system, "Device Microservice") {
     Container(module_verification_consumer, "ModuleVerificationConsumer", "Consumer", "Processes events from Kafka indicating that a module can be added, as verified by another service")
 
     ContainerDb(modules_db, "Module Database", "PostgreSQL", "Stores information about connected modules and their status")
-    ContainerQueue(kafka_broker, "Apache Kafka", "Message Broker", "Receives and stores system events")
 }
 
 Rel(nginx, controller_modules_view, "Requests list of available modules", "HTTP")
