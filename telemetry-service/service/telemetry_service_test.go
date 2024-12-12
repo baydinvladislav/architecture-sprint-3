@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"github.com/segmentio/kafka-go"
 	"github.com/stretchr/testify/require"
 	"telemetry-service/repository"
 	"telemetry-service/schemas/events"
@@ -17,15 +18,17 @@ func TestTelemetryService_GetTelemetryEvent_Ok(t *testing.T) {
 	telemetryService := NewTelemetryService(telemetryRepository, kafkaSupplier)
 
 	// mock Kafka message with TelemetryPayload
-	mockMessage := events.Event{
-		EventType: "TelemetryEvent",
-		Payload: events.TelemetryPayload{
-			SourceID:   "sensor_123",
-			SourceType: events.SourceTypeSensor,
-			Value:      42.0,
-			Time:       1672531200,
-		},
+	mockMessage := kafka.Message{
+		Value: []byte(`{
+			"event_type": "TelemetryEvent",
+			"payload": {
+				"source_id": "sensor_123",
+				"source_type": "sensor",
+				"value": 42.0,
+				"time": 1672531200
+			}}`),
 	}
+
 	kafkaSupplier.On("ReadTelemetryTopic", context.Background()).Return(mockMessage, nil)
 
 	// call tested code
