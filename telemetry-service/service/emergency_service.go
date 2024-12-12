@@ -12,14 +12,14 @@ import (
 
 type EmergencyService struct {
 	deviceServiceSupplier *suppliers.DeviceServiceSupplier
-	kafkaSupplier         *suppliers.KafkaSupplier
+	kafkaSupplier         suppliers.BrokerInterface
 	emergencyRepository   *repository.EmergencyRepository
 }
 
 func NewEmergencyService(
 	deviceServiceSupplier *suppliers.DeviceServiceSupplier,
 	emergencyRepository *repository.EmergencyRepository,
-	kafkaSupplier *suppliers.KafkaSupplier,
+	kafkaSupplier suppliers.BrokerInterface,
 ) *EmergencyService {
 	return &EmergencyService{
 		deviceServiceSupplier: deviceServiceSupplier,
@@ -28,22 +28,22 @@ func NewEmergencyService(
 	}
 }
 
-func (s *EmergencyService) GetEmergencyStopEvent(ctx context.Context) (events.BaseEvent, error) {
+func (s *EmergencyService) GetEmergencyStopEvent(ctx context.Context) (events.Event, error) {
 	msg, err := s.kafkaSupplier.ReadEmergencyStopTopic(ctx)
 	if err != nil {
-		return events.BaseEvent{}, fmt.Errorf("failed to read message: %w", err)
+		return events.Event{}, fmt.Errorf("failed to read message: %w", err)
 	}
 
-	var event events.BaseEvent
+	var event events.Event
 	err = json.Unmarshal(msg.Value, &event)
 	if err != nil {
-		return events.BaseEvent{}, fmt.Errorf("failed to unmarshal message: %w", err)
+		return events.Event{}, fmt.Errorf("failed to unmarshal message: %w", err)
 	}
 
 	return event, nil
 }
 
-func (s *EmergencyService) ProcessEvent(event events.BaseEvent) error {
+func (s *EmergencyService) ProcessEvent(event events.Event) error {
 	payloadBytes, err := json.Marshal(event.Payload)
 	if err != nil {
 		return fmt.Errorf("failed to marshal payload: %v", err)

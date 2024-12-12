@@ -1,10 +1,10 @@
 package events
 
-type BaseEvent struct {
+type Event struct {
 	EventType string      `json:"event_type"`
 	Payload   interface{} `json:"payload"`
 }
 
-type EventPayload interface {
+type BasePayload interface {
 	IsEventPayload()
 }

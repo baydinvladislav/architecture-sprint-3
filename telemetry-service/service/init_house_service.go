@@ -12,12 +12,12 @@ import (
 
 type InitHouseService struct {
 	houseRepository *repository.HouseRepository
-	kafkaSupplier   *suppliers.KafkaSupplier
+	kafkaSupplier   suppliers.BrokerInterface
 }
 
 func NewInitHouseService(
 	houseRepository *repository.HouseRepository,
-	kafkaSupplier *suppliers.KafkaSupplier,
+	kafkaSupplier suppliers.BrokerInterface,
 ) *InitHouseService {
 	return &InitHouseService{
 		houseRepository: houseRepository,
@@ -25,22 +25,22 @@ func NewInitHouseService(
 	}
 }
 
-func (s *InitHouseService) GetNewConnectedHouseEvent(ctx context.Context) (events.BaseEvent, error) {
+func (s *InitHouseService) GetNewConnectedHouseEvent(ctx context.Context) (events.Event, error) {
 	msg, err := s.kafkaSupplier.ReadNewHouseConnectedTopic(ctx)
 	if err != nil {
-		return events.BaseEvent{}, fmt.Errorf("failed to read message: %w", err)
+		return events.Event{}, fmt.Errorf("failed to read message: %w", err)
 	}
 
-	var event events.BaseEvent
+	var event events.Event
 	err = json.Unmarshal(msg.Value, &event)
 	if err != nil {
-		return events.BaseEvent{}, fmt.Errorf("failed to unmarshal message: %w", err)
+		return events.Event{}, fmt.Errorf("failed to unmarshal message: %w", err)
 	}
 
 	return event, nil
 }
 
-func (s *InitHouseService) ProcessEvent(event events.BaseEvent) error {
+func (s *InitHouseService) ProcessEvent(event events.Event) error {
 	data, ok := event.Payload.(events.InstallModuleToHousePayload)
 	if !ok {
 		return fmt.Errorf("invalid payload for InstallModuleToHouse event")

@@ -11,13 +11,13 @@ import (
 )
 
 type TelemetryService struct {
-	telemetryRepository *repository.TelemetryRepository
-	kafkaSupplier       *suppliers.KafkaSupplier
+	telemetryRepository repository.TelemetryRepositoryInterface
+	kafkaSupplier       suppliers.BrokerInterface
 }
 
 func NewTelemetryService(
-	telemetryRepository *repository.TelemetryRepository,
-	kafkaSupplier *suppliers.KafkaSupplier,
+	telemetryRepository repository.TelemetryRepositoryInterface,
+	kafkaSupplier suppliers.BrokerInterface,
 ) *TelemetryService {
 	return &TelemetryService{
 		telemetryRepository: telemetryRepository,
@@ -25,22 +25,22 @@ func NewTelemetryService(
 	}
 }
 
-func (r *TelemetryService) GetTelemetryEvent(ctx context.Context) (events.BaseEvent, error) {
+func (r *TelemetryService) GetTelemetryEvent(ctx context.Context) (events.Event, error) {
 	msg, err := r.kafkaSupplier.ReadTelemetryTopic(ctx)
 	if err != nil {
-		return events.BaseEvent{}, fmt.Errorf("failed to read message: %w", err)
+		return events.Event{}, fmt.Errorf("failed to read message: %w", err)
 	}
 
-	var event events.BaseEvent
+	var event events.Event
 	err = json.Unmarshal(msg.Value, &event)
 	if err != nil {
-		return events.BaseEvent{}, fmt.Errorf("failed to unmarshal message: %w", err)
+		return events.Event{}, fmt.Errorf("failed to unmarshal message: %w", err)
 	}
 
 	return event, nil
 }
 
-func (r *TelemetryService) ProcessEvent(event events.BaseEvent) error {
+func (r *TelemetryService) ProcessEvent(event events.Event) error {
 	var data events.TelemetryPayload
 
 	payloadBytes, err := json.Marshal(event.Payload)
@@ -61,7 +61,7 @@ func (r *TelemetryService) ProcessEvent(event events.BaseEvent) error {
 	return nil
 }
 
-func (r *TelemetryService) SaveEvent(event events.BaseEvent) error {
+func (r *TelemetryService) SaveEvent(event events.Event) error {
 	log.Println("Saving event...")
 
 	err := r.telemetryRepository.InsertEvent(event)
@@ -69,6 +69,6 @@ func (r *TelemetryService) SaveEvent(event events.BaseEvent) error {
 		return fmt.Errorf("failed to save event: %v", err)
 	}
 
-	log.Println("BaseEvent saved successfully")
+	log.Println("Event saved successfully")
 	return nil
 }
