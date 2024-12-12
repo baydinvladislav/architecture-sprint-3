@@ -5,6 +5,7 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"log"
+	"user-service/business"
 	"user-service/persistance"
 	"user-service/repository"
 	"user-service/service"
@@ -32,6 +33,8 @@ func NewAppContainer(ctx context.Context) *Container {
 		return nil
 	}
 
+	featureSettings := business.NewFeatureSettings()
+
 	var accessSecret = []byte("+AAlQmR/sSml0D0QgZ9suJZwtLxHbJAzjvWLYsiER+0=")
 	var refreshSecret = []byte("2hXKd7hDB/28TBKPyR262qVfDi1aX2t00IG99q6wxEc=")
 	authService := service.NewAuthService(accessSecret, refreshSecret)
@@ -50,8 +53,7 @@ func NewAppContainer(ctx context.Context) *Container {
 	}
 
 	verifyService := service.NewVerifyConnectionService(
-		appSettings.MinHomeSquare,
-		appSettings.MaxHomeSquare,
+		featureSettings.MinHomeSquare, featureSettings.MaxHomeSquare,
 	)
 
 	houseRepository := repository.NewGORMHouseRepository(db)
