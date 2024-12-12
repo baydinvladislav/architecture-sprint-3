@@ -4,15 +4,17 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	"testing"
+	"user-service/business"
 	"user-service/schemas/web"
-	"user-service/shared"
 )
 
 func TestVerifyConnectionService(t *testing.T) {
-	appConfig := shared.NewAppSettings()
+	featureSettings := business.NewFeatureSettings()
 
 	// init verify service
-	verifyService := NewVerifyConnectionService(appConfig.MinHomeSquare, appConfig.MaxHomeSquare)
+	verifyService := NewVerifyConnectionService(
+		featureSettings.MinHomeSquare, featureSettings.MaxHomeSquare,
+	)
 
 	// prepare input data with different test cases
 	validUser := &web.UserOut{
