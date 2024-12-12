@@ -5,7 +5,6 @@ import (
 	"github.com/segmentio/kafka-go"
 	"github.com/stretchr/testify/require"
 	"telemetry-service/repository"
-	"telemetry-service/schemas/events"
 	"telemetry-service/suppliers"
 	"testing"
 )
@@ -40,12 +39,12 @@ func TestTelemetryService_GetTelemetryEvent_Ok(t *testing.T) {
 	require.Equal(t, "TelemetryEvent", event.EventType)
 
 	// check payload
-	payload, ok := event.Payload.(events.TelemetryPayload)
+	payload, ok := event.Payload.(map[string]interface{})
 	require.True(t, ok)
-	require.Equal(t, "sensor_123", payload.SourceID)
-	require.Equal(t, events.SourceTypeSensor, payload.SourceType)
-	require.Equal(t, 42.0, payload.Value)
-	require.Equal(t, int64(1672531200), payload.Time)
+	require.Equal(t, "sensor_123", payload["source_id"])
+	require.Equal(t, "sensor", payload["source_type"])
+	require.Equal(t, 42.0, payload["value"])
+	require.Equal(t, float64(1672531200), payload["time"])
 }
 
 //func TestTelemetryService_GetTelemetryEvent_ReadError(t *testing.T) {
