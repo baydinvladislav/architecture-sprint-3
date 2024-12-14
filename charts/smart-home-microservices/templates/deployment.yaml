@@ -1,68 +1,50 @@
+{{- range $serviceName, $service := .Values.service }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "smart-home-microservices.fullname" . }}
+  name: {{ $serviceName }}
   labels:
-    {{- include "smart-home-microservices.labels" . | nindent 4 }}
+    app: {{ $serviceName }}
 spec:
-  {{- if not .Values.autoscaling.enabled }}
-  replicas: {{ .Values.replicaCount }}
-  {{- end }}
+  replicas: {{ $.Values.replicaCount.$serviceName }}
   selector:
     matchLabels:
-      {{- include "smart-home-microservices.selectorLabels" . | nindent 6 }}
+      app: {{ $serviceName }}
   template:
     metadata:
-      {{- with .Values.podAnnotations }}
-      annotations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
       labels:
-        {{- include "smart-home-microservices.labels" . | nindent 8 }}
-        {{- with .Values.podLabels }}
-        {{- toYaml . | nindent 8 }}
-        {{- end }}
+        app: {{ $serviceName }}
     spec:
-      {{- with .Values.imagePullSecrets }}
-      imagePullSecrets:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      serviceAccountName: {{ include "smart-home-microservices.serviceAccountName" . }}
-      securityContext:
-        {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
-        - name: {{ .Chart.Name }}
-          securityContext:
-            {{- toYaml .Values.securityContext | nindent 12 }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
+        - name: {{ $serviceName }}
+          image: "{{ $.Values.image.$serviceName.repository }}:{{ $.Values.image.$serviceName.tag }}"
+          imagePullPolicy: {{ $.Values.image.$serviceName.pullPolicy }}
           ports:
-            - name: http
-              containerPort: {{ .Values.service.port }}
-              protocol: TCP
-          livenessProbe:
-            {{- toYaml .Values.livenessProbe | nindent 12 }}
-          readinessProbe:
-            {{- toYaml .Values.readinessProbe | nindent 12 }}
+            - containerPort: {{ $service.port }}
+          env:
+            {{- if $.Values.database.postgres.$serviceName }}
+            - name: DB_HOST
+              value: "{{ $.Values.database.postgres.$serviceName.host }}"
+            - name: DB_PORT
+              value: "{{ $.Values.database.postgres.$serviceName.port }}"
+            - name: DB_USER
+              value: "{{ $.Values.database.postgres.$serviceName.username }}"
+            - name: DB_PASSWORD
+              value: "{{ $.Values.database.postgres.$serviceName.password }}"
+            - name: DB_NAME
+              value: "{{ $.Values.database.postgres.$serviceName.database }}"
+            {{- end }}
+            {{- if eq $serviceName "telemetry-service" }}
+            - name: KAFKA_BROKERS
+              value: "{{ join "," $.Values.kafka.brokers }}"
+            - name: MONGO_URI
+              value: "mongodb://{{ $.Values.database.mongo.username }}:{{ $.Values.database.mongo.password }}@{{ $.Values.database.mongo.host }}:{{ $.Values.database.mongo.port }}/{{ $.Values.database.mongo.database }}"
+            {{- end }}
           resources:
-            {{- toYaml .Values.resources | nindent 12 }}
-          {{- with .Values.volumeMounts }}
-          volumeMounts:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
-      {{- with .Values.volumes }}
-      volumes:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.nodeSelector }}
-      nodeSelector:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.affinity }}
-      affinity:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.tolerations }}
-      tolerations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
+            requests:
+              memory: "{{ $.Values.resources.$serviceName.requests.memory }}"
+              cpu: "{{ $.Values.resources.$serviceName.requests.cpu }}"
+            limits:
+              memory: "{{ $.Values.resources.$serviceName.limits.memory }}"
+              cpu: "{{ $.Values.resources.$serviceName.limits.cpu }}"
+{{- end }}

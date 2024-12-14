@@ -24,16 +24,12 @@ image:
 
 service:
   user-service:
-    type: ClusterIP
     port: 8080
   device-service:
-    type: ClusterIP
     port: 8081
   telemetry-service:
-    type: ClusterIP
     port: 8082
   mongo:
-    type: ClusterIP
     port: 27017
 
 database:
@@ -83,6 +79,20 @@ resources:
     limits:
       memory: "256Mi"
       cpu: "500m"
+  telemetry-service:
+    requests:
+      memory: "256Mi"
+      cpu: "200m"
+    limits:
+      memory: "512Mi"
+      cpu: "1000m"
+  mongo:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "256Mi"
+      cpu: "500m"
 
 ingress:
   enabled: true
@@ -94,6 +104,10 @@ ingress:
         - path: /
           pathType: Prefix
     - host: device-service.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+    - host: telemetry-service.example.com
       paths:
         - path: /
           pathType: Prefix
