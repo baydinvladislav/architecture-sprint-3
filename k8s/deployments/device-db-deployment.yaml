@@ -22,6 +22,7 @@ spec:
       labels:
         io.kompose.service: device-db
     spec:
+      terminationGracePeriodSeconds: 30
       containers:
         - env:
             - name: POSTGRES_DB
@@ -31,12 +32,6 @@ spec:
             - name: POSTGRES_USER
               value: postgres
           image: postgres:latest
-          livenessProbe:
-            exec:
-              command:
-                - pg_isready -U postgres -d device_db -h localhost || exit 1
-            failureThreshold: 5
-            periodSeconds: 10
           name: device-db
           ports:
             - containerPort: 5432
@@ -44,7 +39,20 @@ spec:
           volumeMounts:
             - mountPath: /var/lib/postgresql/data
               name: device-db-data
-      restartPolicy: Always
+          livenessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - /usr/bin/pg_isready -U postgres -d device_db -h localhost || exit 1
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 5
+          readinessProbe:
+            tcpSocket:
+              port: 5432
+            initialDelaySeconds: 5
+            periodSeconds: 10
       volumes:
         - name: device-db-data
           persistentVolumeClaim:
