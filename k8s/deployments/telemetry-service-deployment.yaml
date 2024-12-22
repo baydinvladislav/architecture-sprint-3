@@ -26,7 +26,7 @@ spec:
               value: kafka1:9092,kafka2:9093,kafka3:9094
             - name: MONGO_URI
               value: mongodb://root:mongodb@mongo:27017/telemetry_database
-          image: telemetry-service
+          image: baydinvladislav/telemetry-service:latest
           name: telemetry-service
           ports:
             - containerPort: 8082

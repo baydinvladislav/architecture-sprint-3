@@ -32,9 +32,11 @@ spec:
               value: "5432"
             - name: DB_USER
               value: postgres
-          image: device-service
+          image: baydinvladislav/device-service:latest
           name: device-service
           ports:
             - containerPort: 8081
               protocol: TCP
       restartPolicy: Always
+      imagePullSecrets:
+        - name: docker-hub-secret
