@@ -30,7 +30,7 @@ func NewAppSettings() *AppSettings {
 		DBUser:     "postgres",
 		DBPassword: "postgres",
 		DBName:     "device_db",
-		DBPort:     "5432",
+		DBPort:     "5435",
 		DBSSLMode:  "disable",
 
 		KafkaBrokers:                 []string{"kafka1:9092", "kafka2:9093", "kafka3:9094"},
