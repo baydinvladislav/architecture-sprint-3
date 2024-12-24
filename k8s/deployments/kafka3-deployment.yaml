@@ -25,7 +25,7 @@ spec:
       containers:
         - env:
             - name: KAFKA_ADVERTISED_LISTENERS
-              value: PLAINTEXT://kafka3:9092
+              value: PLAINTEXT://kafka3.default.svc.cluster.local:9094
             - name: KAFKA_BROKER_ID
               value: "3"
             - name: KAFKA_INTER_BROKER_LISTENER_NAME
