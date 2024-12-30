@@ -1,0 +1,74 @@
+@startuml
+entity "User" {
+    *id: UUID4
+    *username: varchar
+    *first_name: varchar
+    *last_name: varchar
+    *password: varchar
+    *created_at: datetime
+}
+
+entity "House" {
+    *id: UUID4
+    *created_at: datetime
+    *address: varchar
+    *square: decimal
+    *user_id: UUID4
+}
+
+entity "Module" {
+    *id: UUID4
+    *created_at: datetime
+    *type: Heating || Watcher || Gates || etc.
+    *description: text
+}
+
+entity "HouseModule" {
+    *id: UUID4
+    *house_id: UUID4
+    *module_id: UUID4
+    *turn_on: boolean
+}
+
+entity "SensorModule" {
+    *id: UUID4
+    *module_id: UUID4
+    *sensor_id: UUID4
+    *turn_on: boolean
+}
+
+entity "Device" {
+    *id: UUID4
+    *created_at: datetime
+    *name: varchar
+    *vendor_name: varchar
+    *description: text
+    *module_id: UUID4
+}
+
+entity "Sensor" {
+    *id: UUID4
+    *created_at: datetime
+    *type: enum: Temperature || Moving || etc.
+    *vendor_name: varchar
+}
+
+entity "TelemetryData" {
+    *id: UUID4
+    *created_at: datetime
+    *source_id: UUID4
+    *source_type: enum: HouseModule || SensorModule
+    *event_data: JSON
+}
+
+User ||--o{ House : "1:M"
+House ||--o{ HouseModule : "1:M"
+Module ||--o{ HouseModule : "1:M"
+Module ||--o{ Device : "1:M"
+
+Module ||--o{ SensorModule : "1:M"
+Sensor ||--o{ SensorModule : "1:M"
+
+SensorModule ||--o{ TelemetryData : "1:M"
+HouseModule ||--o{ TelemetryData : "1:M"
+@enduml

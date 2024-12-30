@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f docker-compose.yml
+    kompose.version: 1.35.0 (HEAD)
+  labels:
+    io.kompose.service: kafka3
+  name: kafka3
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: kafka3
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -f docker-compose.yml
+        kompose.version: 1.35.0 (HEAD)
+      labels:
+        io.kompose.service: kafka3
+    spec:
+      containers:
+        - env:
+            - name: KAFKA_ADVERTISED_LISTENERS
+              value: PLAINTEXT://kafka3.default.svc.cluster.local:9094
+            - name: KAFKA_BROKER_ID
+              value: "3"
+            - name: KAFKA_INTER_BROKER_LISTENER_NAME
+              value: PLAINTEXT
+            - name: KAFKA_LISTENERS
+              value: PLAINTEXT://0.0.0.0:9092
+            - name: KAFKA_ZOOKEEPER_CONNECT
+              value: zookeeper:2181
+          image: wurstmeister/kafka
+          name: kafka3
+          ports:
+            - containerPort: 9092
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /kafka/logs
+              name: kafka3-data
+      restartPolicy: Always
+      volumes:
+        - name: kafka3-data
+          persistentVolumeClaim:
+            claimName: kafka3-data

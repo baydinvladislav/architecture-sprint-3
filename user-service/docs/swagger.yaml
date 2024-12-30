@@ -1,0 +1,354 @@
+definitions:
+  presentation.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  web_schemas.HouseOut:
+    properties:
+      address:
+        type: string
+      house_id:
+        type: integer
+      square:
+        type: number
+      user_id:
+        type: integer
+    type: object
+  web_schemas.LoginRequest:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  web_schemas.LoginResponse:
+    properties:
+      access_token:
+        type: string
+      id:
+        type: integer
+      refresh_token:
+        type: string
+      username:
+        type: string
+    type: object
+  web_schemas.NewHouseIn:
+    properties:
+      address:
+        type: string
+      square:
+        type: number
+    type: object
+  web_schemas.NewUserIn:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  web_schemas.NewUserOut:
+    properties:
+      access_token:
+        type: string
+      refresh_token:
+        type: string
+      username:
+        description: ID           uint `json:"id"`
+        type: string
+    type: object
+  web_schemas.RefreshTokenRequest:
+    properties:
+      refresh_token:
+        type: string
+    type: object
+  web_schemas.UpdateHouseIn:
+    properties:
+      address:
+        type: string
+      house_id:
+        type: integer
+      square:
+        type: number
+      user_id:
+        type: integer
+    type: object
+info:
+  contact: {}
+paths:
+  /houses:
+    get:
+      description: Получить список всех домов, связанных с пользователем
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/web_schemas.HouseOut'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/presentation.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/presentation.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/presentation.ErrorResponse'
+      summary: Получение всех домов пользователя
+      tags:
+      - houses
+    post:
+      consumes:
+      - application/json
+      description: Создать новый дом, связанный с пользователем, и вернуть информацию
+        о доме
+      parameters:
+      - description: New House
+        in: body
+        name: house
+        required: true
+        schema:
+          $ref: '#/definitions/web_schemas.NewHouseIn'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/web_schemas.HouseOut'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/presentation.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/presentation.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/presentation.ErrorResponse'
+      summary: Создание нового дома для пользователя
+      tags:
+      - houses
+  /houses/{id}:
+    put:
+      consumes:
+      - application/json
+      description: Обновить информацию о существующем доме пользователя
+      parameters:
+      - description: Updated House
+        in: body
+        name: house
+        required: true
+        schema:
+          $ref: '#/definitions/web_schemas.UpdateHouseIn'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/web_schemas.HouseOut'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/presentation.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/presentation.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/presentation.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/presentation.ErrorResponse'
+      summary: Обновление информации о доме пользователя
+      tags:
+      - houses
+  /{userId}:
+    get:
+      description: Получить данные пользователя по его ID
+      parameters:
+      - description: User ID
+        in: path
+        name: userId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: user
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/presentation.ErrorResponse'
+      summary: Получение пользователя по ID
+      tags:
+      - users
+    put:
+      consumes:
+      - application/json
+      description: Обновить данные существующего пользователя
+      parameters:
+      - description: Updated User Data
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/web_schemas.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: user
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/presentation.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/presentation.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/presentation.ErrorResponse'
+      summary: Обновление данных пользователя
+      tags:
+      - users
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Аутентификация пользователя с генерацией Access и Refresh токенов
+      parameters:
+      - description: Login credentials
+        in: body
+        name: credentials
+        required: true
+        schema:
+          $ref: '#/definitions/web_schemas.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/web_schemas.LoginResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/presentation.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/presentation.ErrorResponse'
+      summary: Вход пользователя
+      tags:
+      - users
+  /refresh-token:
+    post:
+      consumes:
+      - application/json
+      description: Обновить Access и Refresh токены с использованием действующего
+        Refresh токена
+      parameters:
+      - description: New User
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/web_schemas.RefreshTokenRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Access и Refresh токены
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/presentation.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/presentation.ErrorResponse'
+      summary: Обновление токена доступа
+      tags:
+      - users
+  /register:
+    post:
+      consumes:
+      - application/json
+      description: Зарегистрировать нового пользователя и получить Access и Refresh
+        токены
+      parameters:
+      - description: New User
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/web_schemas.NewUserIn'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/web_schemas.NewUserOut'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/presentation.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/presentation.ErrorResponse'
+      summary: Регистрация нового пользователя
+      tags:
+      - users
+  /username/{username}:
+    get:
+      description: Получить данные пользователя по его имени пользователя (username)
+      parameters:
+      - description: Username
+        in: path
+        name: username
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: user
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/presentation.ErrorResponse'
+      summary: Получение пользователя по имени пользователя
+      tags:
+      - users
+swagger: "2.0"

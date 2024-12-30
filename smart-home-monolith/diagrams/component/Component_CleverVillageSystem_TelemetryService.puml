@@ -1,0 +1,26 @@
+@startuml
+!include <C4/C4_Container>
+
+skinparam linetype ortho
+skinparam rectangle {
+  BackgroundColor #white
+  BorderColor #black
+  Shadowing false
+}
+
+Person_Ext(external_device, "Оборудование", "Публикует данные в Kafka")
+
+System_Boundary(b_system, "Telemetry Service") {
+    Container(telemetry_service, "TelemetryService", "Golang", "Обрабатывает телеметрию и дома")
+
+    ContainerDb(telemetry_db, "База Данных", "MongoDB", "Хранит телеметрию")
+
+    ContainerQueue(kafka_broker, "Kafka", "Брокер Сообщений", "Передает события системы")
+}
+
+Rel(external_device, kafka_broker, "Публикует данные", "telemetry.events")
+Rel(telemetry_service, telemetry_db, "Записывает телеметрию", "MongoDB")
+Rel(kafka_broker, telemetry_service, "Передает телеметрию", "telemetry.events")
+Rel(kafka_broker, telemetry_service, "Передает данные о домах", "house.connected")
+
+@enduml

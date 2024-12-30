@@ -1,0 +1,162 @@
+version: '3.8'
+
+services:
+  user-service:
+    build:
+      context: ./user-service
+    ports:
+      - "8080:8080"
+    environment:
+      - DB_HOST=user-db
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=user_db
+      - DB_PORT=5432
+    depends_on:
+      user-db:
+        condition: service_healthy
+
+  device-service:
+    build:
+      context: ./device-service
+    ports:
+      - "8081:8081"
+    environment:
+      - DB_HOST=device-db
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=device_db
+      - DB_PORT=5432
+    depends_on:
+      device-db:
+        condition: service_healthy
+
+  telemetry-service:
+    build:
+      context: ./telemetry-service
+    ports:
+      - "8082:8082"
+    environment:
+      - KAFKA_BROKERS=kafka1:9092,kafka2:9093,kafka3:9094
+      - MONGO_URI=mongodb://root:mongodb@mongo:27017/telemetry_database
+
+  user-db:
+    image: postgres:latest
+    restart: always
+    environment:
+      POSTGRES_DB: user_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5434:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d user_db -h localhost || exit 1" ]
+      interval: 10s
+      retries: 5
+    volumes:
+      - user_db_data:/var/lib/postgresql/data
+
+  device-db:
+    image: postgres:latest
+    restart: always
+    environment:
+      POSTGRES_DB: device_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5435:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d device_db -h localhost || exit 1" ]
+      interval: 10s
+      retries: 5
+    volumes:
+      - device_db_data:/var/lib/postgresql/data
+
+  mongo:
+    image: mongo:latest
+    restart: always
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: telemetry_database
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: mongodb
+      MONGO_URI: mongodb://root:mongodb@mongo:27017/telemetry_database?authSource=admin
+    volumes:
+      - mongo_data:/data/db
+      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js
+
+  nginx:
+    image: nginx:latest
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+    ports:
+      - "80:80"
+    depends_on:
+      - user-service
+      - device-service
+      - telemetry-service
+
+  zookeeper:
+    image: wurstmeister/zookeeper
+    platform: linux/amd64
+    ports:
+      - "2181:2181"
+    depends_on:
+      - user-service
+      - device-service
+      - telemetry-service
+
+  kafka1:
+    image: wurstmeister/kafka
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka1:9092
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_CREATE_TOPICS: "forced.module.shutdown:3:2,telemetry.data:3:2,module.addition.topic:3:2,module.verification.topic:3:2,equipment.change.state.topic:3:2"
+    depends_on:
+      - zookeeper
+    volumes:
+      - kafka1_data:/kafka/logs
+
+  kafka2:
+    image: wurstmeister/kafka
+    ports:
+      - "9093:9092"
+    environment:
+      KAFKA_BROKER_ID: 2
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka2:9092
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+    depends_on:
+      - zookeeper
+    volumes:
+      - kafka2_data:/kafka/logs
+
+  kafka3:
+    image: wurstmeister/kafka
+    ports:
+      - "9094:9092"
+    environment:
+      KAFKA_BROKER_ID: 3
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka3:9092
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+    depends_on:
+      - zookeeper
+    volumes:
+      - kafka3_data:/kafka/logs
+
+volumes:
+  user_db_data:
+  device_db_data:
+  mongo_data:
+  kafka1_data:
+  kafka2_data:
+  kafka3_data:

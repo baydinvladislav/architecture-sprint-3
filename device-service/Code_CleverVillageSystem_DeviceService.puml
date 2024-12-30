@@ -1,0 +1,107 @@
+@startuml
+title Device Service Code Architecture
+
+package "shared" {
+    class Container {
+        + ModuleLogicService: service.ModuleLogicService
+        + AppSettings: AppSettings
+    }
+
+    class AppSettings {
+        + DBHost: string
+        + DBUser: string
+        + DBPassword: string
+        + DBName: string
+        + DBPort: string
+        + DBSSLMode: string
+        + KafkaBroker: string
+        + ModuleAdditionTopic: string
+        + ModuleVerificationTopic: string
+        + KafkaGroupID: string
+        + DSN(): string
+    }
+}
+
+package "service" {
+    class ModuleLogicService {
+        - persistenceService: ModulePersistenceService
+        - messagingService: ExternalMessagingService
+        --
+        + ProcessMessage(event: schemas.BaseEvent): (bool, error)
+        + TurnOnModule(houseID: uuid.UUID, moduleID: uuid.UUID): error
+        + TurnOffModule(houseID: uuid.UUID, moduleID: uuid.UUID): error
+        + GetModuleState(houseID: uuid.UUID, moduleID: uuid.UUID): *web_schemas.HouseModuleState
+        + GetAllModules(): []web_schemas.ModuleOut
+        + GetModulesByHouseID(houseID: uuid.UUID): []web_schemas.ModuleOut
+    }
+
+    class ModulePersistenceService {
+        - repository: repository.ModuleRepository
+        --
+        + GetAllModules(): []web_schemas.ModuleOut
+        + GetModulesByHouseID(houseID: uuid.UUID): []web_schemas.ModuleOut
+        + GetModuleState(houseID: uuid.UUID, moduleID: uuid.UUID): *web_schemas.HouseModuleState
+        + TurnOnModule(houseID: uuid.UUID, moduleID: uuid.UUID): error
+        + TurnOffModule(houseID: uuid.UUID, moduleID: uuid.UUID): error
+        + AcceptAdditionModuleToHouse(houseID: uuid.UUID, moduleID: uuid.UUID): error
+        + FailAdditionModuleToHouse(houseID: uuid.UUID, moduleID: uuid.UUID): error
+    }
+
+    class ExternalMessagingService {
+        - supplier: suppliers.KafkaSupplierInterface
+        --
+        + SendModuleAdditionEvent(ctx: context.Context, key: []byte, event: schemas.HomeVerificationEvent): error
+        + SendEquipmentStateChangeEvent(ctx: context.Context, key: []byte, event: schemas.ChangeEquipmentStateEvent): error
+        + ReadModuleVerificationEvent(ctx: context.Context): schemas.BaseEvent
+    }
+}
+
+package "repository" {
+    interface ModuleRepository {
+        + GetAllModules(): []web_schemas.ModuleOut
+        + GetModulesByHouseID(houseID: uuid.UUID): []web_schemas.ModuleOut
+        + GetModuleState(houseID: uuid.UUID, moduleID: uuid.UUID): *web_schemas.HouseModuleState
+        + TurnOnModule(houseID: uuid.UUID, moduleID: uuid.UUID): error
+        + TurnOffModule(houseID: uuid.UUID, moduleID: uuid.UUID): error
+        + AcceptAdditionModuleToHouse(houseID: uuid.UUID, moduleID: uuid.UUID): error
+        + FailAdditionModuleToHouse(houseID: uuid.UUID, moduleID: uuid.UUID): error
+    }
+
+    class GORMModuleRepository {
+        --
+        + GetAllModules(): []web_schemas.ModuleOut
+        + GetModulesByHouseID(houseID: uuid.UUID): []web_schemas.ModuleOut
+        + GetModuleState(houseID: uuid.UUID, moduleID: uuid.UUID): *web_schemas.HouseModuleState
+        + TurnOnModule(houseID: uuid.UUID, moduleID: uuid.UUID): error
+        + TurnOffModule(houseID: uuid.UUID, moduleID: uuid.UUID): error
+        + AcceptAdditionModuleToHouse(houseID: uuid.UUID, moduleID: uuid.UUID): error
+        + FailAdditionModuleToHouse(houseID: uuid.UUID, moduleID: uuid.UUID): error
+    }
+}
+
+package "suppliers" {
+    interface KafkaSupplierInterface {
+        + SendMessageToAdditionTopic(ctx: context.Context, key: []byte, event: schemas.HomeVerificationEvent): error
+        + SendMessageToEquipmentChangeStateTopic(ctx: context.Context, key: []byte, event: schemas.ChangeEquipmentStateEvent): error
+        + ReadModuleVerificationTopic(ctx: context.Context): kafka.Message
+    }
+
+    class KafkaSupplier {
+        --
+        + SendMessageToAdditionTopic(ctx: context.Context, key: []byte, event: schemas.HomeVerificationEvent): error
+        + SendMessageToEquipmentChangeStateTopic(ctx: context.Context, key: []byte, event: schemas.ChangeEquipmentStateEvent): error
+        + ReadModuleVerificationTopic(ctx: context.Context): kafka.Message
+    }
+}
+
+ModuleLogicService --> ModulePersistenceService : uses
+ModuleLogicService --> ExternalMessagingService : uses
+ModulePersistenceService --> ModuleRepository : uses
+ModuleRepository <|-- GORMModuleRepository : implements
+ExternalMessagingService --> KafkaSupplierInterface : uses
+KafkaSupplierInterface <|-- KafkaSupplier : implements
+
+Container --> ModuleLogicService
+Container --> AppSettings
+
+@enduml

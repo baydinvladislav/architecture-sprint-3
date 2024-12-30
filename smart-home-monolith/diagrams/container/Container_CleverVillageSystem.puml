@@ -1,0 +1,40 @@
+@startuml
+!include <C4/C4_Container>
+
+skinparam linetype ortho
+
+Person(mobile_user, "Мобильный Пользователь", "Пользователь, взаимодействующий с мобильным приложением")
+
+System_Boundary(b_system, "Система Умной Деревни") {
+    Container(mobile_app, "Мобильное Приложение", "iOS/Android", "Позволяет пользователям взаимодействовать с системой")
+    Container(api_gateway, "API Gateway", "Nginx/Envoy", "Маршрутизирует запросы к соответствующим микросервисам")
+
+    Container_Boundary(services, "Микросервисы") {
+        Container(user_service, "UserService", "Golang", "Управляет информацией о пользователях и их взаимодействиями")
+        Container(device_service, "DeviceService", "Golang", "Управляет оборудованием и его контролем")
+        Container(telemetry_service, "TelemetryService", "Golang", "Обрабатывает телеметрию от оборудования и может выключить оборудование")
+    }
+
+    ContainerDb(user_db, "База Данных Пользователей", "PostgreSQL", "Хранит данные о пользователях")
+    ContainerDb(equipment_db, "База Данных Оборудования", "PostgreSQL", "Хранит данные об оборудовании")
+    ContainerDb(telemetry_db, "База Данных Телеметрии", "MongoDB", "Хранит данные телеметрии")
+}
+
+Container(kafka, "Kafka", "Брокер Сообщений", "Обрабатывает события системы, кластер состоит из трёх инстансов")
+System_Ext(external_system, "Электрооборудование", "Публикует события в Kafka и получает команды управления")
+
+Rel(mobile_user, mobile_app, "HTTP/HTTPS")
+Rel(mobile_app, api_gateway, "Отправляет запросы в", "HTTP/HTTPS")
+Rel_D(api_gateway, services, "Маршрутизирует запросы", "HTTP/HTTPS")
+
+Rel(user_service, user_db, "Читает и записывает", "ORM")
+Rel(device_service, equipment_db, "Читает и записывает", "ORM")
+Rel(telemetry_service, telemetry_db, "Читает и записывает", "MongoDB драйвер")
+
+Rel(external_system, kafka, " ")
+Rel(kafka, services, "Микросервисы обрабатывают ивенты", "Kafka topics")
+
+Rel(services, external_system, "Отправляет запросы к", "MQTT/HTTP/CoAP")
+
+Rel(telemetry_service, device_service, "Команда выключить оборудование", "HTTP")
+@enduml

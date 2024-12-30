@@ -68,6 +68,19 @@ spring:
     show-sql: true
 ```
 
+## API
+* GET /api/heating/{id} - Fetching heating system with id {id} - Получение информации о системе отопления
+* PUT /api/heating/{id} - Updating heating system with id {id} - Обновление системы отопления
+* POST /api/heating/{id}/turn-on - Turning on heating system with id {id} - Включение системы отопления
+* POST /api/heating/{id}/turn-off - Turning off heating system with id {id} - Выключение системы отопления
+* POST /api/heating/{id}/set-temperature - Setting target temperature to {temperature} for heating system with id {id} - Установка целевой температуры
+* GET /api/heating/{id}/current-temperature - Fetching current temperature for heating system with id {id} - Получение текущей температуры
+
+
+## Domains
+* управление системой отопления
+* взаимодействие с датчиками температуры
+
 ## Логирование
 
 В проекте используется SLF4J для логирования.

@@ -1,74 +1,125 @@
-# Базовая настройка
+# Содержание
+- [Base HTTP requests](#base-http-requests)
+- [C4 context diagram](#c4-context-diagram)
+- [C4 container diagram](#c4-container-diagram)
 
-## Запуск minikube
-
-[Инструкция по установке](https://minikube.sigs.k8s.io/docs/start/)
-
-```bash
-minikube start
+### Base HTTP requests:
+#### Поднять проект:
+```
+docker compose up --build
 ```
 
-
-## Добавление токена авторизации GitHub
-
-[Получение токена](https://github.com/settings/tokens/new)
-
-```bash
-kubectl create secret docker-registry ghcr --docker-server=https://ghcr.io --docker-username=<github_username> --docker-password=<github_token> -n default
+#### Регистрация:
 ```
-
-
-## Установка API GW kusk
-
-[Install Kusk CLI](https://docs.kusk.io/getting-started/install-kusk-cli)
-
-```bash
-kusk cluster install
-```
-
-
-## Настройка terraform
-
-[Установите Terraform](https://yandex.cloud/ru/docs/tutorials/infrastructure-management/terraform-quickstart#install-terraform)
-
-
-Создайте файл ~/.terraformrc
-
-```hcl
-provider_installation {
-  network_mirror {
-    url = "https://terraform-mirror.yandexcloud.net/"
-    include = ["registry.terraform.io/*/*"]
-  }
-  direct {
-    exclude = ["registry.terraform.io/*/*"]
-  }
+POST http://0.0.0.0:80/user/register
+{
+    "username": "new_user",
+    "password": "53047"
 }
 ```
 
-## Применяем terraform конфигурацию 
-
-```bash
-cd terraform
-terraform apply
+#### Вход:
+```
+POST http://0.0.0.0:80/user/login
+{
+    "username": "new_user",
+    "password": "53047"
+} + JWT
 ```
 
-## Настройка API GW
-
-```bash
-kusk deploy -i api.yaml
+#### Создать дом:
+```
+POST http://0.0.0.0:80/houses
+{
+    "address": "more test house",
+    "square": 23.0
+} + JWT
 ```
 
-## Проверяем работоспособность
-
-```bash
-kubectl port-forward svc/kusk-gateway-envoy-fleet -n kusk-system 8080:80
-curl localhost:8080/hello
+#### Получить дома:
+```
+GET http://0.0.0.0:80/user/houses + JWT
 ```
 
-
-## Delete minikube
-
-```bash
-minikube delete
+#### Получить все предоставляемые модули компанией (слеш!):
 ```
+GET http://0.0.0.0:80/device/modules/
+```
+
+#### Подключить модуль к дому:
+```
+POST http://0.0.0.0:80/device/modules/houses/5d19d994-12ef-40fc-9569-67bcbc800cfe/modules/15584fb6-d251-43a1-98f7-96c8497b6b43/assign
+```
+
+#### Убедиться в подключении дома к модулю:
+```
+GET http://0.0.0.0:80/device/modules/houses/5d19d994-12ef-40fc-9569-67bcbc800cfe
+```
+
+#### Выключить модуль:
+```
+POST http://0.0.0.0:80/device/modules/houses/5d19d994-12ef-40fc-9569-67bcbc800cfe/modules/15584fb6-d251-43a1-98f7-96c8497b6b43/turn-off
+```
+
+#### Включить модуль:
+```
+POST http://0.0.0.0:80/device/modules/houses/5d19d994-12ef-40fc-9569-67bcbc800cfe/modules/15584fb6-d251-43a1-98f7-96c8497b6b43/turn-on
+```
+
+#### Получить текущее состояние подключенного модуля к дому:
+```
+GET http://0.0.0.0:80/device/modules/houses/5d19d994-12ef-40fc-9569-67bcbc800cfe/modules/8176acb6-b8ca-44a3-8038-3f3b845dc1b6/state
+```
+
+#### Подключиться к контейнеру брокера Kafka:
+```
+docker exec -it architecture-sprint-3-kafka1-1 bash
+```
+
+#### Вывести все топики Kafka:
+```
+kafka-topics.sh --bootstrap-server localhost:9092 --list
+```
+
+#### Прочитать ивент в Kafka:
+```
+kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic equipment.change.state.topic --from-beginning
+```
+
+#### Отправить тестовый ивент в Kafka, в топик телеметрии:
+```
+kafka-console-producer.sh --broker-list localhost:9092 --topic telemetry.data
+
+{"event_type": "TelemetryData", "payload": {"source_id": "sensor_test", "source_type": "sensor", "value": 28.5, "time": 1633036888}}
+```
+
+#### Подключиться к контейнеру MongoDB:
+```
+docker exec -it architecture-sprint-3-mongo-1 mongosh -u root -p mongodb --authenticationDatabase admin
+```
+
+#### Подключиться к БД телеметрии в MongoDB:
+```
+use telemetry_database
+```
+
+#### Вывести все ивенты из MongoDB:
+```
+db.events.find().pretty()
+```
+
+#### Сгенерировать .svg диаграмму из .plantuml файла:
+```
+plantuml -tsvg Component_CleverVillageSystem_DeviceService.puml
+```
+
+#### Остановка и удаление контейнеров docker-compose:
+```
+docker-compose down
+```
+
+### C4 context diagram
+![System Architecture](./Context_CleverVillageSystem.svg)
+
+### C4 container diagram
+![System Architecture](./Container_CleverVillageSystem.svg)

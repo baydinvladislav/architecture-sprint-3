@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f docker-compose.yml
+    kompose.version: 1.35.0 (HEAD)
+  labels:
+    io.kompose.service: device-db
+  name: device-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: device-db
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -f docker-compose.yml
+        kompose.version: 1.35.0 (HEAD)
+      labels:
+        io.kompose.service: device-db
+    spec:
+      terminationGracePeriodSeconds: 30
+      containers:
+        - env:
+            - name: POSTGRES_DB
+              value: device_db
+            - name: POSTGRES_PASSWORD
+              value: postgres
+            - name: POSTGRES_USER
+              value: postgres
+          image: postgres:latest
+          name: device-db
+          ports:
+            - containerPort: 5432
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: device-db-data
+          livenessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - /usr/bin/pg_isready -U postgres -d device_db -h localhost || exit 1
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 5
+          readinessProbe:
+            tcpSocket:
+              port: 5432
+            initialDelaySeconds: 5
+            periodSeconds: 10
+      volumes:
+        - name: device-db-data
+          persistentVolumeClaim:
+            claimName: device-db-data

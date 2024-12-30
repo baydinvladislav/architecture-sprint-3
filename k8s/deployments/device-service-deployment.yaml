@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f docker-compose.yml
+    kompose.version: 1.35.0 (HEAD)
+  labels:
+    io.kompose.service: device-service
+  name: device-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: device-service
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -f docker-compose.yml
+        kompose.version: 1.35.0 (HEAD)
+      labels:
+        io.kompose.service: device-service
+    spec:
+      containers:
+        - env:
+            - name: DB_HOST
+              value: device-db
+            - name: DB_NAME
+              value: device_db
+            - name: DB_PASSWORD
+              value: postgres
+            - name: DB_PORT
+              value: "5435"
+            - name: DB_USER
+              value: postgres
+          image: baydinvladislav/device-service:latest
+          name: device-service
+          ports:
+            - containerPort: 8081
+              protocol: TCP
+      restartPolicy: Always
+      imagePullSecrets:
+        - name: docker-hub-secret

@@ -1,0 +1,105 @@
+@startuml
+package "shared" {
+    class AppContainer {
+        + AppSettings: AppSettings
+        + TelemetryService: TelemetryService
+        + EmergencyService: EmergencyService
+        + InitHouseService: InitHouseService
+    }
+
+    class AppSettings {
+        + KafkaBroker: string
+        + EmergencyStopTopic: string
+        + NewHouseConnectedTopic: string
+        + TelemetryTopic: string
+        + GroupID: string
+        + MongoURI: string
+        + DatabaseName: string
+        + TelemetryCollection: string
+        + HouseCollection: string
+        + DeviceServiceUrl: string
+    }
+
+    AppContainer --> AppSettings
+}
+
+package "service" {
+    class TelemetryService {
+        - telemetryRepository: TelemetryRepository
+        - kafkaSupplier: KafkaSupplier
+
+        + ProcessTelemetryEvent(event: Any): error
+    }
+
+    class EmergencyService {
+        - deviceServiceSupplier: DeviceServiceSupplier
+        - emergencyRepository: EmergencyRepository
+        - kafkaSupplier: KafkaSupplier
+
+        + ProcessEmergencyEvent(event: Any): error
+    }
+
+    class InitHouseService {
+        - houseRepository: HouseRepository
+        - kafkaSupplier: KafkaSupplier
+
+        + InitializeHouse(event: Any): error
+    }
+
+    AppContainer --> TelemetryService
+    AppContainer --> EmergencyService
+    AppContainer --> InitHouseService
+}
+
+package "repository" {
+    class TelemetryRepository {
+        - client: mongo.Client
+        - collection: mongo.Collection
+
+        + InsertEvent(event: Any): error
+        + Close(): void
+    }
+
+    class EmergencyRepository {
+        - client: mongo.Client
+        - collection: mongo.Collection
+
+        + SaveEmergencyEvent(event: Any): error
+    }
+
+    class HouseRepository {
+        - client: mongo.Client
+        - collection: mongo.Collection
+
+        + InsertHouse(event: Any): error
+    }
+
+    TelemetryService --> TelemetryRepository
+    EmergencyService --> EmergencyRepository
+    InitHouseService --> HouseRepository
+}
+
+package "suppliers" {
+    class KafkaSupplier {
+        + EmergencyStopTopic: string
+        + NewHouseConnectedTopic: string
+        + TelemetryTopic: string
+
+        + ReadEmergencyStopTopic(ctx context.Context) (kafka.Message, error)
+        + ReadNewHouseConnectedTopic(ctx context.Context) (kafka.Message, error)
+        + ReadTelemetryTopic(ctx context.Context) (kafka.Message, error)
+    }
+
+    class DeviceServiceSupplier {
+        + BaseURL: string
+
+        + TurnOffModule(houseID string, moduleID string)
+    }
+
+    TelemetryService --> KafkaSupplier
+    EmergencyService --> KafkaSupplier
+    EmergencyService --> DeviceServiceSupplier
+    InitHouseService --> KafkaSupplier
+}
+
+@enduml

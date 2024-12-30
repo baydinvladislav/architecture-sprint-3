@@ -1,0 +1,113 @@
+replicaCount:
+  user-service: 2
+  device-service: 2
+  telemetry-service: 1
+  mongo: 1
+
+image:
+  user-service:
+    repository: baydinvladislav/user-service
+    tag: latest
+    pullPolicy: IfNotPresent
+  device-service:
+    repository: baydinvladislav/device-service
+    tag: latest
+    pullPolicy: IfNotPresent
+  telemetry-service:
+    repository: baydinvladislav/telemetry-service
+    tag: latest
+    pullPolicy: IfNotPresent
+  mongo:
+    repository: mongo
+    tag: 6.0
+    pullPolicy: IfNotPresent
+
+service:
+  user-service:
+    port: 8080
+  device-service:
+    port: 8081
+  telemetry-service:
+    port: 8082
+  mongo:
+    port: 27017
+
+database:
+  mongo:
+    host: mongo
+    port: 27017
+    username: root
+    password: mongodb
+    database: telemetry_database
+
+  postgres:
+    user-db:
+      host: user-db
+      port: 5432
+      username: postgres
+      password: postgres
+      database: user_db
+
+    device-db:
+      host: device-db
+      port: 5432
+      username: postgres
+      password: postgres
+      database: device_db
+
+kafka:
+  brokers:
+    - kafka1:9092
+    - kafka2:9093
+    - kafka3:9094
+  topics:
+    - telemetry.data
+    - forced.module.shutdown
+
+resources:
+  user-service:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "256Mi"
+      cpu: "500m"
+  device-service:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "256Mi"
+      cpu: "500m"
+  telemetry-service:
+    requests:
+      memory: "256Mi"
+      cpu: "200m"
+    limits:
+      memory: "512Mi"
+      cpu: "1000m"
+  mongo:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "256Mi"
+      cpu: "500m"
+
+ingress:
+  enabled: true
+  annotations:
+    kubernetes.io/ingress.class: nginx
+  hosts:
+    - host: user-service.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+    - host: device-service.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+    - host: telemetry-service.example.com
+      paths:
+        - path: /
+          pathType: Prefix

@@ -1,0 +1,43 @@
+@startuml
+!include <C4/C4_Container>
+
+LAYOUT_WITH_LEGEND()
+
+Person(user, "Customer", "'Smart Home' system user")
+
+Container(app_client, "Mobile Application", "iOS/Android", "Uses API controllers to interact with Smart Home modules")
+Container(internal_system, "User Microservice", "Microservice", "Manages user data and performs verification before connecting a module to a home") #1368bd
+
+System_Ext(system, "Physical Equipment", "Some Physical Equipment, e.g. Heating Equipment, Gate Equipment, Moving Sensor")
+
+System_Boundary(b_system, "Device Microservice") {
+    Container(controller_modules_view, "Module View Controller", "Golang Gin", "Provides information about modules available for connection")
+    Container(controller_module_management, "Module Management Controller", "Golang Gin", "Manages modules in the home: adding, enabling/disabling, and removing modules")
+
+    Container(new_module_publisher, "ModuleAdditionProducer", "Producer", "Publishes messages to Kafka indicating that a request to add a module to a new home has been received")
+    Container(state_equipment_publisher, "EquipmentChangeStateProducer", "Producer", "Produces commands in Kafka for physical equipment to change their state")
+    Container(module_verification_consumer, "ModuleVerificationConsumer", "Consumer", "Processes events from Kafka indicating that a module can be added, as verified by another service")
+
+    ContainerDb(modules_db, "Module Database", "PostgreSQL", "Stores information about connected modules and their status")
+    ContainerQueue(kafka_broker, "Apache Kafka", "Message Broker", "Receives and stores system events")
+}
+
+Rel(app_client, controller_modules_view, "Requests list of available modules", "HTTP")
+Rel(app_client, controller_module_management, "Manages connected modules in the home", "HTTP")
+
+Rel(user, app_client, "Uses the mobile application to manage the system")
+Rel(controller_modules_view, modules_db, "Reads data on company’s available modules", "Golang GORM")
+
+Rel(controller_module_management, modules_db, "Changes equipment status", "Golang GORM")
+Rel(controller_module_management, new_module_publisher, "Changes equipment status", "Golang GORM")
+Rel(controller_module_management, state_equipment_publisher, "Changes equipment status", "Golang GORM")
+
+Rel(internal_system, kafka_broker, "Sends verification result events for home and user", "module.verification.topic")
+Rel(new_module_publisher, kafka_broker, "Publishes messages requesting home connection", "module.addition.topic")
+Rel(state_equipment_publisher, kafka_broker, "Publishes messages to change equipment states", "equipment.change.state.topic")
+Rel(kafka_broker, system, "Get command to change their state", "equipment.change.state.topic")
+
+Rel(module_verification_consumer, kafka_broker, "Reads home verification events for connection", "module.verification.topic")
+Rel(module_verification_consumer, modules_db, "Updates data based on home verification", "Golang GORM")
+
+@enduml

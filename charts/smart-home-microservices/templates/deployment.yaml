@@ -1,0 +1,50 @@
+{{- range $serviceName, $service := .Values.service }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $serviceName }}
+  labels:
+    app: {{ $serviceName }}
+spec:
+  replicas: {{ $.Values.replicaCount.$serviceName }}
+  selector:
+    matchLabels:
+      app: {{ $serviceName }}
+  template:
+    metadata:
+      labels:
+        app: {{ $serviceName }}
+    spec:
+      containers:
+        - name: {{ $serviceName }}
+          image: "{{ $.Values.image.$serviceName.repository }}:{{ $.Values.image.$serviceName.tag }}"
+          imagePullPolicy: {{ $.Values.image.$serviceName.pullPolicy }}
+          ports:
+            - containerPort: {{ $service.port }}
+          env:
+            {{- if $.Values.database.postgres.$serviceName }}
+            - name: DB_HOST
+              value: "{{ $.Values.database.postgres.$serviceName.host }}"
+            - name: DB_PORT
+              value: "{{ $.Values.database.postgres.$serviceName.port }}"
+            - name: DB_USER
+              value: "{{ $.Values.database.postgres.$serviceName.username }}"
+            - name: DB_PASSWORD
+              value: "{{ $.Values.database.postgres.$serviceName.password }}"
+            - name: DB_NAME
+              value: "{{ $.Values.database.postgres.$serviceName.database }}"
+            {{- end }}
+            {{- if eq $serviceName "telemetry-service" }}
+            - name: KAFKA_BROKERS
+              value: "{{ join "," $.Values.kafka.brokers }}"
+            - name: MONGO_URI
+              value: "mongodb://{{ $.Values.database.mongo.username }}:{{ $.Values.database.mongo.password }}@{{ $.Values.database.mongo.host }}:{{ $.Values.database.mongo.port }}/{{ $.Values.database.mongo.database }}"
+            {{- end }}
+          resources:
+            requests:
+              memory: "{{ $.Values.resources.$serviceName.requests.memory }}"
+              cpu: "{{ $.Values.resources.$serviceName.requests.cpu }}"
+            limits:
+              memory: "{{ $.Values.resources.$serviceName.limits.memory }}"
+              cpu: "{{ $.Values.resources.$serviceName.limits.cpu }}"
+{{- end }}
