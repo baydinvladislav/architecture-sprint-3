@@ -1,0 +1,19 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+Person(customer, "Customer", "User of the heating system")
+
+System_Boundary(monolith, "Heating Control System") {
+    Container(server, "Server", "Java Spring Backend", "Manages heating control logic and interacts with indoor temperature sensors")
+    Container(mobile_app, "Mobile App", "iOS/Android", "Allows the customer to control heating and view temperature data")
+}
+
+System_Ext(system, "Heating Equipment", "Heating Equipment")
+System_Ext(sensor, "Temperature Sensor", "Temperature Sensor")
+
+Rel(customer, mobile_app, "Uses to control heating via the mobile app")
+Rel(mobile_app, server, "Sends HTTP requests to control heating and retrieve temperature data")
+Rel(server, system, "Sends commands to control heating")
+Rel_L(sensor, server, "Receives indoor temperature data")
+
+@enduml

@@ -1,0 +1,40 @@
+@startuml
+!include <C4/C4_Container>
+
+skinparam linetype ortho
+
+Person(mobile_user, "Mobile User", "User interacting with the mobile application")
+
+System_Boundary(b_system, "Smart Village System") {
+    Container(mobile_app, "Mobile Application", "iOS/Android", "Allows users to interact with the system")
+    Container(api_gateway, "API Gateway", "Nginx/Envoy", "Routes requests to the appropriate microservices")
+
+    Container_Boundary(services, "Microservices") {
+        Container(user_service, "UserService", "Golang", "Manages user information and interactions")
+        Container(device_service, "DeviceService", "Golang", "Manages devices and their control")
+        Container(telemetry_service, "TelemetryService", "Golang", "Processes telemetry from devices and can turn off equipment")
+    }
+
+    ContainerDb(user_db, "User Database", "PostgreSQL", "Stores user data")
+    ContainerDb(equipment_db, "Equipment Database", "PostgreSQL", "Stores equipment data")
+    ContainerDb(telemetry_db, "Telemetry Database", "MongoDB", "Stores telemetry data")
+}
+
+Container(kafka, "Kafka", "Message Broker", "Processes system events, the cluster consists of three instances")
+System_Ext(external_system, "Electrical Equipment", "Publishes events to Kafka and receives control commands")
+
+Rel(mobile_user, mobile_app, "HTTP/HTTPS")
+Rel(mobile_app, api_gateway, "Sends requests to", "HTTP/HTTPS")
+Rel_D(api_gateway, services, "Routes requests", "HTTP/HTTPS")
+
+Rel(user_service, user_db, "Reads and writes", "ORM")
+Rel(device_service, equipment_db, "Reads and writes", "ORM")
+Rel(telemetry_service, telemetry_db, "Reads and writes", "MongoDB driver")
+
+Rel(external_system, kafka, " ")
+Rel(kafka, services, "Microservices process events", "Kafka topics")
+
+Rel(services, external_system, "Sends requests to", "MQTT/HTTP/CoAP")
+
+Rel(telemetry_service, device_service, "Command to turn off equipment", "HTTP")
+@enduml

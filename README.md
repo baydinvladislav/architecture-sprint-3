@@ -1,15 +1,34 @@
-# Содержание
-- [Base HTTP requests](#base-http-requests)
-- [C4 context diagram](#c4-context-diagram)
-- [C4 container diagram](#c4-container-diagram)
+# Table of Contents
+- [Project Description](#project-description)
+- [Base HTTP Requests](#base-http-requests)
+- [C4 Context Diagram](#c4-context-diagram)
+- [C4 Container Diagram](#c4-container-diagram)
 
-### Base HTTP requests:
-#### Поднять проект:
+### Project Description:
+The project is a distributed system based on a **microservices architecture** with **Kafka** as the central message broker 
+and a **REST API** interface. It includes three primary microservices, each serving a distinct purpose:
+
+- **UserService**: Manages user authentication and login, providing secure access control through JWT.
+- **TelemetryService**: Processes telemetry events from IoT devices, including data logging and triggering system-wide actions.
+- **DeviceService**: Handles device management, including registering, monitoring, and controlling IoT devices.
+
+The system is designed for scalability and reliability, integrating PostgreSQL for structured data storage 
+and MongoDB for unstructured telemetry data. It supports seamless interaction between users and IoT devices through
+a user-friendly API and mobile application integration.
+
+The entire system is deployed on **Kubernetes**, ensuring scalability and high availability through container orchestration. 
+A Kafka cluster is used to handle inter-service communication, providing fault tolerance and supporting the system's distributed nature.
+
+The project leverages the **Saga pattern** to manage complex distributed transactions, ensuring data consistency across microservices. 
+By using a sequence of events and compensating actions, the system can handle failures gracefully while maintaining overall consistency.
+
+### Base HTTP Requests:
+#### Start the Project:
 ```
 docker compose up --build
 ```
 
-#### Регистрация:
+#### Register:
 ```
 POST http://0.0.0.0:80/user/register
 {
@@ -18,7 +37,7 @@ POST http://0.0.0.0:80/user/register
 }
 ```
 
-#### Вход:
+#### Login:
 ```
 POST http://0.0.0.0:80/user/login
 {
@@ -27,7 +46,7 @@ POST http://0.0.0.0:80/user/login
 } + JWT
 ```
 
-#### Создать дом:
+#### Create a House:
 ```
 POST http://0.0.0.0:80/houses
 {
@@ -36,90 +55,90 @@ POST http://0.0.0.0:80/houses
 } + JWT
 ```
 
-#### Получить дома:
+#### Get Houses:
 ```
 GET http://0.0.0.0:80/user/houses + JWT
 ```
 
-#### Получить все предоставляемые модули компанией (слеш!):
+#### Get All Modules Provided by the Company (with a slash!):
 ```
 GET http://0.0.0.0:80/device/modules/
 ```
 
-#### Подключить модуль к дому:
+#### Assign a Module to a House:
 ```
 POST http://0.0.0.0:80/device/modules/houses/5d19d994-12ef-40fc-9569-67bcbc800cfe/modules/15584fb6-d251-43a1-98f7-96c8497b6b43/assign
 ```
 
-#### Убедиться в подключении дома к модулю:
+#### Verify a Module is Connected to a House:
 ```
 GET http://0.0.0.0:80/device/modules/houses/5d19d994-12ef-40fc-9569-67bcbc800cfe
 ```
 
-#### Выключить модуль:
+#### Turn Off a Module:
 ```
 POST http://0.0.0.0:80/device/modules/houses/5d19d994-12ef-40fc-9569-67bcbc800cfe/modules/15584fb6-d251-43a1-98f7-96c8497b6b43/turn-off
 ```
 
-#### Включить модуль:
+#### Turn On a Module:
 ```
 POST http://0.0.0.0:80/device/modules/houses/5d19d994-12ef-40fc-9569-67bcbc800cfe/modules/15584fb6-d251-43a1-98f7-96c8497b6b43/turn-on
 ```
 
-#### Получить текущее состояние подключенного модуля к дому:
+#### Get the Current State of a Module Connected to a House:
 ```
 GET http://0.0.0.0:80/device/modules/houses/5d19d994-12ef-40fc-9569-67bcbc800cfe/modules/8176acb6-b8ca-44a3-8038-3f3b845dc1b6/state
 ```
 
-#### Подключиться к контейнеру брокера Kafka:
+#### Connect to the Kafka Broker Container:
 ```
 docker exec -it architecture-sprint-3-kafka1-1 bash
 ```
 
-#### Вывести все топики Kafka:
+#### List All Kafka Topics:
 ```
 kafka-topics.sh --bootstrap-server localhost:9092 --list
 ```
 
-#### Прочитать ивент в Kafka:
+#### Read an Event in Kafka:
 ```
 kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic equipment.change.state.topic --from-beginning
 ```
 
-#### Отправить тестовый ивент в Kafka, в топик телеметрии:
+#### Send a Test Event to Kafka in the Telemetry Topic:
 ```
 kafka-console-producer.sh --broker-list localhost:9092 --topic telemetry.data
 
 {"event_type": "TelemetryData", "payload": {"source_id": "sensor_test", "source_type": "sensor", "value": 28.5, "time": 1633036888}}
 ```
 
-#### Подключиться к контейнеру MongoDB:
+#### Connect to the MongoDB Container:
 ```
 docker exec -it architecture-sprint-3-mongo-1 mongosh -u root -p mongodb --authenticationDatabase admin
 ```
 
-#### Подключиться к БД телеметрии в MongoDB:
+#### Connect to the Telemetry Database in MongoDB:
 ```
 use telemetry_database
 ```
 
-#### Вывести все ивенты из MongoDB:
+#### Retrieve All Events from MongoDB:
 ```
 db.events.find().pretty()
 ```
 
-#### Сгенерировать .svg диаграмму из .plantuml файла:
+#### Generate an .svg Diagram from a .plantuml File:
 ```
 plantuml -tsvg Component_CleverVillageSystem_DeviceService.puml
 ```
 
-#### Остановка и удаление контейнеров docker-compose:
+#### Stop and Remove Docker Compose Containers:
 ```
 docker-compose down
 ```
 
-### C4 context diagram
+### C4 Context Diagram
 ![System Architecture](./Context_CleverVillageSystem.svg)
 
-### C4 container diagram
+### C4 Container Diagram
 ![System Architecture](./Container_CleverVillageSystem.svg)

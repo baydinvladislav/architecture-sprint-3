@@ -1,39 +1,39 @@
-# Содержание
-- [Сервис для управления модулями умного дома "Smart Home"](#сервис-для-управления-модулями-умного-дома-smart-home)
-- [Логика работы добавления модуля](#логика-работы-добавления-модуля)
-- [Логика управления модулем](#логика-управления-модулем)
-- [Логика получения модулей](#логика-получения-модулей)
+# Table of Contents:
+- [Smart Home Module Management Service](#smart-home-module-management-service)
+- [Module Addition Logic](#module-addition-logic)
+- [Module management logic](#module-management-logic)
+- [Logic for retrieving modules](#logic-for-retrieving-modules)
 - [C4 Device Service component diagram](#c4-device-service-component-diagram)
 - [C4 Device Service code diagram](#c4-device-service-code-diagram)
 
-### Сервис для управления модулями умного дома "Smart Home"
-Отвечает за отображение всех модулей, доступных для подключения в системе "Smart Home", 
-и управление состоянием уже подключённых модулей.
+### Smart Home Module Management Service:
+Responsible for displaying all modules available for connection in the "Smart Home" system 
+and managing the state of already connected modules.
 
-### Логика работы добавления модуля:
-1. **Добавление модуля пользователем** <i>POST /modules/houses/:houseID/modules/:moduleID/assign</i>: 
-   Пользователь отправляет запрос на ручку добавления модуля в свой дом, API шлюз проксирует запрос в данный микросервис.
+### Module Addition Logic:
+1. **Module addition by the user** <i>POST /modules/houses/:houseID/modules/:moduleID/assign</i>:
+   The user sends a request to the module addition endpoint for their home, 
+   and the API gateway proxies the request to this microservice.
 
-2. **Отправка ивента в Kafka**:  
-   Сервис отправляет ивент в Kafka для микросервиса пользователей (`UserService`) в топик `module.addition.topic`, 
-   тем самым запрашивая возможность установки.
+2. **Sending an event to Kafka**:  
+   The service sends an event to Kafka for the user microservice (UserService) in the module.addition.topic, 
+   thereby requesting permission for installation..
 
-3. **Верификация пользователя**:  
-   `UserService` проверяет, может ли пользователь установить данный модуль в свой дом.
+3. **User verification**:  
+   `UserService` checks if the user is allowed to install the module in their home.
 
-4. **Прослушивание ответа верификации**:  
-   Сервис слушает топик `module.verification.topic` для получения подтверждения верификации от `UserService`.
-    - Если верификация пройдена успешно, создаётся запись в таблице `home_modules` с положительным статусом подключения, 
-      подключение успешно.
-    - Если верификация не пройдена, в `home_modules` создаётся запись с отрицательным статусом и поделючения не производится.
+4. **Listening for the verification response**:  
+   The service listens to the `module.verification.topic` to receive verification confirmation from `UserService`.
+    - If verification is successful, a record with a positive connection status is created in the `home_modules` table, and the connection is completed successfully.
+    - If verification fails, a record with a negative status is created in `home_modules`, and the module is not connected.
 
-### Логика управления модулем:
-1. **Управление модулем**:  
-   После успешного подключения пользователь может отправлять команды в контроллер управления модулями. 
-   Например, он может направить запрос на выполнение определённых действий через подключённый модуль 
-   на ручку <i>/modules/houses/:houseID/modules/:moduleID/state</i>.
+### Module management logic:
+1. **Module management**:  
+   After a successful connection, the user can send commands to the module management controller. For example, 
+   they can send a request to perform specific actions through the connected module via the  
+   <i>/modules/houses/:houseID/modules/:moduleID/state</i> endpoint.
 
-   * **Выключить модуль** — это позволяет временно приостановить работу любого подключённого модуля.
+   * **Turn off the module** — this allows temporarily pausing the operation of any connected module..
    ```
    {
        "homeId": uuid,
@@ -42,7 +42,7 @@
    }
    ```
 
-   * **Открыть ворота** — позволяет отдать команду модулю автоматических ворот на открытие.
+   * **Open the gates** — allows sending a command to the automatic gate module to open.
    ```
    {
        "homeId": uuid,
@@ -51,8 +51,8 @@
    }
    ```
 
-   - **Увеличить температуру в помещении** — отдаётся команда на повышение температуры.  
-     *(Пример: `"state": {"changeTemperature": -5}` — уменьшает температуру на 5 градусов, тем самым охлаждая помещение.)*
+   - **Increase the room temperature** — a command is sent to increase the temperature.  
+     *(ex: `"state": {"changeTemperature": -5}` — decreases the temperature by 5 degrees, thereby cooling the room*.
    ```
    {
        "homeId": uuid,
@@ -61,7 +61,7 @@
    }
    ```
 
-   * А также **другие команды**, которые могут быть подключены и реализованы в микросервисе для конкретного оборудования.
+   * As well as **other commands** that can be integrated and implemented in the microservice for specific equipment.
    ```
    {
        "homeId": uuid,
@@ -69,36 +69,36 @@
        "state": ...
    }
    ```
-   
-   После получения команд для физического оборудования, микросервис `DeviceService` отправляет команды в Kafka 
-   в топик `equipment.change.state.topic`, из Kafka они доходят до оборудования и оно изменяет своё состояние, 
-   осуществляя бизнес логику управления от клиента через мобильное приложение.
 
-2. **Отключения модуля**:  
-   Помимо временной паузы работы модуля у сервиса `DeviceService` есть ручки для отключения/включения модуля:
+   After receiving commands for physical equipment, the `DeviceService` microservice sends commands 
+   to Kafka in the `equipment.change.state.topic`. From Kafka, these commands are delivered to the equipment, 
+   which then changes its state, executing the business logic for management initiated by the client through the mobile application.
+
+2. **Module deactivation**:  
+   In addition to temporarily pausing module operation, the `DeviceService` has endpoints for deactivating/activating a module:
 
    * <i>POST /modules/houses/:houseID/modules/:moduleID/turn-on</i>
    * <i>POST /modules/houses/:houseID/modules/:moduleID/turn-off</i>
 
-
-### Логика получения модулей:
-   1. **Получение всех модулей**, модули прописываются в БД во время миграций при запуске Docker контейнера:
+### Logic for retrieving modules:
+   1. **Retrieving all modules**, modules are registered in the database during migrations when the Docker container is started:
    <i>GET /modules/</i>
 
-   2. **Получение модулей, подключенных к дому**:
+   2. **Retrieving modules connected to a home**:
    <i>GET /modules/houses/:houseID</i>
 
-### Логика выполнения команд оборудованием от сервиса телеметрии:
-В сервис может придти ивент от сервиса телеметрии (`TelemetryService`), например датчик движения может триггеруть систему открыть ворота 
-или может быть полезным автоматически выключать котлы при слишком высоких значениях с датчиков температуры, 
-схема ивента изменения состояния оборудования по запросу от сервиса телеметрии аналогична схеме запроса 
-на изменение состояния оборудования от пользователя.
+### Logic for executing equipment commands from the telemetry service:
+The service may receive an event from the telemetry service `(TelemetryService)`. 
+For example, a motion sensor might trigger the system to open the gates, or it could be useful 
+for automatically turning off boilers when temperature sensor readings are too high. 
+The event schema for changing equipment state based on a request from the telemetry service is similar to the schema used 
+for changing equipment state based on a user request.
 
-примечание: <b>После поднятия контейнеров более подробный Swagger доступен по ссылке:
+Note: After starting the containers, a more detailed Swagger is available at the following link:
 http://0.0.0.0:8080/service/swagger/index.html </b>
 
-### C4 Device Service component diagram
+### C4 Device Service component diagram:
 ![System Architecture](./Component_CleverVillageSystem_DeviceService.svg)
 
-### C4 Device Service code diagram
+### C4 Device Service code diagram:
 ![System Architecture](./Code_CleverVillageSystem_DeviceService.svg)

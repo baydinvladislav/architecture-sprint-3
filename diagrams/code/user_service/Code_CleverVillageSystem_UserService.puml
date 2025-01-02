@@ -1,0 +1,122 @@
+@startuml
+title User Service Code Architecture
+
+package "suppliers" {
+    class KafkaSupplier {
+        - verifyHouseConsumer: kafka.Reader
+        - verifyHouseProducer: kafka.Writer
+        + ReadModuleAdditionTopic(ctx: context.Context): kafka.Message
+        + SendMessageToModuleVerificationTopic(ctx: context.Context, key: []byte, event: events.ModuleVerificationEvent): error
+    }
+}
+
+package "shared" {
+    class Container {
+        + UserService: service.UserService
+        + HouseService: service.HouseService
+        + AppSettings: AppSettings
+    }
+}
+
+package "service" {
+    class AuthService {
+        - accessSecret: []byte
+        - refreshSecret: []byte
+        + GenerateAccessToken(username: string): string
+        + GenerateRefreshToken(username: string): string
+        + ValidateAccessToken(tokenString: string): Claims
+        + ValidateRefreshToken(tokenString: string): Claims
+    }
+
+    class HouseService {
+        - houseRepository: repository.HouseRepository
+        - kafkaSupplier: suppliers.KafkaSupplier
+        - userService: UserService
+        - verifyService: VerifyConnectionService
+        + CreateUserHouse(userId: UUID, house: web_schemas.NewHouseIn): web_schemas.HouseOut
+        + GetUserHouses(userId: UUID): []web_schemas.HouseOut
+        + UpdateUserHouse(house: web_schemas.UpdateHouseIn): persistance.HouseModel
+        + ApproveModuleInstallation(userId: UUID, houseId: UUID): bool
+        + GetModuleAdditionEvent(ctx: context.Context): events.BaseEvent
+        + ProcessModuleAdditionEvent(event: events.BaseEvent): error
+    }
+
+    class UserService {
+        - userRepository: repository.UserRepository
+        - authService: AuthService
+        + SignUp(user: web.NewUserIn): error
+        + Login(username: string, password: string): error
+        + Update(user: web.NewUserIn): error
+        + GetCurrent(username: string): dto.UserDtoSchema
+        + GetByUsername(username: string): dto.UserDtoSchema
+        + GetRequiredById(id: UUID): dto.UserDtoSchema
+    }
+
+    class VerifyConnectionService {
+        - minSquare: float64
+        - maxSquare: float64
+        + VerifyModuleConnection(verifyingUser: web.UserOut, verifyingHouse: web.HouseOut): (bool, error)
+        + verifyUser(verifyingUser: web.UserOut): bool
+        + verifyHouse(verifyingHouse: web.HouseOut): bool
+    }
+}
+
+package "repository" {
+    interface HouseRepository {
+        + CreateUserHouse(userId: UUID, house: web.NewHouseIn): persistance.HouseModel
+        + GetUserHouses(userID: UUID): []web.HouseOut
+        + UpdateUserHouse(house: web.UpdateHouseIn): persistance.HouseModel
+    }
+
+    class GORMHouseRepository {
+        - db: gorm.DB
+        + CreateUserHouse(userId: UUID, house: web.NewHouseIn): persistance.HouseModel
+        + GetUserHouses(userID: UUID): []web.HouseOut
+        + UpdateUserHouse(house: web.UpdateHouseIn): persistance.HouseModel
+    }
+
+    HouseRepository <|-- GORMHouseRepository
+
+    interface UserRepository {
+        + Create(user: web.NewUserIn): error
+        + GetByUsername(username: string): dto.UserDtoSchema
+        + Update(user: web.NewUserIn): error
+        + GetRequiredById(id: UUID): dto.UserDtoSchema
+    }
+
+    class GORMUserRepository {
+        - db: gorm.DB
+        + Create(user: web.NewUserIn): error
+        + GetByUsername(username: string): dto.UserDtoSchema
+        + Update(user: web.NewUserIn): error
+        + GetRequiredById(id: UUID): dto.UserDtoSchema
+    }
+
+    UserRepository <|-- GORMUserRepository
+}
+
+package "shared" {
+    class AppSettings {
+        + DBHost: string
+        + DBUser: string
+        + DBPassword: string
+        + DBName: string
+        + DBPort: string
+        + KafkaBroker: string
+        + DSN(): string
+    }
+}
+
+Container --> UserService
+Container --> HouseService
+Container --> AppSettings
+
+HouseService --> HouseRepository
+HouseService --> suppliers.KafkaSupplier
+HouseService --> UserService
+HouseService --> VerifyConnectionService
+
+UserService --> UserRepository
+UserService --> AuthService
+
+@enduml
