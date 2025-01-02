@@ -1,0 +1,28 @@
+@startuml
+!include <C4/C4_Container>
+
+LAYOUT_WITH_LEGEND()
+
+System_Boundary(telemetry_service_boundary, "Telemetry Service") {
+    Container(emergency_consumer, "EmergencyConsumer", "Golang", "Handles events for emergency module shutdown")
+    Container(new_house_consumer, "NewHouseConsumer", "Golang", "Processes events related to connecting a new house to the Smart Home system")
+    Container(telemetry_consumer, "TelemetryConsumer", "Golang", "Processes events from devices and sensors")
+
+    ContainerDb(mongo_db, "Telemetry Database", "MongoDB", "Stores events written by consumers")
+}
+
+ContainerQueue(kafka_broker, "Kafka", "Message Broker", "Message broker enabling asynchronous communication")
+Container(device_service, "DeviceService", "Microservice", "Manages modules") #1368bd
+System_Ext(external_equipment, "Physical Equipment", "Physical equipment: gates, boilers, cameras, sensors, etc.")
+
+Rel(emergency_consumer, mongo_db, "Saves events about emergency module shutdowns", "Golang GORM")
+Rel(emergency_consumer, device_service, "Shuts down modules in emergencies", "HTTP")
+Rel(new_house_consumer, mongo_db, "Stores events related to adding new houses to the system", "Golang GORM")
+Rel(telemetry_consumer, mongo_db, "Stores telemetry events from devices and sensors", "Golang GORM")
+
+Rel(kafka_broker, emergency_consumer, "Processes events", "telemetry.data")
+Rel(kafka_broker, new_house_consumer, "Processes events", "forced.module.shutdown")
+Rel(kafka_broker, telemetry_consumer, "Processes events", "house.initialization")
+Rel(external_equipment, kafka_broker, "Generates events")
+
+@enduml

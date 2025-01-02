@@ -1,5 +1,26 @@
 @startuml
-title Device Service Architecture
+title Device Service Code Architecture
+
+package "shared" {
+    class Container {
+        + ModuleLogicService: service.ModuleLogicService
+        + AppSettings: AppSettings
+    }
+
+    class AppSettings {
+        + DBHost: string
+        + DBUser: string
+        + DBPassword: string
+        + DBName: string
+        + DBPort: string
+        + DBSSLMode: string
+        + KafkaBroker: string
+        + ModuleAdditionTopic: string
+        + ModuleVerificationTopic: string
+        + KafkaGroupID: string
+        + DSN(): string
+    }
+}
 
 package "service" {
     class ModuleLogicService {
@@ -79,4 +100,8 @@ ModulePersistenceService --> ModuleRepository : uses
 ModuleRepository <|-- GORMModuleRepository : implements
 ExternalMessagingService --> KafkaSupplierInterface : uses
 KafkaSupplierInterface <|-- KafkaSupplier : implements
+
+Container --> ModuleLogicService
+Container --> AppSettings
+
 @enduml
