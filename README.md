@@ -7,17 +7,20 @@
 ### Project Description:
 The project is a distributed system based on a **microservices architecture** with **Kafka** as the central message broker 
 and a **REST API** interface. It includes three primary microservices, each serving a distinct purpose:
+
 - **UserService**: Manages user authentication and login, providing secure access control through JWT.
 - **TelemetryService**: Processes telemetry events from IoT devices, including data logging and triggering system-wide actions.
 - **DeviceService**: Handles device management, including registering, monitoring, and controlling IoT devices.
 
-The system is designed for scalability and reliability, integrating PostgreSQL for structured data storage and MongoDB
-for unstructured telemetry data. It supports seamless interaction between users and IoT devices through a user-friendly API 
-and mobile application integration.
+The system is designed for scalability and reliability, integrating PostgreSQL for structured data storage 
+and MongoDB for unstructured telemetry data. It supports seamless interaction between users and IoT devices through
+a user-friendly API and mobile application integration.
 
 The entire system is deployed on **Kubernetes**, ensuring scalability and high availability through container orchestration. 
-A Kafka cluster is used to handle inter-service communication, providing fault tolerance 
-and supporting the system's distributed nature.
+A Kafka cluster is used to handle inter-service communication, providing fault tolerance and supporting the system's distributed nature.
+
+The project leverages the **Saga pattern** to manage complex distributed transactions, ensuring data consistency across microservices. 
+By using a sequence of events and compensating actions, the system can handle failures gracefully while maintaining overall consistency.
 
 ### Base HTTP Requests:
 #### Start the Project:
