@@ -1,14 +1,53 @@
 # Table of Contents:
-- [Smart Home Module Management Service](#smart-home-module-management-service)
+- [Description](#description)
+- [Project Structure](#project-structure)
 - [Module Addition Logic](#module-addition-logic)
 - [Module management logic](#module-management-logic)
 - [Logic for retrieving modules](#logic-for-retrieving-modules)
 - [C4 Device Service component diagram](#c4-device-service-component-diagram)
 - [C4 Device Service code diagram](#c4-device-service-code-diagram)
 
-### Smart Home Module Management Service:
-Responsible for displaying all modules available for connection in the "Smart Home" system 
-and managing the state of already connected modules.
+### Description:
+The Device Service is a key component of the "Smart Home" system. It facilitates the management of modules within user homes, 
+enabling functionalities such as module addition, state management, and integration with other services. 
+Through its integration with Kafka and other system components, it ensures seamless operation and user control over the connected modules.
+
+### Project Structure:
+```
+device-service/
+├── persistence/                                  # Database models and migration scripts
+│   ├── device_model.go                           # Device entity model
+│   ├── migrate_init_data.go                      # Initial migration data
+│   └── module_model.go                           # Module entity model
+├── presentation/                                 # API handlers for incoming requests
+│   ├── module_management_controllers.go          # Handlers for managing modules
+│   └── module_view_controllers.go                # Handlers for module views
+├── repository/                                   # Data access layer
+│   ├── mocks.go                                  # Mock implementations for testing
+│   ├── module_repository_gorm.go                 # GORM-based repository for modules
+│   └── module_repository_interface.go            # Interface for module repositories
+├── schemas/                                      # Project data structures
+│   ├── dto/                                      # Data transfer objects
+│   ├── events/                                   # Event schemas
+│   └── web/                                      # Web-related schemas
+├── service/                                      # Business logic
+│   ├── external_messaging_service.go             # Messaging service (e.g., Kafka)
+│   ├── module_persistence_service.go             # Service for module persistence
+│   ├── module_service.go                         # Core module logic
+│   └── module_service_test.go                    # Unit tests for module service
+├── shared/                                       # Shared utilities and configurations
+│   ├── container.go                              # Dependency injection container
+│   └── settings.go                               # Configuration settings
+├── suppliers/                                    # External integrations
+│   ├── kafka_supplier.go                         # Kafka producer logic
+│   ├── kafka_supplier_interface.go               # Kafka supplier interface
+│   └── mocks.go                                  # Mocks for suppliers
+├── Code_CleverVillageSystem_DeviceService.puml   # PlantUML diagrams
+├── Dockerfile                                    # Docker image configuration
+├── go.mod                                        # Go module dependencies
+├── main.go                                       # Application entry point
+└── README.md                                     # Project documentation
+```
 
 ### Module Addition Logic:
 1. **Module addition by the user** <i>POST /modules/houses/:houseID/modules/:moduleID/assign</i>:
